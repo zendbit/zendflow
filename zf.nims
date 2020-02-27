@@ -82,8 +82,20 @@ proc newProject(sourceDir, sourceToCompile, sourceJsDir,
     writeFile(staticIndexHtml, staticRead(staticIndexHtml).replace("zfTpl.js",
             outputCompiledJsName))
 
+proc installDeps(sourceDir: string) =
+    let depsFile = joinPath(sourceDir, "deps")
+    if fileExists(depsFile):
+        let deps = staticRead(depsFile)
+        for dep in deps.split("\n"):
+            var stripDep = dep.strip()
+            if not stripDep.startsWith("#") and stripDep != "":
+                stripDep = stripDep.split("#")[0].strip()
+                let installDepsResult = gorgeEx("echo \"y\" | nimble install " & stripDep)
+                echo installDepsResult.output
+
 proc verifyCmd(cmdType: string) =
     cd(thisDir())
+
     let cmdParts = cmdType.split(':')
 
     let appName = cmdParts[1]
@@ -111,21 +123,38 @@ proc verifyCmd(cmdType: string) =
                 sourceJsToCompile = sourceJsToCompile,
                 sourceJsOutputDir = sourceJsOutputDir)
 
+    of "install":
+        if cmdParts[2] == "deps":
+            installDeps(sourceDir)
+        else:
+            echo "Command not found " & cmdParts[0] & " " & cmdParts[1]
+
     else:
         echo "command not found"
 
 let cmdCount = paramCount()
-if cmdCount >= 2:
-    if cmdCount == 3:
-        case paramStr(2)
-        of "run":
-            verifyCmd("run:" & paramStr(3))
 
-        of "new":
-            let appDir = joinPath(projectDir, paramStr(3))
-            let zfTplDir = joinPath("zfCore", "zfTpl")
-            if not dirExists(appDir):
-                cpDir(zfTplDir, appDir)
-                verifyCmd("new:" & paramStr(3))
-            else:
-                echo appDir & " already exist."
+if cmdCount == 3:
+    case paramStr(2)
+    of "run":
+        verifyCmd("run:" & paramStr(3))
+
+    of "new":
+        let appDir = joinPath(projectDir, paramStr(3))
+        let zfTplDir = joinPath("zfCore", "zfTpl")
+        if not dirExists(appDir):
+            cpDir(zfTplDir, appDir)
+            verifyCmd("new:" & paramStr(3))
+
+        else:
+            echo appDir & " already exist."
+
+    else:
+        echo "Command " & paramStr(2) & " not found."
+
+if cmdCount == 4:
+    case paramStr(2)
+    of "install":
+        verifyCmd("install:" & paramStr(3) & ":" & paramStr(4))
+    else:
+        echo "Command " & paramStr(2) & " not found."
