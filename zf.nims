@@ -13,6 +13,12 @@ import strutils
 # project folder
 let projectDir = "projects"
 
+proc echoRunHelp() =
+    echo ""
+    echo "hit enter/return for recompile and run :-)"
+    echo "q: for quit"
+    echo ""
+
 # procedur for run app
 proc run(sourceDir, sourceToCompile, sourceJsDir, sourceJsToCompile,
         sourceJsOutputDir: string, build:bool = false) =
@@ -62,6 +68,7 @@ proc run(sourceDir, sourceToCompile, sourceJsDir, sourceJsToCompile,
             if compile.exitCode == 0 and not build:
                 cd(joinPath(thisDir(), sourceDir))
                 exec ("./" & appName & "&")
+                echoRunHelp()
 
             if build:
                 break
@@ -72,8 +79,25 @@ proc run(sourceDir, sourceToCompile, sourceJsDir, sourceJsToCompile,
             quit = true
         else:
             echo "input not valid, valid input:"
-            echo "hit everything for recompile and run :-)"
-            echo "q: for quit"
+            echoRunHelp()
+
+proc echoNewProjectHints(sourceDir: string) =
+    echo ""
+    echo "Project created " & sourceDir
+    echo ""
+    echo "- run this command to install the project depedency: "
+    echo " $> nim zf.nims install " & rSplit(sourceDir, DirSep, 1)[1] & " deps"
+    echo ""
+    echo "if you plan to modify the depedency of project you can modify the deps file"
+    echo "or you can directly using nimble to download the package"
+    echo ""
+    echo "- run this command to run the project: "
+    echo " $> nim zf.nims run " & rSplit(sourceDir, DirSep, 1)[1]
+    echo " "
+    echo "The run command will not exit but wait for user key input,"
+    echo "- hit return/enter to recompile the modified source"
+    echo "- enter q then hit return/enter to quit from the app and stop the server"
+    echo ""
 
 # procedure for new project
 proc newProject(sourceDir, sourceToCompile, sourceJsDir,
@@ -88,22 +112,8 @@ proc newProject(sourceDir, sourceToCompile, sourceJsDir,
             outputCompiledJsName))
 
     if dirExists(sourceDir):
-        echo ""
-        echo "Project created " & sourceDir
-        echo ""
-        echo "- run this command to install the project depedency: "
-        echo " $> nim zf.nims install " & rSplit(sourceDir, DirSep, 1)[1] & " deps"
-        echo ""
-        echo "if you plan to modify the depedency of project you can modify the deps file"
-        echo "or you can directly using nimble to download the package"
-        echo ""
-        echo "- run this command to run the project: "
-        echo " $> nim zf.nims run " & rSplit(sourceDir, DirSep, 1)[1]
-        echo " "
-        echo "The run command will not exit but wait for user key input,"
-        echo "- hit return/enter to recompile the modified source"
-        echo "- enter q then hit return/enter to quit from the app and stop the server"
-        echo ""
+        echoNewProjectHints(sourceDir)
+
     else:
         echo ""
         echo "Failed to create project " & sourceDir
