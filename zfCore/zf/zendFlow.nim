@@ -16,13 +16,14 @@ import
     ctxReq,
     tables,
     formData,
-    json,
+    unpure/packedjson,
     settings,
     strtabs,
     uri3,
     strutils,
     os,
-    times
+    times,
+    asyncnet
 
 #[
     ZendFlow object definition
@@ -43,10 +44,9 @@ type
     default value will run on port 8080, bind address 0.0.0.0 and staticDir point to www folder
 ]#
 proc newZendFlow*(settings: Settings = newSettings()): ZendFlow =
-    var instance = ZendFlow(server: newAsyncHttpServer(
-            reuseAddr = settings.reuseAddr, reusePort = settings.reusePort,
-            maxBody = settings.maxBody), r: newRouter(), settings: settings)
-    result = instance
+    return ZendFlow(server: newAsyncHttpServer(
+        reuseAddr = settings.reuseAddr, reusePort = settings.reusePort,
+        maxBody = settings.maxBody), r: newRouter(), settings: settings)
 
 #[
     this proc is private and will to use if the route not found or not match with router definition
@@ -77,25 +77,24 @@ proc cleanTmpDir(self: ZendFlow, settings: Settings) {.gcsafe.} =
 #[
     this proc is private for main dispatch of request
 ]#
-proc mainHandlerAsync(self: ZendFlow, ctx: Request): Future[void] {.
-        async gcsafe.} =
-    case ctx.reqMethod
-        of HttpGet, HttpPost, HttpPut, HttpPatch, HttpDelete, HttpHead:
-            asyncCheck(sendToRouter(self, ctx))
-            # Chek cleanup tmp dir
-            if not self.isCleanTmpDirExecuted:
-                self.isCleanTmpDirExecuted = not self.isCleanTmpDirExecuted
-                self.cleanTmpDir(self.settings)
-                self.isCleanTmpDirExecuted = not self.isCleanTmpDirExecuted
-        else:
-            asyncCheck(httpMethodNotFoundAsync(self, ctx))
+proc mainHandlerAsync(self: ZendFlow, ctx: Request): Future[void] {.async gcsafe.} =
+    if ctx.reqMethod in [HttpGet, HttpPost, HttpPut, HttpPatch,
+        HttpDelete, HttpHead, HttpTrace, HttpOptions, HttpConnect]:
+        asyncCheck(sendToRouter(self, ctx))
+        # Chek cleanup tmp dir
+        if not self.isCleanTmpDirExecuted:
+            self.isCleanTmpDirExecuted = not self.isCleanTmpDirExecuted
+            self.cleanTmpDir(self.settings)
+            self.isCleanTmpDirExecuted = not self.isCleanTmpDirExecuted
+    else:
+        asyncCheck(httpMethodNotFoundAsync(self, ctx))
 
 #[
     this proc is for start the ZendFlow, this will serve forever :-)
 ]#
 proc serve*(self: ZendFlow) =
     echo &"ZendFlow listening your request on {self.settings.address}:{self.settings.port}"
-    echo "Enjoy and take some coffe :-)"
+    echo "Enjoy and take a cup of coffe :-)"
     waitFor self.server.serve(Port(self.settings.port), (ctx: Request) =>
             self.mainHandlerAsync(ctx), self.settings.address)
 
@@ -109,9 +108,13 @@ export
     tables,
     formData,
     FormData,
-    json,
+    packedjson,
     strtabs,
     uri3,
     strutils,
     times,
-    os
+    os,
+    Settings,
+    settings,
+    AsyncSocket,
+    asyncnet

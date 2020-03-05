@@ -13,12 +13,13 @@ import
     uri,
     asyncdispatch,
     asynchttpserver,
-    json,
+    unpure/packedjson,
     settings,
     cookies,
     strutils,
     strtabs,
-    formData
+    formData,
+    viewRender
 
 
 #[
@@ -29,6 +30,7 @@ import
         formData -> is FormData object and will capture if we use the multipart form
         json -> this will capture the application/json body from the post/put/patch method
         settings -> this is the shared settings
+        responseHeader -> headers will send on response to user
 ]#
 type
     CtxReq* = ref object
@@ -47,7 +49,7 @@ type
         responseHeaders*: HttpHeaders
 
 proc newCtxReq*(ctx: Request): CtxReq =
-    result = CtxReq(
+    return CtxReq(
         client: ctx.client,
         reqMethod: ctx.reqMethod,
         headers: ctx.headers,
@@ -63,7 +65,7 @@ proc newCtxReq*(ctx: Request): CtxReq =
         responseHeaders: newHttpHeaders())
 
 proc toRequest(self: CtxReq): Request =
-    result = Request(
+    return Request(
         client: self.client,
         reqMethod: self.reqMethod,
         headers: self.headers,
@@ -72,8 +74,8 @@ proc toRequest(self: CtxReq): Request =
         hostname: self.hostname,
         body: self.body)
 
-proc setCookie*(self: CtxReq, cookies: StringTableRef, domain: string = "",
-        path: string = "", expires: string = "", secure: bool = false) =
+proc setCookie*(self: CtxReq, cookies: StringTableRef,
+        domain: string = "", path: string = "", expires: string = "", secure: bool = false) =
     var cookieList: seq[string] = @[]
     for k, v in cookies:
         cookieList.add(k & "=" & v)
@@ -92,10 +94,9 @@ proc setCookie*(self: CtxReq, cookies: StringTableRef, domain: string = "",
 proc getCookie*(self: CtxReq): StringTableRef =
     var cookie = self.headers.getOrDefault("cookie")
     if cookie != "":
-        result = parseCookies(cookie)
+        return parseCookies(cookie)
 
-    else:
-        result = newStringTable()
+    return newStringTable()
 
 proc clearCookie*(self: CtxReq, cookies: StringTableRef) =
     self.setCookie(cookies, expires = "Thu, 01 Jan 1970 00:00:00 GMT")
@@ -106,6 +107,11 @@ proc resp*(self: CtxReq, httpCode: HttpCode, content: string): Future[void] {.as
 proc resp*(self: CtxReq, httpCode: HttpCode, jnode: JsonNode): Future[void] {.async.} =
     self.responseHeaders.add("Content-Type", "application/json")
     await respond(self.toRequest(), httpCode, $jnode, self.responseHeaders)
+
+proc render*(self: CtxReq, view: string): Future[void] {.async.} =
+    self.responseHeaders.add("Content-Type", "text/html")
+    await respond(self.toRequest(), Http200, render(self.settings.viewDir, view),
+        self.responseHeaders)
 
 proc respRedirect*(self: CtxReq, redirectTo: string): Future[void] {.async.} =
     self.responseHeaders.add("Location", redirectTo)

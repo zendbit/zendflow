@@ -49,26 +49,24 @@ import
 
 type
     Middleware* = ref object of RootObj
-        pre: proc (ctx: CtxReq): Future[void] {.gcsafe.}
-        post: proc (ctxReq: CtxReq, route: Route): Future[void] {.gcsafe.}
+        pre: proc (ctx: CtxReq): Future[bool] {.gcsafe.}
+        post: proc (ctxReq: CtxReq, route: Route): Future[bool] {.gcsafe.}
 
 proc newMiddleware*(): Middleware =
-    var instance = Middleware()
-    result = instance
+    return Middleware()
 
-proc beforeRoute*(self: Middleware, pre: proc (ctxReq: CtxReq): Future[void] {.
-        gcsafe.}) {.gcsafe.} =
+proc beforeRoute*(self: Middleware, pre: proc (ctxReq: CtxReq):
+        Future[bool] {.gcsafe.}) {.gcsafe.} =
     self.pre = pre
 
-proc afterRoute*(self: Middleware, post: proc (ctxReq: CtxReq,
-        route: Route): Future[void] {.gcsafe.}){.gcsafe.} =
+proc afterRoute*(self: Middleware, post: proc (ctxReq: CtxReq, route: Route):
+        Future[bool] {.gcsafe.}){.gcsafe.} =
     self.post = post
 
-proc execBeforeRoute*(self: Middleware, ctxReq: CtxReq): Future[void] {.async.} =
+proc execBeforeRoute*(self: Middleware, ctxReq: CtxReq): Future[bool] {.async.} =
     if not isNil(self.pre):
-        await self.pre(ctxReq)
+        return await self.pre(ctxReq)
 
-proc execAfterRoute*(self: Middleware, ctxReq: CtxReq, route: Route): Future[
-        void] {.async.} =
+proc execAfterRoute*(self: Middleware, ctxReq: CtxReq, route: Route): Future[bool] {.async.} =
     if not isNil(self.post):
-        await self.post(ctxReq, route)
+        return await self.post(ctxReq, route)

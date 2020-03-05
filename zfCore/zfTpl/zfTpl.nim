@@ -9,29 +9,45 @@
 
 import ../../zfCore/zf/zendFlow
 
-let zf = newZendFlow()
+# increase the maxBody to handle large upload file
+# value in bytes
+let zf = newZendFlow(
+    newSettings(
+        appRootDir = getCurrentDir(),
+        port = 8080,
+        address = "0.0.0.0",
+        reuseAddr = true,
+        reusePort = false,
+        maxBody = 8388608))
 
 # handle before route middleware
-zf.r.beforeRoute(proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.beforeRoute(proc (ctx: CtxReq): Future[bool] {.async.} =
     # before Route here
     # you can filter the context request here before route happen
     # use full if we want to filtering the domain access or auth or other things that fun :-)
+    # make sure if call response directly from middleware must be call return true for breaking the pipeline:
+    #   await ctx.resp(Http200, "Hello World get request"))
+    #   return true
     )
 
 # handle after route middleware
 # this will execute right before dynamic route response to the server
-zf.r.afterRoute(proc (ctx: CtxReq, route: Route): Future[void] {.async.} =
+zf.r.afterRoute(proc (ctx: CtxReq, route: Route): Future[bool] {.async.} =
     # after Route here
     # you can filter the context request here after route happen
     # use full if we want to filtering the domain access or auth or other things that fun :-)
+    # make sure if call response directly from middleware must be call return true for breaking the pipeline:
+    #   await ctx.resp(Http200, "Hello World get request"))
+    #   return true
     )
 
 # this static route wil serve under
-# all static resource will serve under /
-# example address:port/style/*.css
+# all static resource will serve under /s uri path
+# address:port/s/
+# example address:port/s/style/*.css
 # if you custumize the static route for example zf.r.static("/public")
-# it will serve with address:port/public/
-# we can retrieve using address:port/public/style/*.css
+# it will serve with address:port/s/public/
+# we can retrieve using address:port/s/public/style/*.css
 zf.r.static("/")
 
 # using regex for matching the request
@@ -54,11 +70,30 @@ zf.r.get("/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>", proc (
     ctx.responseHeaders.add("Content-Type", "text/plain")
     await ctx.resp(Http200, "Hello World get request"))
 
-# will serve root get
 zf.r.get("/", proc (
         ctx: CtxReq): Future[void] {.async.} =
-    echo "Welcome home"
-    await ctx.resp(Http200, "Hello World get request"))
+    # set cookie
+    let cookie = {"age": "25", "user": "john"}.newStringTable
+
+    # cookie also has other parameter:
+    # domain: string = "" -> default
+    # path: string = "" -> default
+    # expires: string = "" -> default
+    # secure: bool = false -> default
+    ctx.setCookie(cookie)
+
+    # get coockie value:
+    #   var cookie = ctx.getCookie() -> will return StringTableRef. Read nim strtabs module
+    #   var age = cookie.getOrDefault("age")
+    #   var user = cookie.getOrDefault("user")
+
+    # if you want to clear the cookie you need to retrieve the cookie then pass the result to the clear cookie
+    # clear cookie:
+    #   var cookie = ctx.getCookie()
+    #   ctx.clearCookie(cookie)
+
+    # set default to redirect to index.htmo
+    await ctx.respRedirect("/index.html"))
 
 # accept request with /home/123456
 # id will capture the value 12345

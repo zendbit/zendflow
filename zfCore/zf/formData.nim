@@ -74,8 +74,7 @@ type
     Create form data instance with default tmp to stored uploded files
 ]#
 proc newFormData*(): FormData =
-    var instance = FormData(fields: @[], files: @[])
-    result = instance
+    return FormData(fields: @[], files: @[])
 
 #[
     Get field of form data by name and will return teh FieldData object
@@ -83,8 +82,7 @@ proc newFormData*(): FormData =
 proc getField*(self: FormData, name: string): FieldData =
     for field in self.fields:
         if field.name == name:
-            result = field
-            break
+            return field
 
 #[
     Get uploaded file by the name and will return the FileData as result
@@ -93,8 +91,7 @@ proc getField*(self: FormData, name: string): FieldData =
 proc getFileByName*(self: FormData, name: string): FileData =
     for file in self.files:
         if file.name == name:
-            result = file
-            break
+            return file
 
 #[
     Get uploaded file by the filename and will return the FileData as result
@@ -103,18 +100,17 @@ proc getFileByName*(self: FormData, name: string): FileData =
 proc getFileByFileName*(self: FormData, name: string): FileData =
     for file in self.files:
         if file.filename == name:
-            result = file
-            break
+            return file
 
 #[
     Get all field of the form data parameter
 ]#
-proc getFields*(self: FormData): seq[FieldData] = result = self.fields
+proc getFields*(self: FormData): seq[FieldData] = return self.fields
 
 #[
     Get all the uploaded files from the multipart forms
 ]#
-proc getFiles*(self: FormData): seq[FileData] = result = self.files
+proc getFiles*(self: FormData): seq[FileData] = return self.files
 
 #[
     Start parsing the multipart data content
@@ -249,4 +245,4 @@ proc parse*(self: FormData, content: string, settings: Settings,
             else:
                 discard
 
-    result = self
+    return self

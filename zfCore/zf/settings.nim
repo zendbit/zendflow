@@ -27,6 +27,8 @@ type
         reusePort*: bool
         maxBody*: int
         debug*: bool
+        appRootDir*: string
+        viewDir*: string
 
 #[
     this for instantiate new Settings with default parameter is:
@@ -34,16 +36,20 @@ type
         address -> 0.0.0.0
         staticDir -> www
 ]#
-proc newSettings*(port: int = 8080, address: string = "0.0.0.0",
-        staticDir: string = "www", tmpDir: string = "tmp", reuseAddr = true,
-                reusePort = false, maxBody = 8388608, debug = true): Settings =
+proc newSettings*(appRootDir:string = "", port: int = 8080, address: string = "0.0.0.0",
+        staticDir: string = "www", tmpDir: string = "tmp", reuseAddr: bool = true,
+        reusePort:bool = false, maxBody:int = 8388608, debug:bool = true, viewDir: string = "views"): Settings =
+
     var instance = Settings(
         port: port,
         address: address,
-        staticDir: joinPath(getCurrentDir(), staticDir),
-        tmpDir: joinPath(getCurrentDir(), tmpDir),
+        staticDir: joinPath(appRootDir ,staticDir),
+        tmpDir: joinPath(appRootDir, tmpDir),
         reuseAddr: reuseAddr,
         reusePort: reusePort,
         maxBody: maxBody,
-        debug: debug)
-    result = instance
+        debug: debug,
+        viewDir: joinPath(appRootDir, viewDir))
+    return instance
+
+export Settings

@@ -222,37 +222,35 @@ proc newMimeType*(): Mime =
 proc getMimeType(self: Mime, mimeSeq: seq[string], ext: string): string =
     for m in mimeSeq:
         if m.contains(&"|{ext.toLower()}|"):
-            result = m.split('=')[1]
-            break
+            return m.split('=')[1]
 
 proc getMimeType*(self: Mime, ext: string): string =
     let allMime = self.mimeTxt & self.mimeFont & self.mimeImg & self.mimeApp &
             self.mimeSnd & self.mimeVid & self.mimeMail & self.mimeVW
     for m in allMime:
         if m.contains(&"|{ext.toLower()}|"):
-            result = m.split('=')[1]
-            break
+            return m.split('=')[1]
 
 proc getAppMimeType*(self: Mime, ext: string): string =
-    result = self.getMimeType(self.mimeApp, ext)
+    return self.getMimeType(self.mimeApp, ext)
 
 proc getFontMimeType*(self: Mime, ext: string): string =
-    result = self.getMimeType(self.mimeFont, ext)
+    return self.getMimeType(self.mimeFont, ext)
 
 proc getSndMimeType*(self: Mime, ext: string): string =
-    result = self.getMimeType(self.mimeSnd, ext)
+    return self.getMimeType(self.mimeSnd, ext)
 
 proc getImgMimeType*(self: Mime, ext: string): string =
-    result = self.getMimeType(self.mimeImg, ext)
+    return self.getMimeType(self.mimeImg, ext)
 
 proc getMailMimeType*(self: Mime, ext: string): string =
-    result = self.getMimeType(self.mimeMail, ext)
+    return self.getMimeType(self.mimeMail, ext)
 
 proc getTxtMimeType*(self: Mime, ext: string): string =
-    result = self.getMimeType(self.mimeTxt, ext)
+    return self.getMimeType(self.mimeTxt, ext)
 
 proc getVidMimeType*(self: Mime, ext: string): string =
-    result = self.getMimeType(self.mimeVid, ext)
+    return self.getMimeType(self.mimeVid, ext)
 
 proc getVWMimeType*(self: Mime, ext: string): string =
-    result = self.getMimeType(self.mimeVW, ext)
+    return self.getMimeType(self.mimeVW, ext)

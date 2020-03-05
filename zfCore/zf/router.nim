@@ -16,7 +16,7 @@ import
     tables,
     uri3,
     formData,
-    json,
+    unpure/packedjson,
     middleware,
     route,
     os,
@@ -40,8 +40,7 @@ type
     Create new Router object, with default routes as zero list
 ]#
 proc newRouter*(): Router =
-    var instance = Router(routes: @[])
-    result = instance
+    return Router(routes: @[])
 
 #[
     This proc is private and will process and matching the request with the list of the routes
@@ -52,9 +51,8 @@ proc newRouter*(): Router =
     params -> will be valued with list of parameter from the query string and path segment
     reParams -> will be valued with regex match if the regex match with the givend definition of the route segment
 ]#
-proc matchesUri(self: Router, pathSeg: seq[string], uriSeg: seq[
-        string]): tuple[success: bool, params: Table[string, string],
-                reParams: Table[string, seq[string]]] =
+proc matchesUri(self: Router, pathSeg: seq[string], uriSeg: seq[string]):
+        tuple[success: bool, params: Table[string, string], reParams: Table[string, seq[string]]] =
 
     var success = true
     var reParams = initTable[string, seq[string]]()
@@ -87,19 +85,19 @@ proc matchesUri(self: Router, pathSeg: seq[string], uriSeg: seq[
             # break and continue if current route not match
             if not success: break
 
-    result = (success: success, params: params, reParams: reParams)
+    return (success: success, params: params, reParams: reParams)
 
 #[
     Will return list of registered routes
 ]#
 proc getRoutes*(self: Router): seq[Route] =
-    result = self.routes
+    return self.routes
 
 #[
     This proc is private for parsing the path segment
 ]#
 proc parseSegmentsFromPath(self: Router, path: string): seq[string] =
-    result = parseUri3(path).getPathSegments()
+    return parseUri3(path).getPathSegments()
 
 #[
     This proc is private and will parse the uri to table form
@@ -114,7 +112,7 @@ proc parseUriToTable(self: Router, uri: string): Table[string, string] =
             query.add(q[0], q[1])
 
     if query.len > 0:
-        result = query
+        return query
 
 #[
     This proc is private for mapt the content type
@@ -145,8 +143,9 @@ proc mapContentype(self: Router, ctxReq: CtxReq) =
         /s/img/*.jpg
         etc
 ]#
-proc handleStaticRoute(self: Router, ctxReq: CtxReq): Future[void] {.
-        async gcsafe.} =
+proc handleStaticRoute(self: Router, ctxReq: CtxReq):
+        Future[tuple[found: bool, filePath: string, contentType: string]]
+        {.async gcsafe.} =
 
     if not isNil(self.staticRoute):
         # get route from the path
@@ -155,7 +154,7 @@ proc handleStaticRoute(self: Router, ctxReq: CtxReq): Future[void] {.
         var staticPath = decodeUri(ctxReq.url.getPath())
         if ctxReq.reqMethod == HttpGet:
             # only if static path from the request url start with the route path
-            if staticPath.startsWith(routePath):
+            if staticPath.startsWith(routePath) and routePath != staticPath:
                 # static dir will search under staticDir in settings section
                 let staticSearchDir = ctxReq.settings.staticDir & staticPath
                 if fileExists(staticSearchDir):
@@ -173,21 +172,24 @@ proc handleStaticRoute(self: Router, ctxReq: CtxReq): Future[void] {.
                             contentType = mimeType
 
                     # read the file as stream from the static dir and serve it
-                    let file = newFileStream(staticSearchDir, fmRead)
-                    ctxReq.responseHeaders.add("Content-Type", contentType)
-                    await ctxReq.resp(Http200, file.readAll())
+                    #let file = newFileStream(staticSearchDir, fmRead)
+                    #let ctn = file.readAll()
+                    #file.close()
+                    #ctxReq.responseHeaders.add("Content-Type", contentType)
+                    #await ctxReq.resp(Http200, ctn)
+                    return (found: true, filePath: staticSearchDir,
+                        contentType: contentType)
 
 #[
     Handle dynamic route and middleware
 ]#
-proc handleDynamicRoute(self: Router, ctxReq: CtxReq): Future[void] {.
-        async gcsafe.} =
+proc handleDynamicRoute(self: Router, ctxReq: CtxReq): Future[void] {.async gcsafe.} =
 
     # execute middleware before routing
-    await self.execBeforeRoute(ctxReq)
+    if await self.execBeforeRoute(ctxReq): return
 
     # call static route before the dynamic route
-    await self.handleStaticRoute(ctxReq)
+    let handleStatic = await self.handleStaticRoute(ctxReq)
 
     # map content type
     self.mapContentype(ctxReq)
@@ -208,28 +210,38 @@ proc handleDynamicRoute(self: Router, ctxReq: CtxReq): Future[void] {.
 
     if route != nil:
         # execute middleware after routing before respond
-        await self.execAfterRoute(ctxReq, route)
+        if await self.execAfterRoute(ctxReq, route): return
+
         # execute route callback
         await route.thenDo(ctxReq)
 
-    # default response if route does not match
-    await ctxReq.resp(Http404, &"Resource not found {ctxReq.url.getPath()}")
+    elif handleStatic.found:
+        # read the file as stream from the static dir and serve it
+        let file = newFileStream(handleStatic.filePath, fmRead)
+        let ctn = file.readAll()
+        file.close()
+        ctxReq.responseHeaders.add("Content-Type", handleStatic.contentType)
+        await ctxReq.resp(Http200, ctn)
+
+    else:
+        # default response if route does not match
+        await ctxReq.resp(Http404, &"Resource not found {ctxReq.url.getPath()}")
 
 #[
     This proc will execute the registered callback procedure in route list.
     asynchttpserver Request will convert to CtxReq.
     beforeRoute and afterRoute middleware will evaluated here
 ]#
-proc executeProc*(self: Router, ctx: Request, settings: Settings): Future[
-        void] {.async gcsafe.} =
-    let ctxReq = newCtxReq(ctx)
+proc executeProc*(self: Router, ctx: Request, settings: Settings): Future[void] {.async gcsafe.} =
+    var ctxReq = newCtxReq(ctx)
     ctxReq.settings = settings
 
     try:
         await self.handleDynamicRoute(ctxReq)
 
     except Exception as ex:
-        await ctxReq.resp(Http500, &"Internal server error {ex.msg}")
+        let exMsg = ex.msg.replace("\n", "<br />")
+        await ctxReq.resp(Http500, &"Internal server error {exMsg}")
 
 proc static*(self: Router, path: string) =
     self.staticRoute = Route(path: path, httpMethod: HttpGet, thenDo: nil,
@@ -264,7 +276,7 @@ proc static*(self: Router, path: string) =
 ]#
 proc get*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
     self.routes.add(Route(path: path, httpMethod: HttpGet, thenDo: thenDo,
-            segments: self.parseSegmentsFromPath(path)))
+        segments: self.parseSegmentsFromPath(path)))
 
 #[
     let zf = newZendFlow()
@@ -292,10 +304,9 @@ proc get*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.g
     #### start the server
     zf.serve()
 ]#
-proc post*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[
-        void]{.gcsafe.}) =
+proc post*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
     self.routes.add(Route(path: path, httpMethod: HttpPost, thenDo: thenDo,
-            segments: self.parseSegmentsFromPath(path)))
+        segments: self.parseSegmentsFromPath(path)))
 
 #[
     let zf = newZendFlow()
@@ -325,7 +336,7 @@ proc post*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[
 ]#
 proc put*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
     self.routes.add(Route(path: path, httpMethod: HttpPut, thenDo: thenDo,
-            segments: self.parseSegmentsFromPath(path)))
+        segments: self.parseSegmentsFromPath(path)))
 
 #[
     let zf = newZendFlow()
@@ -353,10 +364,9 @@ proc put*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.g
     #### start the server
     zf.serve()
 ]#
-proc delete*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[
-        void]{.gcsafe.}) =
+proc delete*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
     self.routes.add(Route(path: path, httpMethod: HttpDelete, thenDo: thenDo,
-            segments: self.parseSegmentsFromPath(path)))
+        segments: self.parseSegmentsFromPath(path)))
 
 #[
     let zf = newZendFlow()
@@ -384,10 +394,9 @@ proc delete*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[
     #### start the server
     zf.serve()
 ]#
-proc patch*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[
-        void]{.gcsafe.}) =
+proc patch*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
     self.routes.add(Route(path: path, httpMethod: HttpPatch, thenDo: thenDo,
-            segments: self.parseSegmentsFromPath(path)))
+        segments: self.parseSegmentsFromPath(path)))
 
 #[
     let zf = newZendFlow()
@@ -415,11 +424,21 @@ proc patch*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[
     #### start the server
     zf.serve()
 ]#
-proc head*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[
-        void]{.gcsafe.}) =
+proc head*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
     self.routes.add(Route(path: path, httpMethod: HttpHead, thenDo: thenDo,
-            segments: self.parseSegmentsFromPath(path)))
+        segments: self.parseSegmentsFromPath(path)))
 
+proc options*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
+    self.routes.add(Route(path: path, httpMethod: HttpOptions, thenDo: thenDo,
+        segments: self.parseSegmentsFromPath(path)))
+
+proc trace*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
+    self.routes.add(Route(path: path, httpMethod: HttpTrace, thenDo: thenDo,
+        segments: self.parseSegmentsFromPath(path)))
+
+proc connect*(self: Router, path: string, thenDo: proc(ctx: CtxReq): Future[void]{.gcsafe.}) =
+    self.routes.add(Route(path: path, httpMethod: HttpConnect, thenDo: thenDo,
+        segments: self.parseSegmentsFromPath(path)))
 export
     beforeRoute,
     afterRoute
