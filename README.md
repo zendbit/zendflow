@@ -495,7 +495,7 @@ Thats it, feel free to modify and pull request if you have any idea, also this i
 This is production ready :-), feel free to send me a bug to solve.
 
 Need todo:
-- ssl support (this not mandatory, we can done to use under nginx)
+- ssl support (this not mandatory, we can done to run zendflow under nginx)
 - orm integration
 - websocket
 - rpc
