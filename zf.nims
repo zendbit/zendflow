@@ -146,6 +146,9 @@ proc verifyCmd(cmdType: string) =
     # nim js source to compile
     let sourceJsDir = joinPath(sourceDir, "nimjs")
     let sourceJsOutputDir = joinPath(sourceDir, "www", "private", "js", "compiled")
+    if not dirExists(sourceJsOutputDir):
+        mkDir(sourceJsOutputDir)
+
     let sourceJsToCompile = joinPath(sourceJsDir, appName & "Js.nim")
     let staticIndexHtml = joinPath(sourceDir, "www", "index.html")
 
