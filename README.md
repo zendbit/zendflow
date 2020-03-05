@@ -1,5 +1,5 @@
 # ZendFlow
-High performance asynchttpserver and web framework for nim language. This is ready for production :-) better run under nginx proxy.
+High performance asynchttpserver and web framework for nim language. This is ready for production :-) better run under nginx proxy. **for this release not supported windows, need to changes the zf.nims shell cmd to support windows system**
 
 ## Install Nim Lang
 
@@ -489,6 +489,15 @@ function initJq(selector)
 ```
 
 in the www folder contains vendor folder, this will contains the thirdpary library.
+
+## How to deploy
+
+To deploy we need the under projects folder only, for example web have application mysite under projects directory, we can deploy mysite directory to target system.
+
+```
+nim c appname{App.nim} -> in this case mysite.nim
+./mysite
+```
 
 Thats it, feel free to modify and pull request if you have any idea, also this is the public domain we can share or you can cantact me on my email [amru.rosyada@amil.com](amru.rosyada@amil.com) to discuss further.
 
