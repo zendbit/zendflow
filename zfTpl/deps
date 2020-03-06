@@ -1,0 +1,9 @@
+# use # char for comment
+# this dependency list for the project
+# run via nims with:
+#       nim zf.nims install deps
+
+# zendflow required zfcore
+zfcore
+#nake
+#other_nimble_package

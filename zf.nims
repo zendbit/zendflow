@@ -192,7 +192,7 @@ if cmdCount == 3:
 
     of "new":
         let appDir = joinPath(projectDir, paramStr(3))
-        let zfTplDir = joinPath("zfCore", "zfTpl")
+        let zfTplDir = "zfTpl"
         if not dirExists(appDir):
             cpDir(zfTplDir, appDir)
             verifyCmd("new:" & paramStr(3))
