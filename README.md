@@ -50,10 +50,9 @@ nim zf.nims install appname deps -> install application depedencies, to add depe
 nim zf.nims run appname -> this will run the appname, run command will wait user input: return/enter will recompile changes source, to quit type "q" then hit return/enter
 ```
 
-- zfCore (The zfcore moved to nimble package [zfcore](https://nimble.directory/pkg/zfcore))
+- **zfCore (The zfcore moved to nimble package [zfcore](https://nimble.directory/pkg/zfcore))**
 
-This folder contain zenflow core engine and project template.
-The zfcore .nim file of zendflow building block also contain folder unpure, the unpure folder will contains unpure lib (thirdparty library)
+This package contain core engine. The zfcore .nim file of zfcore building block also contain folder unpure, the unpure folder will contains unpure lib (thirdparty library)
 
 zfCore contains:
 1. ctxReq.nim
@@ -138,6 +137,32 @@ After create the application this file will containts bunch of examples, just op
     Author: Amru Rosyada
     Email: amru.rosyada@gmail.com
     Git: https://github.com/zendbit
+]#
+
+#[
+    This module auto export from zendFlow module
+    export
+        ctxReq, -> zfcore module
+        CtxReq, -> zfcore module
+        router, -> zfcore module
+        Router, -> zfcore module
+        route, -> zfcore module
+        Route, -> zfcore module
+        asyncdispatch, -> stdlib module
+        asynchttpserver, -> stdlib module
+        tables, -> stdlib module
+        formData, -> zfcore module
+        FormData, -> zfcore module
+        packedjson, -> zfcore module (unpure)
+        strtabs, -> stdlib module
+        uri3, -> nimble package
+        strutils, -> stdlib module
+        times, -> stdlib module
+        os, -> stdlib module
+        Settings, -> zfcore module
+        settings, -> zfcore module
+        AsyncSocket, -> stdlib module
+        asyncnet -> stdlib module
 ]#
 
 import zfcore/zendFlow
