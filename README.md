@@ -175,12 +175,12 @@ zf.r.afterRoute(proc (ctx: CtxReq, route: Route): Future[bool] {.async.} =
     )
 
 # this static route wil serve under
-# all static resource will serve under /s uri path
-# address:port/s/
-# example address:port/s/style/*.css
+# all static resource will serve under / uri path
+# address:port/
+# example address:port/style/*.css
 # if you custumize the static route for example zf.r.static("/public")
-# it will serve with address:port/s/public/
-# we can retrieve using address:port/s/public/style/*.css
+# it will serve with address:port/public/
+# we can retrieve using address:port/public/style/*.css
 zf.r.static("/")
 
 # using regex for matching the request
