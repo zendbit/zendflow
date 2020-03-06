@@ -50,12 +50,12 @@ nim zf.nims install appname deps -> install application depedencies, to add depe
 nim zf.nims run appname -> this will run the appname, run command will wait user input: return/enter will recompile changes source, to quit type "q" then hit return/enter
 ```
 
-- zfCore
+- zfCore (The zfcore moved to nimble package [zfcore](https://nimble.directory/pkg/zfcore))
 
 This folder contain zenflow core engine and project template.
-The zf folder contains .nim file of zendflow building block also contain folder unpure, the unpure folder will contains unpure lib (thirdparty library)
+The zfcore .nim file of zendflow building block also contain folder unpure, the unpure folder will contains unpure lib (thirdparty library)
 
-zf folder contains:
+zfCore contains:
 1. ctxReq.nim
 this will handle request context also contains the response context
 ```
@@ -140,7 +140,7 @@ After create the application this file will containts bunch of examples, just op
     Git: https://github.com/zendbit
 ]#
 
-import ../../zfCore/zf/zendFlow
+import zfcore/zendFlow
 
 # increase the maxBody to handle large upload file
 # value in bytes
