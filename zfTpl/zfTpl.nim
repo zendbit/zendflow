@@ -135,12 +135,12 @@ zf.r.post("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
     # - if not isNil(uploadedFile): uploadedFile.moveFileTo("the_destination_file_with_filename")
     # - if not isNil(uploadedFile): uploadedFile.moveFileToDir("the_destination_file_to_dir")
     # - or we can iterate the field
-    #       for field in ctx.getFields():
+    #       for field in ctx.formData.getFields():
     #           echo field.name
     #           echo field.contentDisposition
     #           echo field.content
     # - also capture uploaded file using
-    #       for file in ctx.getFiles():
+    #       for file in ctx.formData.getFiles():
     #           echo file.name
     #           echo file.contentDisposition
     #           echo file.content -> is absolute path of the file in tmp folder

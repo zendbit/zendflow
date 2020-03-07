@@ -15,6 +15,6 @@ type
 proc newJObj*(): JObj =
     return JObj()
 
-proc add*(self: JObj, key: string, value: auto): JObj =
+proc add*(self: JObj, key: string, value: auto): JObj {.discardable.} =
     self[key.cstring] = toJs(value)
     return self
