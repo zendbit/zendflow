@@ -13,10 +13,10 @@ var console* {.importc, nodecl.}: JsObject
 # Initialize the vue js
 proc vue*(jsObject: JsObject): JsObject {.importcpp: "initVue(#)".}
 # Initialize the jquery
-proc jq*(selector: JsObject): JsObject {.importcpp: "initJq(#)".}
-proc jq*(selector: Element): JsObject {.importcpp: "initJq(#)".}
-proc jq*(selector: Document): JsObject {.importcpp: "initJq(#)".}
-proc jq*(): JsObject {.importcpp: "initJq()".}
+proc jq*(selector: JsObject): JsObject {.importcpp: "jqSelector(#)".}
+proc jq*(selector: Element): JsObject {.importcpp: "jqSelector(#)".}
+proc jq*(selector: Document): JsObject {.importcpp: "jqSelector(#)".}
+proc jq*(): JsObject {.importcpp: "jq()".}
 
 export
     dom,

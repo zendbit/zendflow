@@ -3,12 +3,12 @@ function initVue(obj)
     return new Vue(obj);
 }
 
-function initJq()
+function jq()
 {
-    return $();
+    return $;
 }
 
-function initJq(selector)
+function jqSelector(selector)
 {
     return $(selector);
 }
