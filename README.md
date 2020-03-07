@@ -552,5 +552,3 @@ Need todo:
 - orm integration
 - websocket
 - rpc
-
-we use packedjson instead of stdlib json, for saving memory [https://github.com/Araq/packedjson](https://github.com/Araq/packedjson)
