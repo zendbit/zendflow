@@ -11,12 +11,12 @@ var console* {.importc, nodecl.}: JsObject
 # this map to function:
 #
 # Initialize the vue js
-proc vue*(jsObject: JsObject): JsObject {.importcpp: "initVue(#)".}
+proc vue*(jsObject: JsObject): JsObject {.importcpp: "initVue(#)" discardable.}
 # Initialize the jquery
-proc jq*(selector: JsObject): JsObject {.importcpp: "jqSelector(#)".}
-proc jq*(selector: Element): JsObject {.importcpp: "jqSelector(#)".}
-proc jq*(selector: Document): JsObject {.importcpp: "jqSelector(#)".}
-proc jq*(): JsObject {.importcpp: "jq()".}
+proc jq*(selector: JsObject): JsObject {.importcpp: "jqSelector(#)" discardable.}
+proc jq*(selector: Element): JsObject {.importcpp: "jqSelector(#)" discardable.}
+proc jq*(selector: Document): JsObject {.importcpp: "jqSelector(#)" discardable.}
+proc jq*(): JsObject {.importcpp: "jq()" discardable.}
 
 export
     dom,
