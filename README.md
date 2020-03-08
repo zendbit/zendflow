@@ -137,6 +137,26 @@ access the validation result:
     validation.notValids -> contain notValids field on validation (Table[string, FieldDat])
 ```
 
+Fluent Validation containts this procedures for validation each FieldData:
+1. must(errMsg: string = "your err msg")
+will return errMsg if value empty
+2. num(errMsg: string = "your err msg")
+will return errMsg if value not a number
+3. rangeNum(min: float64, max: float64, errMsg: string = "your errMsg")
+will return errMsg if the number not in the range (min - max)
+4. minNum(min: float64, errMsg: string = "your errMsg")
+will return errMsg if the value less than min
+5. maxNum(max: float64, errMsg: string = "your errMsg")
+will return errMsg if the value larger than max
+6. minLen(min: int, errMsg: string = "your errMsg")
+will return errMsg if value length less than min
+7. maxLen(max: int, errMsg: string = "your errMsg")
+will return errMsg if value length more than max
+8. rangeLen(min: int, max: int, errMsg: "your errMsg")
+will return errMsg if value length not in range (min - max)
+9. reMatch(regex: string, errMsg: string = "your errMsg")
+eill return errMsg if the value not match with regex match pattern
+
 ## Zendflow Application structure
 
 When we create new project using zf.nims new appname, the zf nimscript will create the appname to the projects directory.
