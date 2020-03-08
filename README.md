@@ -118,6 +118,25 @@ The is the starting building block
 
 zfTpl Folder is the project template when we use zf.nims new appname
 
+## Fluent validation
+
+Starting from zfcore version 1.0.1 we added fluent validation
+
+```
+let validation = newFluentValidation()
+    validation
+        .add(newFieldData("username", ctx.params["username"])
+            .must("Username is required.")
+            .reMatch("([\w\W]+@[\w\W]+\.[\w])$", "Email format is not valid."))
+        .add(newFieldData("password", ctx.params["password"])
+            .must("Password is required.")
+            .rangeLen(10, 255, "Min password length is 10, max is 255."))
+            
+access the validation result:
+    validation.valids -> contain valids field on validation (Table[string, FieldData])
+    validation.notValids -> contain notValids field on validation (Table[string, FieldDat])
+```
+
 ## Zendflow Application structure
 
 When we create new project using zf.nims new appname, the zf nimscript will create the appname to the projects directory.
@@ -520,8 +539,8 @@ in the www folder contains vendor folder, this will contains the thirdpary libra
 To deploy we need the under projects folder only, for example web have application mysite under projects directory, we can deploy mysite directory to target system.
 
 ```
-nim c appname{App.nim} -> in this case mysite.nim
-./mysite
+nim c appname{App.nim} -> in this case mysiteApp.nim
+./mysiteApp
 ```
 
 Thats it, feel free to modify and pull request if you have any idea, also this is the public domain we can share or you can cantact me on my email [amru.rosyada@amil.com](amru.rosyada@amil.com) to discuss further.
@@ -533,5 +552,3 @@ Need todo:
 - orm integration
 - websocket
 - rpc
-
-we use packedjson instead of stdlib json, for saving memory [https://github.com/Araq/packedjson](https://github.com/Araq/packedjson)
