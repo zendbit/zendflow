@@ -1,6 +1,8 @@
 # ZendFlow
 High performance asynchttpserver and web framework for nim language. This is ready for production :-) better run under nginx proxy. **for this release not supported windows, need to changes the zf.nims shell cmd to support windows system**
 
+***the asynchttpserver already migrate to zfblast server*** our http server implementaion using asyncnet with openssl ready. Using zendflow need to installed openssl and the compile flag default to -d:ssl
+
 ## Install Nim Lang
 
 Follow this nim language installation and setup [Nim Language Download](https://nim-lang.org/install.html)
@@ -55,7 +57,7 @@ nim zf.nims run appname -> this will run the appname, run command will wait user
 This package contain core engine. The zfcore .nim file of zfcore building block also contain folder unpure, the unpure folder will contains unpure lib (thirdparty library)
 
 zfCore contains:
-1. ctxReq.nim
+1. ctxReq.nim -> replaced with httpContext.nim this is implementation from zfblast server ()
 this will handle request context also contains the response context
 ```
 #[
@@ -68,6 +70,7 @@ this will handle request context also contains the response context
         settings -> this is the shared settings
         responseHeader -> headers will send on response to user
 ]#
+CtxReq will not used again and replaced with HttpCtx type
 type
     CtxReq* = ref object
         client*: AsyncSocket
@@ -83,6 +86,34 @@ type
         json*: JsonNode
         settings*: Settings
         responseHeaders*: HttpHeaders
+        
+Replaced with HttpCtx type
+type
+    HttpCtx* = ref object of HttpContext
+        params*: Table[string, string]
+        reParams*: Table[string, seq[string]]
+        formData*: FormData
+        json*: JsonNode
+        settings*: Settings
+        
+Where HttpContext is zfblast context
+type
+    HttpContext* = ref object of RootObj
+        # Request type instance
+        request*: Request
+        # client asyncsocket for communicating to client
+        client*: AsyncSocket
+        # Response type instance
+        response*: Response
+        # send response to client, this is bridge to ZFBlast send()
+        send*: proc (ctx: HttpContext): Future[void]
+        # Keep-Alive header max request with given persistent timeout
+        # read RFC (https://tools.ietf.org/html/rfc2616)
+        # section Keep-Alive and Connection
+        # for improving response performance
+        keepAliveMax*: int
+        # Keep-Alive timeout
+        keepAliveTimeout*: int
 ```
 2. formData.nim
 
@@ -161,14 +192,14 @@ After create the application this file will containts bunch of examples, just op
 #[
     This module auto export from zendFlow module
     export
-        ctxReq, -> zfcore module
-        CtxReq, -> zfcore module
+        HttpCtx, -> zfcore module
+        HttpCtx, -> zfcore module
         router, -> zfcore module
         Router, -> zfcore module
         route, -> zfcore module
         Route, -> zfcore module
         asyncdispatch, -> stdlib module
-        asynchttpserver, -> stdlib module
+        zfblast, -> zf blast implementation of async http server with openssl
         tables, -> stdlib module
         formData, -> zfcore module
         FormData, -> zfcore module
@@ -188,17 +219,36 @@ import zfcore/zendFlow
 
 # increase the maxBody to handle large upload file
 # value in bytes
+#[
+    ssl example
+
 let zf = newZendFlow(
     newSettings(
         appRootDir = getCurrentDir(),
         port = 8080,
         address = "0.0.0.0",
-        reuseAddr = true,
-        reusePort = false,
-        maxBody = 8388608))
+        debug = false,
+        keepAliveMax = 100,
+        keepAliveTimeout = 15,
+        sslSettings = newSslSettings(
+            certFile = joinPath("ssl", "certificate.pem"),
+            keyFile = joinPath("ssl", "key.pem"),
+            verifyMode = SslCVerifyMode.CVerifyNone,
+            port = Port(8443)
+        )))
+]#
+
+let zf = newZendFlow(
+    newSettings(
+        appRootDir = getCurrentDir(),
+        port = 8080,
+        address = "0.0.0.0",
+        debug = true,
+        keepAliveMax = 100,
+        keepAliveTimeout = 15))
 
 # handle before route middleware
-zf.r.beforeRoute(proc (ctx: CtxReq): Future[bool] {.async.} =
+zf.r.beforeRoute(proc (ctx: HttpCtx): Future[bool] {.async.} =
     # before Route here
     # you can filter the context request here before route happen
     # use full if we want to filtering the domain access or auth or other things that fun :-)
@@ -209,7 +259,7 @@ zf.r.beforeRoute(proc (ctx: CtxReq): Future[bool] {.async.} =
 
 # handle after route middleware
 # this will execute right before dynamic route response to the server
-zf.r.afterRoute(proc (ctx: CtxReq, route: Route): Future[bool] {.async.} =
+zf.r.afterRoute(proc (ctx: HttpCtx, route: Route): Future[bool] {.async.} =
     # after Route here
     # you can filter the context request here after route happen
     # use full if we want to filtering the domain access or auth or other things that fun :-)
@@ -235,9 +285,9 @@ zf.r.static("/")
 # - if only want to capture one we must exactly match len[n] with number of () capturing bracket
 # - capture regex will return list of match and can be access using ctx.reParams
 # - if we want to capture segment parameter we can use <param_to_capture> in this case we use <name>
-# - <name> will capture segment value in there as name, we can access param value and query string in ctxReq.params["name"] or other param name
+# - <name> will capture segment value in there as name, we can access param value and query string in HttpCtx.params["name"] or other param name
 zf.r.get("/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>", proc (
-        ctx: CtxReq): Future[void] {.async.} =
+        ctx: HttpCtx): Future[void] {.async.} =
     echo "Welcome home"
     # capture regex result from the url
     echo ctx.reParams["ids"]
@@ -248,7 +298,7 @@ zf.r.get("/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>", proc (
     await ctx.resp(Http200, "Hello World get request"))
 
 zf.r.get("/", proc (
-        ctx: CtxReq): Future[void] {.async.} =
+        ctx: HttpCtx): Future[void] {.async.} =
     # set cookie
     let cookie = {"age": "25", "user": "john"}.newStringTable
 
@@ -274,7 +324,7 @@ zf.r.get("/", proc (
 
 # accept request with /home/123456
 # id will capture the value 12345
-zf.r.post("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.post("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # if we post as application url encoded, the field data key value will be in the ctx.params
     # we can access using ctx.params["the name of the params"]
     # if we post as multipars we can capture the form field and files uploded in ctx.formData
@@ -286,12 +336,12 @@ zf.r.post("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
     # - if not isNil(uploadedFile): uploadedFile.moveFileTo("the_destination_file_with_filename")
     # - if not isNil(uploadedFile): uploadedFile.moveFileToDir("the_destination_file_to_dir")
     # - or we can iterate the field
-    #       for field in ctx.getFields():
+    #       for field in ctx.formData.getFields():
     #           echo field.name
     #           echo field.contentDisposition
     #           echo field.content
     # - also capture uploaded file using
-    #       for file in ctx.getFiles():
+    #       for file in ctx.formData.getFiles():
     #           echo file.name
     #           echo file.contentDisposition
     #           echo file.content -> is absolute path of the file in tmp folder
@@ -299,29 +349,29 @@ zf.r.post("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
     #           echo file.contentType
     #
     #  - for more information you can also check documentation form the source:
-    #       zfCore/zf/ctxReq.nim
+    #       zfCore/zf/HttpCtx.nim
     #       zfCore/zf/formData.nim
     #
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World post request"))
 
-zf.r.patch("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.patch("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World patch request"))
 
-zf.r.delete("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.delete("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World delete request"))
 
-zf.r.put("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.put("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World put request"))
 
-zf.r.head("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.head("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World head request"))
@@ -548,7 +598,9 @@ Thats it, feel free to modify and pull request if you have any idea, also this i
 This is production ready :-), feel free to send me a bug to solve.
 
 Need todo:
-- ssl support (this not mandatory, we can done to run zendflow under nginx)
 - orm integration
 - websocket
 - rpc
+
+Done:
+- ssl support (this not mandatory, we can done to run zendflow under nginx)
