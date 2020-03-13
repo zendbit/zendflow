@@ -20,8 +20,13 @@ proc echoRunHelp() =
     echo ""
 
 # procedur for run app
-proc run(sourceDir, sourceToCompile, sourceJsDir, sourceJsToCompile,
-        sourceJsOutputDir: string, build:bool = false) =
+proc run(
+    sourceDir,
+    sourceToCompile,
+    sourceJsDir,
+    sourceJsToCompile,
+    sourceJsOutputDir: string,
+    build:bool = false) =
 
     var quit = false
 
@@ -42,8 +47,9 @@ proc run(sourceDir, sourceToCompile, sourceJsDir, sourceJsToCompile,
                     if jsFile.endsWith(".js"):
                         echo jsFile
                         let filename = rSplit(jsFile, DirSep, 1)
-                        let targetFile = joinPath(sourceJsOutputDir, filename[
-                                high(filename)])
+                        let targetFile = joinPath(
+                            sourceJsOutputDir,
+                            filename[high(filename)])
                         if fileExists(targetFile):
                             rmFile(targetFile)
                         mvFile(jsFile, targetFile)
@@ -63,7 +69,8 @@ proc run(sourceDir, sourceToCompile, sourceJsDir, sourceJsToCompile,
         if quit: break
 
         if not stopCompile:
-            let compile = gorgeEx("nim c " & sourceToCompile)
+            var compile = gorgeEx("nim c -d:ssl " & sourceToCompile)
+
             echo compile.output
             if compile.exitCode == 0 and not build:
                 cd(joinPath(thisDir(), sourceDir))
@@ -100,8 +107,14 @@ proc echoNewProjectHints(sourceDir: string) =
     echo ""
 
 # procedure for new project
-proc newProject(sourceDir, sourceToCompile, sourceJsDir,
-        sourceJsToCompile, sourceJsOutputDir, staticIndexHtml: string) =
+proc newProject(
+    sourceDir,
+    sourceToCompile,
+    sourceJsDir,
+    sourceJsToCompile,
+    sourceJsOutputDir,
+    staticIndexHtml: string) =
+
     let sourceZfTplToCompile = joinPath(sourceDir, "zfTpl.nim")
     let sourceZfJsTplToCompile = joinPath(sourceJsDir, "zfTpl.nim")
     mvFile(sourceZfTplToCompile, sourceToCompile)
@@ -141,6 +154,13 @@ proc verifyCmd(cmdType: string) =
 
     # nim source to compile
     let sourceDir = joinPath(projectDir, appName)
+
+    if not dirExists(sourceDir):
+        echo "application not found " & sourceDir
+        echo "create new application using:"
+        echo "  $>nim zf.nims new appname"
+        return
+
     let sourceToCompile = joinPath(sourceDir, appName & "App.nim")
 
     # nim js source to compile
@@ -152,22 +172,36 @@ proc verifyCmd(cmdType: string) =
     let sourceJsToCompile = joinPath(sourceJsDir, appName & "Js.nim")
     let staticIndexHtml = joinPath(sourceDir, "www", "index.html")
 
-    case cmdParts[0]
+    var useSsl = false
+    if cmdParts.len >= 3:
+        if cmdParts[2] == "ssl": useSsl = true
 
+    case cmdParts[0]
     of "run":
-        run(sourceDir = sourceDir, sourceToCompile = sourceToCompile,
-            sourceJsDir = sourceJsDir, sourceJsToCompile = sourceJsToCompile,
+
+        run(
+            sourceDir = sourceDir,
+            sourceToCompile = sourceToCompile,
+            sourceJsDir = sourceJsDir,
+            sourceJsToCompile = sourceJsToCompile,
             sourceJsOutputDir = sourceJsOutputDir)
 
     of "new":
-        newProject(sourceDir = sourceDir, sourceToCompile = sourceToCompile,
-            sourceJsDir = sourceJsDir, sourceJsToCompile = sourceJsToCompile,
-            sourceJsOutputDir = sourceJsOutputDir, staticIndexHtml= staticIndexHtml)
+        newProject(
+            sourceDir = sourceDir,
+            sourceToCompile = sourceToCompile,
+            sourceJsDir = sourceJsDir,
+            sourceJsToCompile = sourceJsToCompile,
+            sourceJsOutputDir = sourceJsOutputDir,
+            staticIndexHtml= staticIndexHtml)
 
     of "build":
-        run(sourceDir = sourceDir, sourceToCompile = sourceToCompile,
-            sourceJsDir = sourceJsDir, sourceJsToCompile = sourceJsToCompile,
-            sourceJsOutputDir = sourceJsOutputDir, build = true)
+        run(sourceDir = sourceDir,
+        sourceToCompile = sourceToCompile,
+        sourceJsDir = sourceJsDir,
+        sourceJsToCompile = sourceJsToCompile,
+        sourceJsOutputDir = sourceJsOutputDir,
+        build = true)
 
     of "install":
         if cmdParts[2] == "deps":
@@ -182,7 +216,8 @@ proc verifyCmd(cmdType: string) =
 # and command line argements
 let cmdCount = paramCount()
 
-if cmdCount == 3:
+if cmdCount >= 3:
+
     case paramStr(2)
     of "run":
         verifyCmd("run:" & paramStr(3))
@@ -200,12 +235,8 @@ if cmdCount == 3:
         else:
             echo appDir & " already exist."
 
-    else:
-        echo "Command " & paramStr(2) & " not found."
-
-if cmdCount == 4:
-    case paramStr(2)
     of "install":
         verifyCmd("install:" & paramStr(3) & ":" & paramStr(4))
+
     else:
         echo "Command " & paramStr(2) & " not found."

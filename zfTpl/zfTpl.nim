@@ -10,14 +10,14 @@
 #[
     This module auto export from zendFlow module
     export
-        ctxReq, -> zfcore module
-        CtxReq, -> zfcore module
+        HttpCtx, -> zfcore module
+        HttpCtx, -> zfcore module
         router, -> zfcore module
         Router, -> zfcore module
         route, -> zfcore module
         Route, -> zfcore module
         asyncdispatch, -> stdlib module
-        asynchttpserver, -> stdlib module
+        zfblast, -> zf blast implementation of async http server with openssl
         tables, -> stdlib module
         formData, -> zfcore module
         FormData, -> zfcore module
@@ -37,17 +37,36 @@ import zfcore/zendFlow
 
 # increase the maxBody to handle large upload file
 # value in bytes
+#[
+    ssl example
+
 let zf = newZendFlow(
     newSettings(
         appRootDir = getCurrentDir(),
         port = 8080,
         address = "0.0.0.0",
-        reuseAddr = true,
-        reusePort = false,
-        maxBody = 8388608))
+        debug = false,
+        keepAliveMax = 100,
+        keepAliveTimeout = 15,
+        sslSettings = newSslSettings(
+            certFile = joinPath("ssl", "certificate.pem"),
+            keyFile = joinPath("ssl", "key.pem"),
+            verifyMode = SslCVerifyMode.CVerifyNone,
+            port = Port(8443)
+        )))
+]#
+
+let zf = newZendFlow(
+    newSettings(
+        appRootDir = getCurrentDir(),
+        port = 8080,
+        address = "0.0.0.0",
+        debug = true,
+        keepAliveMax = 100,
+        keepAliveTimeout = 15))
 
 # handle before route middleware
-zf.r.beforeRoute(proc (ctx: CtxReq): Future[bool] {.async.} =
+zf.r.beforeRoute(proc (ctx: HttpCtx): Future[bool] {.async.} =
     # before Route here
     # you can filter the context request here before route happen
     # use full if we want to filtering the domain access or auth or other things that fun :-)
@@ -58,7 +77,7 @@ zf.r.beforeRoute(proc (ctx: CtxReq): Future[bool] {.async.} =
 
 # handle after route middleware
 # this will execute right before dynamic route response to the server
-zf.r.afterRoute(proc (ctx: CtxReq, route: Route): Future[bool] {.async.} =
+zf.r.afterRoute(proc (ctx: HttpCtx, route: Route): Future[bool] {.async.} =
     # after Route here
     # you can filter the context request here after route happen
     # use full if we want to filtering the domain access or auth or other things that fun :-)
@@ -84,9 +103,9 @@ zf.r.static("/")
 # - if only want to capture one we must exactly match len[n] with number of () capturing bracket
 # - capture regex will return list of match and can be access using ctx.reParams
 # - if we want to capture segment parameter we can use <param_to_capture> in this case we use <name>
-# - <name> will capture segment value in there as name, we can access param value and query string in ctxReq.params["name"] or other param name
+# - <name> will capture segment value in there as name, we can access param value and query string in HttpCtx.params["name"] or other param name
 zf.r.get("/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>", proc (
-        ctx: CtxReq): Future[void] {.async.} =
+        ctx: HttpCtx): Future[void] {.async.} =
     echo "Welcome home"
     # capture regex result from the url
     echo ctx.reParams["ids"]
@@ -97,7 +116,7 @@ zf.r.get("/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>", proc (
     await ctx.resp(Http200, "Hello World get request"))
 
 zf.r.get("/", proc (
-        ctx: CtxReq): Future[void] {.async.} =
+        ctx: HttpCtx): Future[void] {.async.} =
     # set cookie
     let cookie = {"age": "25", "user": "john"}.newStringTable
 
@@ -123,7 +142,7 @@ zf.r.get("/", proc (
 
 # accept request with /home/123456
 # id will capture the value 12345
-zf.r.post("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.post("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # if we post as application url encoded, the field data key value will be in the ctx.params
     # we can access using ctx.params["the name of the params"]
     # if we post as multipars we can capture the form field and files uploded in ctx.formData
@@ -148,29 +167,29 @@ zf.r.post("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
     #           echo file.contentType
     #
     #  - for more information you can also check documentation form the source:
-    #       zfCore/zf/ctxReq.nim
+    #       zfCore/zf/HttpCtx.nim
     #       zfCore/zf/formData.nim
     #
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World post request"))
 
-zf.r.patch("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.patch("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World patch request"))
 
-zf.r.delete("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.delete("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World delete request"))
 
-zf.r.put("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.put("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World put request"))
 
-zf.r.head("/home/<id>", proc (ctx: CtxReq): Future[void] {.async.} =
+zf.r.head("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
     await ctx.resp(Http200, "Hello World head request"))
