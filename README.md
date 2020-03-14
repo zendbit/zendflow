@@ -295,7 +295,7 @@ zf.r.get("/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>", proc (
     echo ctx.params["name"]
     # we can also set custom header for the response using ctx.responseHeaders.add("header kye", "header value")
     ctx.responseHeaders.add("Content-Type", "text/plain")
-    await ctx.resp(Http200, "Hello World get request"))
+    ctx.resp(Http200, "Hello World get request"))
 
 zf.r.get("/", proc (
         ctx: HttpCtx): Future[void] {.async.} =
@@ -320,7 +320,7 @@ zf.r.get("/", proc (
     #   ctx.clearCookie(cookie)
 
     # set default to redirect to index.htmo
-    await ctx.respRedirect("/index.html"))
+    ctx.respRedirect("/index.html"))
 
 # accept request with /home/123456
 # id will capture the value 12345
@@ -354,27 +354,27 @@ zf.r.post("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     #
     # capture the <id> from the path
     echo ctx.params["id"]
-    await ctx.resp(Http200, "Hello World post request"))
+    ctx.resp(Http200, "Hello World post request"))
 
 zf.r.patch("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
-    await ctx.resp(Http200, "Hello World patch request"))
+    ctx.resp(Http200, "Hello World patch request"))
 
 zf.r.delete("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
-    await ctx.resp(Http200, "Hello World delete request"))
+    ctx.resp(Http200, "Hello World delete request"))
 
 zf.r.put("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
-    await ctx.resp(Http200, "Hello World put request"))
+    ctx.resp(Http200, "Hello World put request"))
 
 zf.r.head("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
     echo ctx.params["id"]
-    await ctx.resp(Http200, "Hello World head request"))
+    ctx.resp(Http200, "Hello World head request"))
 
 # serve the zendflow
 zf.serve()
