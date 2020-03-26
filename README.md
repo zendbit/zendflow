@@ -18,10 +18,14 @@ cd zendflow
 ```
 
 inside zendflow you can find zf.nims file, this file is command line to manage the zendflow project.
+***we port zf.nims to zf.sh, for the next release we will only maintain the shell script :-)***
 
 - Create new project
 ```
 nim zf.nims new mysite
+
+use this instead:
+./zf.sh new mysite
 ```
 
 the command above will create mysite app under the projects directory "projects/mysite"
@@ -29,11 +33,17 @@ the command above will create mysite app under the projects directory "projects/
 - Install project dependencies
 ```
 nim zf.nims install mysite deps
+
+use this instead:
+./zf.sh install mysite deps
 ```
 
 - Run mysite app
 ```
 nim zf.nims run mysite
+
+use this instead:
+./zf.sh run mysite
 ```
 
 the command above will run mysite app on default port 8080 and bind address 0.0.0.0,
@@ -43,13 +53,18 @@ open [http://localhost:8080](http://localhost:8080) you will be redirect to [htt
 
 ## Zendflow Core structure
 
-- zf.nims
+- zf.nims ***we port the nimscript to zf.sh, for the next release we only maintain the shell script :-)***
 
 This file is nimscript to manage the zendflow projects, available command:
 ```
 nim zf.nims new appname -> create new projects under projects directory
 nim zf.nims install appname deps -> install application depedencies, to add depedency you can changes the deps file or directly from nimble command
 nim zf.nims run appname -> this will run the appname, run command will wait user input: return/enter will recompile changes source, to quit type "q" then hit return/enter
+
+use this instead:
+./zf.sh new appname -> create new projects under projects directory
+./zf.sh install appname deps -> install application depedencies, to add depedency you can changes the deps file or directly from nimble command
+./zf.sh run appname -> this will run the appname, run command will wait user input: return/enter will recompile changes source, to quit type "q" then hit return/enter
 ```
 
 - **zfCore (The zfcore moved to nimble package [zfcore](https://nimble.directory/pkg/zfcore))**
