@@ -63,6 +63,50 @@ showNewProjectHints(){
     echo ""
 }
 
+showFailedCreateProject(){
+    echo ""
+    echo "Failed to create project $sourceDir"
+    echo ""
+}
+
+showFailedCreateJsOutputDir(){
+    echo ""
+    echo "Failed to create $sourceJsOutputDir directory."
+    echo ""
+}
+
+showFailedAppNotFound(){
+    echo ""
+    echo "application not found $sourceDir"
+    echo "create new application using:"
+    echo "  $>./zf.sh new appname"
+    echo ""
+}
+
+showInvalidCmd(){
+    echo ""
+    echo "Invalid command $cmd $appname"
+    echo ""
+}
+
+showInvalidAppName(){
+    echo ""
+    echo "$appDir already exist, try another appname."
+    echo ""
+}
+
+showInvalidNewCmd(){
+    echo ""
+    echo "Invalid command new $appname"
+    echo ""
+}
+
+shoInvalidInstallCmd(){
+    echo ""
+    echo "Invalid command install $appname $3"
+    echo ""
+}
+
 # run command
 runCmd(){
     local quit=0
@@ -143,9 +187,7 @@ newProjectCmd(){
     then
         showNewProjectHints
     else
-        echo ""
-        echo "Failed to create project $sourceDir"
-        echo ""
+        showFailedCreateProject
     fi
 }
 
@@ -187,9 +229,7 @@ verifyCmd(){
                 mkdir $sourceJsOutputDir
                 if [ ! $? -eq 0 ]
                 then
-                    echo ""
-                    echo "Failed to create $sourceJsOutputDir directory."
-                    echo ""
+                    showFailedCreateJsOutputDir
                 fi
             fi
 
@@ -228,14 +268,10 @@ verifyCmd(){
             unsetCmdParam
 
         else
-            echo "application not found $sourceDir"
-            echo "create new application using:"
-            echo "  $>./zf.sh new appname"
+            showFailedAppNotFound
         fi
     else
-        echo ""
-        echo "Invalid command $1 $2"
-        echo ""
+        showInvalidCmd
     fi
 }
 
@@ -258,14 +294,10 @@ main(){
                     cp -r $zfTplDir $appDir
                     verifyCmd "new" $appname
                 else
-                    echo ""
-                    echo "$appDir already exist, try another appname."
-                    echo ""
+                    showInvalidAppName
                 fi
             else
-                echo ""
-                echo "Invalid command new $appname"
-                echo ""
+                showInvalidNewCmd
             fi
             ;;
         install)
@@ -273,16 +305,11 @@ main(){
             then
                 verifyCmd "install" $appname $3
             else
-                echo ""
-                echo "Invalid command install $appname $3"
-                echo ""
+                shoInvalidInstallCmd
             fi
             ;;
         *)
-            echo ""
-            echo "Invalid command, should be one of:"
-            echo "run | build | new | install"
-            echo ""
+            showInvalidCmd
             ;;
     esac
 }
