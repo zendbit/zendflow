@@ -113,7 +113,7 @@ runCmd(){
 
     while [ 1 ]
     do
-        cd WORK_DIR
+        cd $WORK_DIR
         local stopCompile=0
 
         if [ $quit -eq 0 ]
@@ -136,7 +136,7 @@ runCmd(){
 
         if [ $stopCompile -eq 0 ]
         then
-            ps -ef | grep "./$appname" | awk '{print $2}' | kill -9 \
+            ps -ef | grep "./$appname" | awk '{print $2}' | xargs kill -9 \
             && echo "Server killed." || echo "Server not running."
         fi
 
@@ -152,8 +152,9 @@ runCmd(){
             then
                 if [ $build -eq 0 ]
                 then
-                    cd PROJECT_DIR
-                    ./${appname//.nim/""} &
+                    cd $PROJECT_DIR/$appname
+                    exeAppName=${sourceToCompile##*/}
+                    ./${exeAppName//.nim/""} &
                     showRunHelp
                 else
                     exit
