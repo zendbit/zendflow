@@ -119,10 +119,8 @@ runCmd(){
         if [ $quit -eq 0 ]
         then
             nim "js" $sourceJsToCompile
-            if [ $? -ne 0 ]
-            then
-                stopCompile=$?
-            fi
+
+            stopCompile=$?
 
             if [ $stopCompile -eq 0 ]
             then
@@ -148,7 +146,10 @@ runCmd(){
         if [ $stopCompile -eq 0 ]
         then
             nim "c" "-d:ssl" $sourceToCompile
-            if [ $? -eq 0 ]
+
+            stopCompile=$?
+
+            if [ $stopCompile -eq 0 ]
             then
                 if [ $build -eq 0 ]
                 then
@@ -205,7 +206,7 @@ installDeps(){
             [ "$comntChar" != "" ] && \
             [[ $stripLine =~ $re ]]
             then
-                depNimble=${BASH_REMATCH[0]}
+                local depNimble=${BASH_REMATCH[0]}
                 echo "y" | nimble install $depNimble
             fi
         done < $depsFile
@@ -223,7 +224,7 @@ verifyCmd(){
         then
             local sourceToCompile=$sourceDir/$appname"App.nim"
 
-            local sourceJsDir=$sourceDir"/nimjs"
+            local sourceJsDir=$sourceDir"/client"
             local sourceJsOutputDir=$sourceDir"/www/private/js/compiled"
             if [ ! -d $sourceJsOutputDir ]
             then

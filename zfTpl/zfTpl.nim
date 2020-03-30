@@ -33,7 +33,9 @@
         asyncnet -> stdlib module
 ]#
 
-import zfcore/zendFlow
+import 
+    zfcore/zendFlow,
+    server/servercodehere
 
 # increase the maxBody to handle large upload file
 # value in bytes
@@ -112,7 +114,7 @@ zf.r.get("/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>", proc (
     # capture <name> value parameter from the url
     echo ctx.params["name"]
     # we can also set custom header for the response using ctx.responseHeaders.add("header kye", "header value")
-    ctx.responseHeaders.add("Content-Type", "text/plain")
+    ctx.response.headers.add("Content-Type", "text/plain")
     ctx.resp(Http200, "Hello World get request"))
 
 zf.r.get("/", proc (
@@ -172,7 +174,7 @@ zf.r.post("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     #
     # capture the <id> from the path
     echo ctx.params["id"]
-    ctx.resp(Http200, "Hello World post request"))
+    ctx.resp(Http200, HelloWorld().printHelloWorld))
 
 zf.r.patch("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path

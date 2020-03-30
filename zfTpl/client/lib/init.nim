@@ -17,7 +17,9 @@ proc jq*(selector: JsObject): JsObject {.importcpp: "jqSelector(#)" discardable.
 proc jq*(selector: Element): JsObject {.importcpp: "jqSelector(#)" discardable.}
 proc jq*(selector: Document): JsObject {.importcpp: "jqSelector(#)" discardable.}
 proc jq*(): JsObject {.importcpp: "jq()" discardable.}
-
+# initialize xHttpReq
+proc xHttpReq*(): JsObject {.importcpp: "xHttpReq()" discardable.}
+    
 export
     dom,
     jscore,

@@ -12,3 +12,8 @@ function jqSelector(selector)
 {
     return $(selector);
 }
+
+function xHttpReq()
+{
+	return new XMLHttpRequest();
+}
