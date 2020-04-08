@@ -9,13 +9,22 @@
 # Git: https://github.com/zendbit
 #
 
+# retrieve command param
+CMD=$1
+APPNAME=$2
+
 # project directory
 WORK_DIR=`pwd`
 PROJECT_DIR=$WORK_DIR/"projects"
+APP_DIR=$PROJECT_DIR/$APPNAME
 
-# retrieve command param
-cmd=$1
-appname=$2
+# if in current dir has appnameApp.nim
+# then assume using local zf.sh
+if [ -f $APPNAME"App.nim" ]
+then
+    PROJECT_DIR=$WORK_DIR
+    APP_DIR=$WORK_DIR
+fi
 
 setCmdParam(){
     sourceDir=$1
@@ -85,7 +94,7 @@ showFailedAppNotFound(){
 
 showInvalidCmd(){
     echo ""
-    echo "Invalid command $cmd $appname"
+    echo "Invalid command $CMD $APPNAME"
     echo ""
 }
 
@@ -97,13 +106,13 @@ showInvalidAppName(){
 
 showInvalidNewCmd(){
     echo ""
-    echo "Invalid command new $appname"
+    echo "Invalid command new $APPNAME"
     echo ""
 }
 
 shoInvalidInstallCmd(){
     echo ""
-    echo "Invalid command install $appname $3"
+    echo "Invalid command install $APPNAME $3"
     echo ""
 }
 
@@ -134,7 +143,7 @@ runCmd(){
 
         if [ $stopCompile -eq 0 ]
         then
-            ps -ef | grep "./$appname" | awk '{print $2}' | xargs kill -9 \
+            ps -ef | grep "./$APPNAME" | awk '{print $2}' | xargs kill -9 \
             && echo "Server killed." || echo "Server not running."
         fi
 
@@ -153,7 +162,8 @@ runCmd(){
             then
                 if [ $build -eq 0 ]
                 then
-                    cd $PROJECT_DIR/$appname
+                    #cd $PROJECT_DIR/$APPNAME
+                    cd $APP_DIR
                     exeAppName=${sourceToCompile##*/}
                     ./${exeAppName//.nim/""} &
                     showRunHelp
@@ -195,34 +205,73 @@ newProjectCmd(){
 
 installDeps(){
     local depsFile=$sourceDir/"deps"
+    local depsFolder=$WORK_DIR/"nimbleDeps"
+
+    if [ ! -d $depsFolder ]
+    then
+        mkdir $depsFolder
+    fi
+
+    cd $depsFolder
+
     if [ -f $depsFile ]
     then
+        nimble update
         while IFS="\n" read -r line
         do
             local stripLine=`echo $line`
             local comntChar=${stripLine:0:1}
-            local re='([a-zA-Z0-9_\-\.>\=<]+)'
+            local re='([ a-zA-Z0-9_\-\.>\=<]+)'
             if [ "$comntChar" != "#" ] && \
-            [ "$comntChar" != "" ] && \
-            [[ $stripLine =~ $re ]]
+                [ "$comntChar" != "" ] && \
+                [[ $stripLine =~ $re ]]
             then
                 local depNimble=${BASH_REMATCH[0]}
-                echo "y" | nimble install $depNimble
+                local nimCmd=`echo $depNimble | cut -d " " -f 1`
+                local nimDepPkg=`echo $depNimble | cut -d " " -f 2`
+
+                echo "Collecting $nimDepPkg"
+                echo "---------------------"
+
+                local installedDep=`nimble list -i|grep $nimDepPkg`
+                if [ "$installedDep" == "" ]
+                then
+                    case $nimCmd in
+                        install)
+                            echo "y" | nimble install $nimDepPkg
+                            ;;
+                        develop)
+                            echo "y" | nimble develop $nimDepPkg
+                            ;;
+                    esac
+
+                else
+                    echo "Dependency already exist!"
+                    echo $installedDep
+                    echo `nimble path $nimDepPkg`
+                fi
+
+                echo "---------------------"
+                echo ""
             fi
         done < $depsFile
     fi
+
+    cd $WORK_DIR
 }
 
 # verify command action
 # parameter $1 is type of command ex, run:appname:...
 verifyCmd(){
-    if [ "$cmd" != "" ] && [ "$appname" != "" ]
+    if [ "$CMD" != "" ] && [ "$APPNAME" != "" ]
     then
-        sourceDir=$PROJECT_DIR/$appname
+        #sourceDir=$PROJECT_DIR/$APPNAME
+        sourceDir=$APP_DIR
+        echo $sourceDir
 
         if [ -d $sourceDir ]
         then
-            local sourceToCompile=$sourceDir/$appname"App.nim"
+            local sourceToCompile=$sourceDir/$APPNAME"App.nim"
 
             local sourceJsDir=$sourceDir"/client"
             local sourceJsOutputDir=$sourceDir"/www/private/js/compiled"
@@ -235,7 +284,7 @@ verifyCmd(){
                 fi
             fi
 
-            local sourceJsToCompile=$sourceJsDir/$appname"Js.nim"
+            local sourceJsToCompile=$sourceJsDir/$APPNAME"Js.nim"
             local staticIndexHtml=$sourceDir"/www/index.html"
 
             setCmdParam $sourceDir \
@@ -246,7 +295,7 @@ verifyCmd(){
                 0 \
                 $staticIndexHtml
 
-            case $cmd in
+            case $CMD in
                 run)
                     runCmd
                     ;;
@@ -279,22 +328,24 @@ verifyCmd(){
 
 # parse command
 main(){
-    case $cmd in
+    case $CMD in
         run)
-            verifyCmd "run" $appname
+            verifyCmd "run" $APPNAME
             ;;
         build)
-            verifyCmd "build" $appname
+            verifyCmd "build" $APPNAME
             ;;
         new)
-            if [ "$appname" != "" ]
+            if [ "$APPNAME" != "" ]
             then
-                local appDir=$PROJECT_DIR/$appname
+                #local appDir=$PROJECT_DIR/$APPNAME
+                local appDir=$APP_DIR
                 local zfTplDir="zfTpl"
                 if [ ! -d $appDir ]
                 then
                     cp -r $zfTplDir $appDir
-                    verifyCmd "new" $appname
+                    cp "zf.sh" $appDir
+                    verifyCmd "new" $APPNAME
                 else
                     showInvalidAppName
                 fi
@@ -305,7 +356,7 @@ main(){
         install)
             if [ "$3" == "deps" ]
             then
-                verifyCmd "install" $appname $3
+                verifyCmd "install" $APPNAME $3
             else
                 shoInvalidInstallCmd
             fi
