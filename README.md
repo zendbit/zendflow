@@ -230,7 +230,9 @@ After create the application this file will containts bunch of examples, just op
         asyncnet -> stdlib module
 ]#
 
-import zfcore/zendFlow
+import 
+    zfcore/zendFlow,
+    server/servercodehere
 
 # increase the maxBody to handle large upload file
 # value in bytes
@@ -268,7 +270,7 @@ zf.r.beforeRoute(proc (ctx: HttpCtx): Future[bool] {.async.} =
     # you can filter the context request here before route happen
     # use full if we want to filtering the domain access or auth or other things that fun :-)
     # make sure if call response directly from middleware must be call return true for breaking the pipeline:
-    #   await ctx.resp(Http200, "Hello World get request"))
+    #   ctx.resp(Http200, "Hello World get request"))
     #   return true
     )
 
@@ -279,7 +281,7 @@ zf.r.afterRoute(proc (ctx: HttpCtx, route: Route): Future[bool] {.async.} =
     # you can filter the context request here after route happen
     # use full if we want to filtering the domain access or auth or other things that fun :-)
     # make sure if call response directly from middleware must be call return true for breaking the pipeline:
-    #   await ctx.resp(Http200, "Hello World get request"))
+    #   ctx.resp(Http200, "Hello World get request"))
     #   return true
     )
 
@@ -309,7 +311,7 @@ zf.r.get("/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>", proc (
     # capture <name> value parameter from the url
     echo ctx.params["name"]
     # we can also set custom header for the response using ctx.responseHeaders.add("header kye", "header value")
-    ctx.responseHeaders.add("Content-Type", "text/plain")
+    ctx.response.headers.add("Content-Type", "text/plain")
     ctx.resp(Http200, "Hello World get request"))
 
 zf.r.get("/", proc (
@@ -369,7 +371,7 @@ zf.r.post("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     #
     # capture the <id> from the path
     echo ctx.params["id"]
-    ctx.resp(Http200, "Hello World post request"))
+    ctx.resp(Http200, HelloWorld().printHelloWorld))
 
 zf.r.patch("/home/<id>", proc (ctx: HttpCtx): Future[void] {.async.} =
     # capture the <id> from the path
@@ -400,7 +402,7 @@ zf.serve()
 This file is contain depedencies of the application, you can add here and install using zf.nims install appname deps
 or directly using nimble package to install the depedencies
 
-3. nimjs folder
+3. nimjs folder (renamed to ***client*** folder make it easy to understand)
 
 This will contains the appname{Js.nim}, will end up with {Js.nim}, this file is the nim application for the client side
 and will compile to the "appname{Js.js}" file, the .js file wil be moved to the "www/private/compiled" folder. Then you can include the .js file into .html page. For example we include into index.html.
