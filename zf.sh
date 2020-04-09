@@ -24,6 +24,9 @@ if [ -f $APPNAME"App.nim" ]
 then
     PROJECT_DIR=$WORK_DIR
     APP_DIR=$WORK_DIR
+elif [ ! -d $PROJECT_DIR ]
+then
+    mkdir -p $PROJECT_DIR
 fi
 
 setCmdParam(){
@@ -110,9 +113,15 @@ showInvalidNewCmd(){
     echo ""
 }
 
-shoInvalidInstallCmd(){
+showInvalidInstallCmd(){
     echo ""
     echo "Invalid command install $APPNAME $3"
+    echo ""
+}
+
+showNotAllowedCmd(){
+    echo ""
+    echo "Command not allowed."
     echo ""
 }
 
@@ -336,6 +345,12 @@ main(){
             verifyCmd "build" $APPNAME
             ;;
         new)
+            if [ -f $APPNAME"App.nim" ]
+            then
+                showNotAllowedCmd
+                return
+            fi
+
             if [ "$APPNAME" != "" ]
             then
                 #local appDir=$PROJECT_DIR/$APPNAME
@@ -358,7 +373,7 @@ main(){
             then
                 verifyCmd "install" $APPNAME $3
             else
-                shoInvalidInstallCmd
+                showInvalidInstallCmd
             fi
             ;;
         *)
