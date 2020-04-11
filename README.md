@@ -46,6 +46,26 @@ use this instead:
 ./zf.sh run mysite
 ```
 
+- ***Command summary***
+```
+./zf.sh --help
+
+Usage:
+------------------------------------------------------
+Create new app        : ./zf.sh new appname
+Install app depedency : ./zf.sh install-deps appname
+Build app             : ./zf.sh build appname
+Run the app           : ./zf.sh run appname
+Set default app       : ./zf.sh set-default appname
+------------------------------------------------------
+If default app already set using set-default,
+simply call without app name
+Install app depedency : ./zf.sh install-deps
+Build app             : ./zf.sh build
+Run the app           : ./zf.sh run
+------------------------------------------------------
+```
+
 the command above will run mysite app on default port 8080 and bind address 0.0.0.0,
 open [http://localhost:8080](http://localhost:8080) you will be redirect to [http://localhost:8080/index.html](http://localhost:8080/index.html)
 
@@ -190,6 +210,72 @@ The application sturcure will contain:
 
 1. app_name{App.nim}
 
+Each time new project creation inside each project will have settings.json.example, you can rename it as settings.json. The settings.json will load by app runtime start and will be populate to the project settings.
+```
+{
+    "AppRootDir": "",
+    "KeepAliveMax": 100,
+    "KeepAliveTimeout": 15,
+    "MaxBodyLength": 268435456,
+    "Debug": false,
+    "Http": {
+        "Port": 8080,
+        "Address": "0.0.0.0",
+        "ReuseAddress": true,
+        "ReusePort": false,
+        "Secure": {
+            "Cert": "ssl/certificate.pem",
+            "Key": "ssl/key.pem",
+            "Verify": true,
+            "Port": 8443
+        }
+    }
+}
+```
+
+We can also add custom configuration into the settings.json, in this case we add example for postgresql settings and will be used later.
+```
+{
+    "AppRootDir": "",
+    "KeepAliveMax": 100,
+    "KeepAliveTimeout": 15,
+    "MaxBodyLength": 268435456,
+    "Debug": false,
+    "Http": {
+        "Port": 8080,
+        "Address": "0.0.0.0",
+        "ReuseAddress": true,
+        "ReusePort": false,
+        "Secure": {
+            "Cert": "ssl/certificate.pem",
+            "Key": "ssl/key.pem",
+            "Verify": true,
+            "Port": 8443
+        }
+    },
+    "PgSqlConf": {
+        "User": "admin",
+        "Password": "admin_pass",
+        "Database": "mydb",
+        "Host": "localhost"
+    }
+}
+```
+
+we can retrieve the configuration by import zfcore/zendFlow and use the zfJsonSettings() procedures, the zfJsonSettings() procedures will return json object
+```
+import zfcore/zendFlow
+
+let pgSqlConf = zfJsonSettings().getOrDefault("PgSqlConf")
+if not isNil(pgSqlConf):
+    # retrieve the value
+    # see the json decumentation from the nim lang
+    let host = pgSqlConf{"Host"}.getStr()
+    let user = pgSqlConf{"User"}.getStr()
+    let pass = pgSqlConf{"Password"}.getStr()
+    let db = pgSqlConf{"Database"}.getStr()
+```
+
 All application starting point will be end with {App.nim}, for example we create "mysite" application then the application
 will changed to "mysileApp".nim, the appname{App.nim} is convention and should not be changes.
 
@@ -250,11 +336,12 @@ let zf = newZendFlow(
         sslSettings = newSslSettings(
             certFile = joinPath("ssl", "certificate.pem"),
             keyFile = joinPath("ssl", "key.pem"),
-            verifyMode = SslCVerifyMode.CVerifyNone,
+            verify = false,
             port = Port(8443)
         )))
 ]#
 
+#[
 let zf = newZendFlow(
     newSettings(
         appRootDir = getCurrentDir(),
@@ -263,6 +350,12 @@ let zf = newZendFlow(
         debug = true,
         keepAliveMax = 100,
         keepAliveTimeout = 15))
+]#
+
+# it will load default settings
+# you can use settings.json confuguration
+# by renaming the settings.json.example to settings.json
+let zf = newZendFlow()
 
 # handle before route middleware
 zf.r.beforeRoute(proc (ctx: HttpCtx): Future[bool] {.async.} =
