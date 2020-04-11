@@ -46,6 +46,9 @@ use this instead:
 ./zf.sh run mysite
 ```
 
+the command above will run mysite app on default port 8080 and bind address 0.0.0.0,
+open [http://localhost:8080](http://localhost:8080) you will be redirect to [http://localhost:8080/index.html](http://localhost:8080/index.html)
+
 - ***Command summary***
 ```
 ./zf.sh --help
@@ -65,9 +68,6 @@ Build app             : ./zf.sh build
 Run the app           : ./zf.sh run
 ------------------------------------------------------
 ```
-
-the command above will run mysite app on default port 8080 and bind address 0.0.0.0,
-open [http://localhost:8080](http://localhost:8080) you will be redirect to [http://localhost:8080/index.html](http://localhost:8080/index.html)
 
 **the run command will wait from user input, use "enter/return" key to recompile updated source or use "q" then hit enter/return to quit the run dev mode and terminate the server**
 
