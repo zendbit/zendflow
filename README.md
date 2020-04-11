@@ -699,8 +699,13 @@ in the www folder contains vendor folder, this will contains the thirdpary libra
 To deploy we need the under projects folder only, for example web have application mysite under projects directory, we can deploy mysite directory to target system.
 
 ```
-nim c appname{App.nim} -> in this case mysiteApp.nim
+./zf.sh build
 ./mysiteApp
+```
+
+just in case want to develop
+```
+./zf.sh run -> run on interactive mode
 ```
 
 Thats it, feel free to modify and pull request if you have any idea, also this is the public domain we can share or you can cantact me on my email [amru.rosyada@amil.com](amru.rosyada@amil.com) to discuss further.
