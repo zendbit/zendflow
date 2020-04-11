@@ -1,0 +1,19 @@
+{
+    "AppRootDir": "",
+    "KeepAliveMax": 100,
+    "KeepAliveTimeout": 15,
+    "MaxBodyLength": 268435456,
+    "Debug": false,
+    "Http": {
+        "Port": 8080,
+        "Address": "0.0.0.0",
+        "ReuseAddress": true,
+        "ReusePort": false,
+        "Secure": {
+            "Cert": "ssl/certificate.pem",
+            "Key": "ssl/key.pem",
+            "Verify": true,
+            "Port": 8443
+        }
+    }
+}

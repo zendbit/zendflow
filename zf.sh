@@ -14,6 +14,13 @@ CMD=$1
 APPNAME=$2
 
 # project directory
+DEFAULT_APP="defaultapp"
+
+if [ "$APPNAME" == "" ] && [ -f $DEFAULT_APP ]
+then
+    read -r APPNAME < $DEFAULT_APP
+fi
+
 WORK_DIR=`pwd`
 PROJECT_DIR=$WORK_DIR/"projects"
 APP_DIR=$PROJECT_DIR/$APPNAME
@@ -51,77 +58,116 @@ unsetCmdParam(){
 
 showRunHelp(){
     echo ""
+    echo "------------------------------------------------------"
     echo "hit enter/return for recompile and run :-)"
     echo "q: for quit"
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showNewProjectHints(){
     echo ""
+    echo "------------------------------------------------------"
     echo "Project created $sourceDir"
     echo ""
     echo "- run this command to install the project depedency: "
     echo " $> ./zf.sh install ${sourceDir##*/} deps"
-    echo ""
+    echo "------------------------------------------------------"
     echo "if you plan to modify the depedency of project you can modify the deps file"
     echo "or you can directly using nimble to download the package"
-    echo ""
+    echo "------------------------------------------------------"
     echo "- run this command to run the project: "
     echo " $> ./zf.sh run ${sourceDir##*/}"
-    echo " "
+    echo "------------------------------------------------------"
     echo "The run command will not exit but wait for user key input,"
     echo "- hit return/enter to recompile the modified source"
     echo "- enter q then hit return/enter to quit from the app and stop the server"
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showFailedCreateProject(){
     echo ""
+    echo "------------------------------------------------------"
     echo "Failed to create project $sourceDir"
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showFailedCreateJsOutputDir(){
     echo ""
+    echo "------------------------------------------------------"
     echo "Failed to create $sourceJsOutputDir directory."
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showFailedAppNotFound(){
     echo ""
+    echo "------------------------------------------------------"
     echo "application not found $sourceDir"
     echo "create new application using:"
     echo "  $>./zf.sh new appname"
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showInvalidCmd(){
     echo ""
+    echo "------------------------------------------------------"
     echo "Invalid command $CMD $APPNAME"
+    echo "------------------------------------------------------"
+    echo ""
+}
+
+showHelpCmd(){
+    echo ""
+    echo "Usage:"
+    echo "------------------------------------------------------"
+    echo "Create new app        : ./zf.sh new appname"
+    echo "Install app depedency : ./zf.sh install-deps appname"
+    echo "Build app             : ./zf.sh build appname"
+    echo "Run the app           : ./zf.sh run appname"
+    echo "Set default app       : ./zf.sh set-default appname"
+    echo "------------------------------------------------------"
+    echo "If default app already set using set-default,"
+    echo "simply call without app name"
+    echo "Install app depedency : ./zf.sh install-deps"
+    echo "Build app             : ./zf.sh build"
+    echo "Run the app           : ./zf.sh run"
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showInvalidAppName(){
     echo ""
+    echo "------------------------------------------------------"
     echo "$appDir already exist, try another appname."
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showInvalidNewCmd(){
     echo ""
+    echo "------------------------------------------------------"
     echo "Invalid command new $APPNAME"
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showInvalidInstallCmd(){
     echo ""
+    echo "------------------------------------------------------"
     echo "Invalid command install $APPNAME $3"
+    echo "------------------------------------------------------"
     echo ""
 }
 
 showNotAllowedCmd(){
     echo ""
+    echo "------------------------------------------------------"
     echo "Command not allowed."
+    echo "------------------------------------------------------"
     echo ""
 }
 
@@ -240,16 +286,16 @@ installDeps(){
                 local nimDepPkg=`echo $depNimble | cut -d " " -f 2`
 
                 echo "Collecting $nimDepPkg"
-                echo "---------------------"
+                echo "------------------------------------------------------"
 
                 local installedDep=`nimble list -i|grep $nimDepPkg`
                 if [ "$installedDep" == "" ]
                 then
                     case $nimCmd in
-                        install)
+                        "install")
                             echo "y" | nimble install $nimDepPkg
                             ;;
-                        develop)
+                        "develop")
                             echo "y" | nimble develop $nimDepPkg
                             ;;
                     esac
@@ -260,11 +306,24 @@ installDeps(){
                     echo `nimble path $nimDepPkg`
                 fi
 
-                echo "---------------------"
+                echo "------------------------------------------------------"
                 echo ""
             fi
         done < $depsFile
     fi
+
+    echo ""
+    echo "------------------------------------------------------"
+    echo "Looking nimbleDeps folder"
+    for d in $depsFolder/*
+    do
+        if [ -d $d ]
+        then
+            git pull $d
+        fi
+    done
+    echo "------------------------------------------------------"
+    echo ""
 
     cd $WORK_DIR
 }
@@ -276,7 +335,6 @@ verifyCmd(){
     then
         #sourceDir=$PROJECT_DIR/$APPNAME
         sourceDir=$APP_DIR
-        echo $sourceDir
 
         if [ -d $sourceDir ]
         then
@@ -305,21 +363,21 @@ verifyCmd(){
                 $staticIndexHtml
 
             case $CMD in
-                run)
+                "run")
                     runCmd
                     ;;
-                build)
+                "build")
                     build=1
                     runCmd
                     ;;
-                new)
+                "new")
                     newProjectCmd
                     ;;
-                install)
-                    if [ "$3" == "deps" ]
-                    then
-                        installDeps
-                    fi
+                "install-deps")
+                    installDeps
+                    ;;
+                "set-default")
+                    echo $APPNAME > $DEFAULT_APP
                     ;;
                 *)
                     ;;
@@ -338,13 +396,13 @@ verifyCmd(){
 # parse command
 main(){
     case $CMD in
-        run)
+        "run")
             verifyCmd "run" $APPNAME
             ;;
-        build)
+        "build")
             verifyCmd "build" $APPNAME
             ;;
-        new)
+        "new")
             if [ -f $APPNAME"App.nim" ]
             then
                 showNotAllowedCmd
@@ -360,6 +418,7 @@ main(){
                 then
                     cp -r $zfTplDir $appDir
                     cp "zf.sh" $appDir
+                    echo $APPNAME > $appDir/$DEFAULT_APP
                     verifyCmd "new" $APPNAME
                 else
                     showInvalidAppName
@@ -368,16 +427,17 @@ main(){
                 showInvalidNewCmd
             fi
             ;;
-        install)
-            if [ "$3" == "deps" ]
-            then
-                verifyCmd "install" $APPNAME $3
-            else
-                showInvalidInstallCmd
-            fi
+        "install-deps")
+            verifyCmd "install-deps" $APPNAME
+            ;;
+        "set-default")
+            verifyCmd "set-default" $APPNAME
+            ;;
+        "--help")
+            showHelpCmd
             ;;
         *)
-            showInvalidCmd
+            showHelpCmd
             ;;
     esac
 }

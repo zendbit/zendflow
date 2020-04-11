@@ -58,6 +58,7 @@ let zf = newZendFlow(
         )))
 ]#
 
+#[
 let zf = newZendFlow(
     newSettings(
         appRootDir = getCurrentDir(),
@@ -66,6 +67,12 @@ let zf = newZendFlow(
         debug = true,
         keepAliveMax = 100,
         keepAliveTimeout = 15))
+]#
+
+# it will load default settings
+# you can use settings.json confuguration
+# by renaming the settings.json.example to settings.json
+let zf = newZendFlow()
 
 # handle before route middleware
 zf.r.beforeRoute(proc (ctx: HttpCtx): Future[bool] {.async.} =
