@@ -319,9 +319,11 @@ installDeps(){
     do
         if [ -d $d ]
         then
+            echo "git pull $d"
             cd $d
             git pull
             cd $WORK_DIR
+            echo ""
         fi
     done
     echo "------------------------------------------------------"
