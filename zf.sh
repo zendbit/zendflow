@@ -59,7 +59,7 @@ unsetCmdParam(){
 showRunHelp(){
     echo ""
     echo "------------------------------------------------------"
-    echo "hit enter/return for recompile and run :-)"
+    echo "Hit enter/return for recompile and run :-)"
     echo "q: for quit"
     echo "------------------------------------------------------"
     echo ""
@@ -71,13 +71,13 @@ showNewProjectHints(){
     echo "Project created $sourceDir"
     echo ""
     echo "- run this command to install the project depedency: "
-    echo " $> ./zf.sh install ${sourceDir##*/} deps"
+    echo "  $>./zf.sh install ${sourceDir##*/} deps"
     echo "------------------------------------------------------"
-    echo "if you plan to modify the depedency of project you can modify the deps file"
+    echo "If you plan to modify the depedency of project you can modify the deps file"
     echo "or you can directly using nimble to download the package"
     echo "------------------------------------------------------"
     echo "- run this command to run the project: "
-    echo " $> ./zf.sh run ${sourceDir##*/}"
+    echo "  $>./zf.sh run ${sourceDir##*/}"
     echo "------------------------------------------------------"
     echo "The run command will not exit but wait for user key input,"
     echo "- hit return/enter to recompile the modified source"
@@ -97,7 +97,7 @@ showFailedCreateProject(){
 showFailedCreateJsOutputDir(){
     echo ""
     echo "------------------------------------------------------"
-    echo "Failed to create $sourceJsOutputDir directory."
+    echo "Failed to create $sourceJsOutputDir directory"
     echo "------------------------------------------------------"
     echo ""
 }
@@ -105,8 +105,8 @@ showFailedCreateJsOutputDir(){
 showFailedAppNotFound(){
     echo ""
     echo "------------------------------------------------------"
-    echo "application not found $sourceDir"
-    echo "create new application using:"
+    echo "Application not found $sourceDir"
+    echo "Create new application using:"
     echo "  $>./zf.sh new appname"
     echo "------------------------------------------------------"
     echo ""
@@ -122,7 +122,6 @@ showInvalidCmd(){
 
 showHelpCmd(){
     echo ""
-    echo "Usage:"
     echo "------------------------------------------------------"
     echo "Create new app        : ./zf.sh new appname"
     echo "Install app depedency : ./zf.sh install-deps appname"
@@ -142,7 +141,7 @@ showHelpCmd(){
 showInvalidAppName(){
     echo ""
     echo "------------------------------------------------------"
-    echo "$appDir already exist, try another appname."
+    echo "$appDir already exist, try another appname"
     echo "------------------------------------------------------"
     echo ""
 }
@@ -166,7 +165,7 @@ showInvalidInstallCmd(){
 showNotAllowedCmd(){
     echo ""
     echo "------------------------------------------------------"
-    echo "Command not allowed."
+    echo "Command not allowed"
     echo "------------------------------------------------------"
     echo ""
 }
@@ -332,39 +331,116 @@ installDeps(){
     cd $WORK_DIR
 }
 
+showListApps(){
+    echo ""
+    echo "------------------------------------------------------"
+    echo "Loking for the existing applications"
+    for d in $PROJECT_DIR/*
+    do
+        if [ -d $d ]
+        then
+            echo "-> ${d##*/}"
+        fi
+    done
+    echo "------------------------------------------------------"
+    echo ""
+}
+
+deleteAppCmd(){
+    if [ -d $APP_DIR ]
+    then
+        echo ""
+        echo "------------------------------------------------------"
+        echo "Are you sure want to delete $APPNAME?[y/n]"
+        read input
+        case $input in
+            "y")
+                echo "delete $APP_DIR..."
+                rm -rf $APP_DIR
+                echo "completed."
+                ;;
+            *)
+                echo "delete nothing."
+                ;;
+        esac
+        echo "------------------------------------------------------"
+        echo ""
+    else
+        showFailedAppNotFound
+    fi
+}
+
+showAppConfig(){
+    local appConfig="$APP_DIR/settings.json"
+    echo ""
+    echo "------------------------------------------------------"
+    echo "Application config $appConfig"
+
+    if [ ! -f $appConfig  ]
+    then
+        echo "Create new config, copy $appConfig.example -> $appConfig"
+        cp "$appConfig.example" $appConfig
+    fi
+
+    cat $appConfig
+
+    echo "------------------------------------------------------"
+    echo ""
+}
+
+showDefaultApp(){
+    echo "" 
+    echo "------------------------------------------------------"
+
+    if [ -f "$WORK_DIR/defaultapp" ]
+    then
+        echo "Default app:"
+        cat "$WORK_DIR/defaultapp"
+    else
+        echo "Default app not set, use command below to set default app"
+        echo "  $>./zf.sh set-default appname"
+    fi
+
+    echo "------------------------------------------------------"
+    echo ""
+}
+
 # verify command action
 # parameter $1 is type of command ex, run:appname:...
 verifyCmd(){
-    if [ "$CMD" != "" ] && [ "$APPNAME" != "" ]
+    if [ $CMD != "" ]
     then
-        #sourceDir=$PROJECT_DIR/$APPNAME
         sourceDir=$APP_DIR
 
         if [ -d $sourceDir ]
         then
-            local sourceToCompile=$sourceDir/$APPNAME"App.nim"
 
-            local sourceJsDir=$sourceDir"/client"
-            local sourceJsOutputDir=$sourceDir"/www/private/js/compiled"
-            if [ ! -d $sourceJsOutputDir ]
+            if [ $APPNAME != "" ]
             then
-                mkdir $sourceJsOutputDir
-                if [ ! $? -eq 0 ]
+                local sourceToCompile=$sourceDir/$APPNAME"App.nim"
+
+                local sourceJsDir=$sourceDir"/client"
+                local sourceJsOutputDir=$sourceDir"/www/private/js/compiled"
+                if [ ! -d $sourceJsOutputDir ]
                 then
-                    showFailedCreateJsOutputDir
+                    mkdir $sourceJsOutputDir
+                    if [ ! $? -eq 0 ]
+                    then
+                        showFailedCreateJsOutputDir
+                    fi
                 fi
+
+                local sourceJsToCompile=$sourceJsDir/$APPNAME"Js.nim"
+                local staticIndexHtml=$sourceDir"/www/index.html"
+
+                setCmdParam $sourceDir \
+                    $sourceToCompile \
+                    $sourceJsDir \
+                    $sourceJsToCompile \
+                    $sourceJsOutputDir \
+                    0 \
+                    $staticIndexHtml
             fi
-
-            local sourceJsToCompile=$sourceJsDir/$APPNAME"Js.nim"
-            local staticIndexHtml=$sourceDir"/www/index.html"
-
-            setCmdParam $sourceDir \
-                $sourceToCompile \
-                $sourceJsDir \
-                $sourceJsToCompile \
-                $sourceJsOutputDir \
-                0 \
-                $staticIndexHtml
 
             case $CMD in
                 "run")
@@ -374,8 +450,20 @@ verifyCmd(){
                     build=1
                     runCmd
                     ;;
+                "delete")
+                    deleteAppCmd
+                    ;;
+                "config")
+                    showAppConfig
+                    ;;
                 "new")
                     newProjectCmd
+                    ;;
+                "list-apps")
+                    showListApps
+                    ;;
+                "default-app")
+                    showDefaultApp
                     ;;
                 "install-deps")
                     installDeps
@@ -405,6 +493,15 @@ main(){
             ;;
         "build")
             verifyCmd "build" $APPNAME
+            ;;
+        "list-apps")
+            verifyCmd "list-apps"
+            ;;
+        "delete")
+            verifyCmd "delete" $APPNAME
+            ;;
+        "config")
+            verifyCmd "config" $APPNAME
             ;;
         "new")
             if [ -f $APPNAME"App.nim" ]
@@ -436,6 +533,9 @@ main(){
             ;;
         "set-default")
             verifyCmd "set-default" $APPNAME
+            ;;
+        "default-app")
+            verifyCmd "default-app"
             ;;
         "--help")
             showHelpCmd
