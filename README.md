@@ -53,6 +53,9 @@ Install app depedency : ./zf.sh install-deps appname
 Build app             : ./zf.sh build appname
 Run the app           : ./zf.sh run appname
 Set default app       : ./zf.sh set-default appname
+List available app    : ./zf.sh list-apps
+View default app      : ./zf.sh default-app
+Delete app            : ./zf.sh delete appname
 ------------------------------------------------------
 If default app already set using set-default,
 simply call without app name
