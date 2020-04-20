@@ -1,6 +1,8 @@
 # ZendFlow
 High performance asynchttpserver and web framework for nim language. This is ready for production :-) better run under nginx proxy. **for this release not supported windows, need to changes the zf.nims shell cmd to support windows system**
 
+start from version 1.0.6 websocket ready
+
 ***the asynchttpserver already migrate to zfblast server*** our http server implementaion using asyncnet with openssl ready. Using zendflow need to installed openssl and the compile flag default to -d:ssl
 
 ## Install Nim Lang
@@ -22,9 +24,6 @@ inside zendflow you can find zf.nims file, this file is command line to manage t
 
 - Create new project
 ```
-nim zf.nims new mysite
-
-use this instead:
 ./zf.sh new mysite
 ```
 
@@ -32,17 +31,11 @@ the command above will create mysite app under the projects directory "projects/
 
 - Install project dependencies
 ```
-nim zf.nims install mysite deps
-
-use this instead:
 ./zf.sh install mysite deps
 ```
 
 - Run mysite app
 ```
-nim zf.nims run mysite
-
-use this instead:
 ./zf.sh run mysite
 ```
 
@@ -60,6 +53,9 @@ Install app depedency : ./zf.sh install-deps appname
 Build app             : ./zf.sh build appname
 Run the app           : ./zf.sh run appname
 Set default app       : ./zf.sh set-default appname
+List available app    : ./zf.sh list-apps
+View default app      : ./zf.sh default-app
+Delete app            : ./zf.sh delete appname
 ------------------------------------------------------
 If default app already set using set-default,
 simply call without app name
@@ -77,11 +73,6 @@ Run the app           : ./zf.sh run
 
 This file is nimscript to manage the zendflow projects, available command:
 ```
-nim zf.nims new appname -> create new projects under projects directory
-nim zf.nims install appname deps -> install application depedencies, to add depedency you can changes the deps file or directly from nimble command
-nim zf.nims run appname -> this will run the appname, run command will wait user input: return/enter will recompile changes source, to quit type "q" then hit return/enter
-
-use this instead:
 ./zf.sh new appname -> create new projects under projects directory
 ./zf.sh install appname deps -> install application depedencies, to add depedency you can changes the deps file or directly from nimble command
 ./zf.sh run appname -> this will run the appname, run command will wait user input: return/enter will recompile changes source, to quit type "q" then hit return/enter
@@ -387,6 +378,84 @@ zf.r.afterRoute(proc (ctx: HttpCtx, route: Route): Future[bool] {.async.} =
 # we can retrieve using address:port/public/style/*.css
 zf.r.static("/")
 
+# web socket example
+zf.r.get("/ws", proc (ctx: HttpCtx): Future[void] {.async.} =
+    let ws = ctx.webSocket
+    if not isNil(ws):
+        case ws.state:
+        of WSState.HandShake:
+            echo "HandShake state"
+            # this state will evaluate
+            # right before handshake process
+            # in here we can add the additionals response headers
+            # normaly we can skip this step
+            # about the handshake:
+            # handshake is using http headers
+            # this process is only happen 1 time
+            # after handshake success then the protocol will be switch to the websocket
+            # you can check the handshake header request in
+            # -> ws.handShakeReqHeaders this is the HtttpHeaders type
+            # and you also can add the additional headers information in the response handshake
+            # by adding the:
+            # -> ws.handShakeResHeaders
+        of WSState.Open:
+            echo "Open state"
+            # in this state all swaping process will accur
+            # like send or received message
+            case ws.statusCode:
+            of WSStatusCode.Ok:
+                case ws.inFrame.opCode:
+                of WSOpCode.TextFrame.uint8:
+                    echo "Text frame received"
+                    echo &"Fin {ws.inFrame.fin}"
+                    echo &"Rsv1 {ws.inFrame.rsv1}"
+                    echo &"Rsv2 {ws.inFrame.rsv2}"
+                    echo &"Rsv3 {ws.inFrame.rsv3}"
+                    echo &"OpCode {ws.inFrame.opCode}"
+                    echo &"Mask {ws.inFrame.mask}"
+                    echo &"Mask Key {ws.inFrame.maskKey}"
+                    echo &"PayloadData {ws.inFrame.payloadData}"
+                    echo &"PayloadLen {ws.inFrame.payloadLen}"
+                    # how to show decoded data
+                    # we can use the encodeDecode
+                    echo ""
+                    echo "Received data (decoded):"
+                    echo ws.inFrame.encodeDecode()
+                    # let send the data to the client
+                    # set fin to 1 if this is independent message
+                    # 1 meaning for read and finish
+                    # if you want to use continues frame
+                    # set it to 0
+                    # for more information about web socket frame and protocol
+                    # refer to the web socket documentation ro the RFC document
+                    #
+                    # WSOpCodeEnum:
+                    # WSOpCode* = enum
+                    #    ContinuationFrame = 0x0
+                    #    TextFrame = 0x1
+                    #    BinaryFrame = 0x2
+                    #    ConnectionClose = 0x8
+                    ws.outFrame = newWSFrame(
+                        1,
+                        WSOpCode.TextFrame.uint8,
+                        "This is from the endpoint :-)")
+                    await ws.send()
+                of WSOpCode.BinaryFrame.uint8:
+                    echo "Binary frame received"
+                of WSOpCode.ContinuationFrame.uint8:
+                    # the frame continues from previous frame
+                    echo "Continuation frame received"
+                of WSOpCode.ConnectionClose.uint8:
+                    echo "Connection close frame received"
+                else:
+                    discard
+            else:
+                echo &"Failed status code {ws.statusCode}"
+        of WSState.Close:
+            echo "Close state"
+            # this state will execute if the connection close
+    )
+    
 # using regex for matching the request
 # the regex is regex match like in pcre standard like regex on python, perl etc
 # <ids:re[([0-9]+)_([0-9]+)]:len[2]>
@@ -714,8 +783,8 @@ This is production ready :-), feel free to send me a bug to solve.
 
 Need todo:
 - orm integration
-- websocket
 - rpc
 
 Done:
 - ssl support (this not mandatory, we can done to run zendflow under nginx)
+- web socket
