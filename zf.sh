@@ -128,6 +128,9 @@ showHelpCmd(){
     echo "Build app             : ./zf.sh build appname"
     echo "Run the app           : ./zf.sh run appname"
     echo "Set default app       : ./zf.sh set-default appname"
+    echo "List available app    : ./zf.sh list-apps"
+    echo "View default app      : ./zf.sh default-app"
+    echo "Delete app            : ./zf.sh delete appname"
     echo "------------------------------------------------------"
     echo "If default app already set using set-default,"
     echo "simply call without app name"
@@ -389,7 +392,7 @@ showAppConfig(){
 }
 
 showDefaultApp(){
-    echo "" 
+    echo ""
     echo "------------------------------------------------------"
 
     if [ -f "$WORK_DIR/defaultapp" ]
