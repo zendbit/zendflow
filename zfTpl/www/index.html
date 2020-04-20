@@ -1,7 +1,40 @@
 <html>
     <head>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" type="text/css" href="/vendor/bootstrap/css/bootstrap.min.css">
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" type="text/css" href="/vendor/bootstrap/css/bootstrap.min.css" />
+        <script type = "text/javascript">
+            function WebSocketTest() {
+
+               if ("WebSocket" in window) {
+                  alert("WebSocket is supported by your Browser!");
+
+                  // Let us open a web socket
+                  var ws = new WebSocket("ws://localhost:8080/ws");
+
+                  ws.onopen = function() {
+                     console.log("onopen")
+                     // Web Socket is connected, send data using send()
+                     ws.send("this is message from the client then mustbe long string to test, if we can use long long logn string and we can handle it nicely, so we can load the extended payload and read all data chunk to the buffer. No need to worry about data corruption because we can handle it nicely don't need the super duper coding and framework skill to do it so it will be nice. this is message from the client then mustbe long string to test, if we can use long long logn string and we can handle it nicely, so we can load the extended payload and read all data chunk to the buffer. No need to worry about data corruption because we can handle it nicely don't need the super duper coding and");
+                     alert("Message is sent...");
+                  };
+
+                  ws.onmessage = function (evt) {
+                     var received_msg = evt.data;
+                     alert("Message is received...");
+                  };
+
+                  ws.onclose = function() {
+
+                     // websocket is closed.
+                     alert("Connection is closed...");
+                  };
+               } else {
+
+                  // The browser doesn't support WebSocket
+                  alert("WebSocket NOT supported by your Browser!");
+               }
+            }
+         </script>
     </head>
 
     <body>
@@ -10,6 +43,8 @@
         <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
         <script src="/private/js/lib/init.js"></script>
         <script src="/private/js/compiled/zfTpl.js"></script>
+        <div id="sse">
+            <a href="javascript:WebSocketTest()">Run WebSocket</a>
+        </div>
     </body>
 </html>
-
