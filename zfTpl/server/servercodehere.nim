@@ -1,5 +1,5 @@
 type
-    HelloWorld* = ref object
+  HelloWorld* = ref object
 
-proc printHelloWorld*(self: HelloWorld): string = 
-    return "Hello, World!"
+proc printHelloWorld*(self: HelloWorld): string =
+  return "Hello, World!"

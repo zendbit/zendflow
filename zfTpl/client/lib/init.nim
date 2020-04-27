@@ -1,8 +1,8 @@
 import
-    dom,
-    jscore,
-    asyncjs,
-    jsffi
+  dom,
+  jscore,
+  asyncjs,
+  jsffi
 
 # import the document object and the console
 #var document {.importc, nodecl.}: JsObject
@@ -19,9 +19,9 @@ proc jq*(selector: Document): JsObject {.importcpp: "jqSelector(#)" discardable.
 proc jq*(): JsObject {.importcpp: "jq()" discardable.}
 # initialize xHttpReq
 proc xHttpReq*(): JsObject {.importcpp: "xHttpReq()" discardable.}
-    
+
 export
-    dom,
-    jscore,
-    asyncjs,
-    jsffi
+  dom,
+  jscore,
+  asyncjs,
+  jsffi
