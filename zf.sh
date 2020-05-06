@@ -71,7 +71,7 @@ showNewProjectHints(){
   echo "Project created $sourceDir"
   echo ""
   echo "- run this command to install the project depedency: "
-  echo "  $>./zf.sh install ${sourceDir##*/} deps"
+  echo "  $>./zf.sh install-deps ${sourceDir##*/}"
   echo "------------------------------------------------------"
   echo "If you plan to modify the depedency of project you can modify the deps file"
   echo "or you can directly using nimble to download the package"
@@ -83,6 +83,8 @@ showNewProjectHints(){
   echo "- hit return/enter to recompile the modified source"
   echo "- enter q then hit return/enter to quit from the app and stop the server"
   echo "------------------------------------------------------"
+  echo "For more information about command usage."
+  echo "  $>./zf.sh --help"
   echo ""
 }
 
