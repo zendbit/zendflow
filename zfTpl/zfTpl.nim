@@ -135,7 +135,7 @@ zf:
     # if you custumize the static route for example zf.r.static("/public")
     # it will serve with address:port/public/
     # we can retrieve using address:port/public/style/*.css
-    staticFile "/"
+    staticDir "/"
     
     # using regex for matching the request
     # the regex is regex match like in pcre standard like regex on python, perl etc
