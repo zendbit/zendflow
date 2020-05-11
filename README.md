@@ -204,52 +204,53 @@ The application sturcure will contain:
 Each time new project creation inside each project will have settings.json.example, you can rename it as settings.json. The settings.json will load by app runtime start and will be populate to the project settings.
 ```
 {
-    "AppRootDir": "",
-    "KeepAliveMax": 100,
-    "KeepAliveTimeout": 15,
-    "MaxBodyLength": 268435456,
-    "Debug": false,
-    "Http": {
-        "Port": 8080,
-        "Address": "0.0.0.0",
-        "ReuseAddress": true,
-        "ReusePort": false,
-        "Secure": {
-            "Cert": "ssl/certificate.pem",
-            "Key": "ssl/key.pem",
-            "Verify": true,
-            "Port": 8443
-        }
+  "appRootDir": "",
+  "keepAliveMax": 100,
+  "keepAliveTimeout": 15,
+  "maxBodyLength": 268435456,
+  "debug": false,
+  "http": {
+    "port": 8080,
+    "address": "0.0.0.0",
+    "reuseAddress": true,
+    "reusePort": false,
+    "secure": {
+      "cert": "ssl/certificate.pem",
+      "key": "ssl/key.pem",
+      "verify": true,
+      "port": 8443
     }
+  }
 }
+
 ```
 
 We can also add custom configuration into the settings.json, in this case we add example for postgresql settings and will be used later.
 ```
 {
-    "AppRootDir": "",
-    "KeepAliveMax": 100,
-    "KeepAliveTimeout": 15,
-    "MaxBodyLength": 268435456,
-    "Debug": false,
-    "Http": {
-        "Port": 8080,
-        "Address": "0.0.0.0",
-        "ReuseAddress": true,
-        "ReusePort": false,
-        "Secure": {
-            "Cert": "ssl/certificate.pem",
-            "Key": "ssl/key.pem",
-            "Verify": true,
-            "Port": 8443
-        }
-    },
-    "PgSqlConf": {
-        "User": "admin",
-        "Password": "admin_pass",
-        "Database": "mydb",
-        "Host": "localhost"
+  "appRootDir": "",
+  "keepAliveMax": 100,
+  "keepAliveTimeout": 15,
+  "maxBodyLength": 268435456,
+  "debug": false,
+  "http": {
+    "port": 8080,
+    "address": "0.0.0.0",
+    "reuseAddress": true,
+    "reusePort": false,
+    "secure": {
+      "cert": "ssl/certificate.pem",
+      "key": "ssl/key.pem",
+      "verify": true,
+      "port": 8443
     }
+  },
+  "pgSqlConf": {
+    "user": "admin",
+    "password": "admin_pass",
+    "database": "mydb",
+    "host": "localhost"
+  }
 }
 ```
 
@@ -257,14 +258,14 @@ we can retrieve the configuration by import zfcore/zendFlow and use the zfJsonSe
 ```
 import zfcore/zendFlow
 
-let pgSqlConf = zfJsonSettings().getOrDefault("PgSqlConf")
+let pgSqlConf = zfJsonSettings().getOrDefault("pgSqlConf")
 if not isNil(pgSqlConf):
     # retrieve the value
     # see the json decumentation from the nim lang
-    let host = pgSqlConf{"Host"}.getStr()
-    let user = pgSqlConf{"User"}.getStr()
-    let pass = pgSqlConf{"Password"}.getStr()
-    let db = pgSqlConf{"Database"}.getStr()
+    let host = pgSqlConf{"host"}.getStr()
+    let user = pgSqlConf{"user"}.getStr()
+    let pass = pgSqlConf{"password"}.getStr()
+    let db = pgSqlConf{"database"}.getStr()
 ```
 
 All application starting point will be end with {App.nim}, for example we create "mysite" application then the application
