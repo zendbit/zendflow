@@ -31,12 +31,24 @@ the command above will create mysite app under the projects directory "projects/
 
 - Install project dependencies
 ```
-./zf.sh install mysite deps
+./zf.sh install-deps mysite
 ```
 
 - Run mysite app
 ```
 ./zf.sh run mysite
+```
+
+- set app as default on run
+```
+./zf.sh set-default mysite
+
+-- after that we can just execute
+./zf.sh build -> for build
+./zf.sh run -> for run
+
+-- view current default app
+./zf.sh default-app
 ```
 
 the command above will run mysite app on default port 8080 and bind address 0.0.0.0,
