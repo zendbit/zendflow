@@ -424,7 +424,7 @@ verifyCmd(){
       then
         local sourceToCompile=$sourceDir/$APPNAME"App.nim"
 
-        local sourceJsDir=$sourceDir"/client"
+        local sourceJsDir=$sourceDir"/src/tojs"
         local sourceJsOutputDir=$sourceDir"/www/private/js/compiled"
         if [ ! -d $sourceJsOutputDir ]
         then

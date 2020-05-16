@@ -36,7 +36,7 @@
 
 import
   zfcore/zendFlow,
-  server/servercodehere
+  src/servercodehere
 
 #
 # configuration:
@@ -127,7 +127,7 @@ zf:
           echo "Close state"
           # this state will execute if the connection close
 
-    
+
     # this static route wil serve under
     # all static resource will serve under / uri path
     # address:port/
@@ -136,14 +136,14 @@ zf:
     # it will serve with address:port/public/
     # we can retrieve using address:port/public/style/*.css
     staticDir "/"
-    
+
     # using regex for matching the request
     # the regex is regex match like in pcre standard like regex on python, perl etc
     # <ids:re[([0-9]+)_([0-9]+)]:len[2]>
     # - the ids wil capture as parameter name
     # - the len[2] is for len for capturing in this case in the () bracket,
     #   will capture ([0-9]+) twice
-    # - if only want to capture one we must exactly match len[n] 
+    # - if only want to capture one we must exactly match len[n]
     #   with number of () capturing bracket
     # - capture regex will return list of match and can be access using ctx.reParams
     # - if we want to capture segment parameter we can use <param_to_capture>
@@ -156,7 +156,7 @@ zf:
       echo ctx.reParams["ids"]
       # capture <name> value parameter from the url
       echo ctx.params["name"]
-      # we can also set custom header for the response 
+      # we can also set custom header for the response
       # using ctx.responseHeaders.add("header kye", "header value")
       ctx.response.headers.add("Content-Type", "text/plain")
       resp(Http200, "Hello World get request")

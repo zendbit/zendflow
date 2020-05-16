@@ -1,6 +1,6 @@
 import
-  lib/init,
-  lib/jObj,
+  init,
+  jObj,
   strutils
 
 # example call the jquery
