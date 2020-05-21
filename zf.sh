@@ -9,6 +9,27 @@
 # Git: https://github.com/zendbit
 #
 
+# nim js source compile command
+nimJsCompileCmd(){
+  nim "js" $1
+}
+
+# nim compile command
+nimCompileCmd(){
+  nim "c" "-d:ssl" "-d:nimDebugDlOpen" $1
+}
+
+# app run command
+appRunCmd(){
+  ./$1
+}
+
+# check if overridecmd.sh exist
+if [ -f overridecmd.sh ]
+then
+    source overridecmd.sh
+fi
+
 # retrieve command param
 CMD=$1
 APPNAME=$2
@@ -181,12 +202,12 @@ runCmd(){
 
   while [ 1 ]
   do
-    cd $WORK_DIR
+    #cd $WORK_DIR
     local stopCompile=0
 
     if [ $quit -eq 0 ]
     then
-      nim "js" $sourceJsToCompile
+      nimJsCompileCmd $sourceJsToCompile
 
       stopCompile=$?
 
@@ -213,7 +234,7 @@ runCmd(){
 
     if [ $stopCompile -eq 0 ]
     then
-      nim "c" "-d:ssl" $sourceToCompile
+      nimCompileCmd $sourceToCompile
 
       stopCompile=$?
 
@@ -221,10 +242,10 @@ runCmd(){
       then
         if [ $build -eq 0 ]
         then
-          #cd $PROJECT_DIR/$APPNAME
-          cd $APP_DIR
           exeAppName=${sourceToCompile##*/}
-          ./${exeAppName//.nim/""} &
+          cd $APP_DIR
+          appRunCmd ${exeAppName//.nim/""} &
+          cd -
           showRunHelp
         else
           exit
