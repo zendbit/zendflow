@@ -31,12 +31,24 @@ the command above will create mysite app under the projects directory "projects/
 
 - Install project dependencies
 ```
-./zf.sh install mysite deps
+./zf.sh install-deps mysite
 ```
 
 - Run mysite app
 ```
 ./zf.sh run mysite
+```
+
+- set app as default on run
+```
+./zf.sh set-default mysite
+
+-- after that we can just execute
+./zf.sh build -> for build
+./zf.sh run -> for run
+
+-- view current default app
+./zf.sh default-app
 ```
 
 the command above will run mysite app on default port 8080 and bind address 0.0.0.0,
@@ -628,8 +640,8 @@ appname{Js.nim} will compiled to appname{Js.js} to www/private/compiled
 ```
 # appname{Js.nim} will compiled to appname{Js.js} to www/private/compiled
 import
-    lib/init,
-    lib/jObj,
+    init,
+    jObj,
     strutils
 
 # example call the jquery
@@ -753,7 +765,7 @@ This is the index.html for example of jffi "to vue js" and "jquery":
 <script src="/vendor/vue/vue-2_6_11.js"></script>
 <script src="/vendor/jquery/jquery-3.4.1.min.js"></script>
 <script src="/vendor/bootstrap/js/bootstrap.min.js"></script>
-<script src="/private/js/lib/init.js"></script>
+<script src="/private/js/pure/init.js"></script>
 <script src="/private/js/compiled/mysiteJs.js"></script>
 
 ```
