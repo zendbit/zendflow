@@ -18,3 +18,6 @@ proc newJObj*(): JObj =
 proc add*(self: JObj, key: string, value: auto): JObj {.discardable.} =
   self[key.cstring] = toJs(value)
   return self
+
+proc `$`*(jsObject: JsObject): string =
+  $jsObject.to(cstring)
