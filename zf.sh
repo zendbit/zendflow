@@ -156,7 +156,8 @@ showInvalidCmd(){
 showHelpCmd(){
   echo ""
   echo "------------------------------------------------------"
-  echo "Create new app        : ./zf.sh new appname"
+  echo "Create new web app    : ./zf.sh new appname"
+  echo "Create new console app: ./zf.sh new-console appname"
   echo "Install app depedency : ./zf.sh install-deps appname"
   echo "Build app             : ./zf.sh build appname"
   echo "Run the app           : ./zf.sh run appname"
