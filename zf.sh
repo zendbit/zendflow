@@ -264,7 +264,7 @@ runCmd(){
 }
 
 newWebProjectCmd(){
-  local templateDir="templates/web"
+  local templateDir=".templates/web"
   if [ ! -d $APP_DIR ]
   then
     cp -r $templateDir $APP_DIR
@@ -300,7 +300,7 @@ newWebProjectCmd(){
 }
 
 newConsoleProjectCmd(){
-  local templateDir="templates/console"
+  local templateDir=".templates/console"
   if [ ! -d $APP_DIR ]
   then
     cp -r $templateDir $APP_DIR
