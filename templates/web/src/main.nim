@@ -36,7 +36,7 @@
 
 import
   zfcore/zendFlow,
-  src/servercodehere
+  example
 
 #
 # configuration:
@@ -108,9 +108,9 @@ zf:
               #    BinaryFrame = 0x2
               #    ConnectionClose = 0x8
               ws.outFrame = newWSFrame(
+                "This is from the endpoint :-)",
                 1,
-                WSOpCode.TextFrame.uint8,
-                "This is from the endpoint :-)")
+                WSOpCode.TextFrame.uint8)
               await ws.send()
             of WSOpCode.BinaryFrame.uint8:
               echo "Binary frame received"

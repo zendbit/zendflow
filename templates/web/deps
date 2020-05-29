@@ -1,7 +1,7 @@
 # use # char for comment
 # this dependency list for the project
 # run via nims with:
-#   nim zf.nims install deps
+#   nim zf.sh install-deps
 
 # zendflow required zfcore
 develop uri3

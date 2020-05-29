@@ -16,19 +16,18 @@ nimJsCompileCmd(){
 
 # nim compile command
 nimCompileCmd(){
-  nim "c" "-d:ssl" "-d:nimDebugDlOpen" $1
+  nim "c" "-d:ssl" "--opt:none" "-d:nimDebugDlOpen" $1
+}
+
+# nim compile command
+nimCompileReleaseCmd(){
+  nim "c" "-d:ssl" "-d:release" $1
 }
 
 # app run command
 appRunCmd(){
   ./$1
 }
-
-# check if overridecmd.sh exist
-if [ -f overridecmd.sh ]
-then
-    source overridecmd.sh
-fi
 
 # retrieve command param
 CMD=$1
@@ -57,24 +56,35 @@ then
   mkdir -p $PROJECT_DIR
 fi
 
+# check if overridecmd.sh exist
+OVERRIDE_CMD=$APP_DIR/"overridecmd.sh"
+if [ -f $OVERRIDE_CMD ]
+then
+    source $OVERRIDE_CMD
+fi
+
 setCmdParam(){
-  sourceDir=$1
-  sourceToCompile=$2
-  sourceJsDir=$3
-  sourceJsToCompile=$4
-  sourceJsOutputDir=$5
-  build=$6
-  staticIndexHtml=$7
+  if [ $APPNAME != "" ]
+  then
+    SOURCE_TO_COMPILE=$APP_DIR/$APPNAME"App.nim"
+    SOURCE_JS_DIR=$APP_DIR"/src/tojs"
+    SOURCE_JS_COMPILED_DIR=$APP_DIR"/www/private/js/compiled"
+    SOURCE_JS_TO_COMPILE=$SOURCE_JS_DIR/$APPNAME"Js.nim"
+    STATIC_INDEX_HTML=$APP_DIR"/www/index.html"
+  fi
+
+  BUILD=0
+  RELEASE_MODE=0
 }
 
 unsetCmdParam(){
-  unset sourceDir
-  unset sourceToCompile
-  unset sourceJsDir
-  unset sourceJsToCompile
-  unset sourceJsOutputDir
-  unset build
-  unset staticIndexHtml
+  unset SOURCE_TO_COMPILE
+  unset SOURCE_JS_DIR
+  unset SOURCE_JS_TO_COMPILE
+  unset SOURCE_JS_COMPILED_DIR
+  unset BUILD
+  unset STATIC_INDEX_HTML
+  unset RELEASE_MODE
 }
 
 showRunHelp(){
@@ -89,16 +99,16 @@ showRunHelp(){
 showNewProjectHints(){
   echo ""
   echo "------------------------------------------------------"
-  echo "Project created $sourceDir"
+  echo "Project created $APP_DIR"
   echo ""
   echo "- run this command to install the project depedency: "
-  echo "  $>./zf.sh install-deps ${sourceDir##*/}"
+  echo "  $>./zf.sh install-deps ${APP_DIR##*/}"
   echo "------------------------------------------------------"
   echo "If you plan to modify the depedency of project you can modify the deps file"
   echo "or you can directly using nimble to download the package"
   echo "------------------------------------------------------"
   echo "- run this command to run the project: "
-  echo "  $>./zf.sh run ${sourceDir##*/}"
+  echo "  $>./zf.sh run ${APP_DIR##*/}"
   echo "------------------------------------------------------"
   echo "The run command will not exit but wait for user key input,"
   echo "- hit return/enter to recompile the modified source"
@@ -112,7 +122,7 @@ showNewProjectHints(){
 showFailedCreateProject(){
   echo ""
   echo "------------------------------------------------------"
-  echo "Failed to create project $sourceDir"
+  echo "Failed to create project $APP_DIR"
   echo "------------------------------------------------------"
   echo ""
 }
@@ -120,7 +130,7 @@ showFailedCreateProject(){
 showFailedCreateJsOutputDir(){
   echo ""
   echo "------------------------------------------------------"
-  echo "Failed to create $sourceJsOutputDir directory"
+  echo "Failed to create $SOURCE_JS_COMPILED_DIR directory"
   echo "------------------------------------------------------"
   echo ""
 }
@@ -128,7 +138,7 @@ showFailedCreateJsOutputDir(){
 showFailedAppNotFound(){
   echo ""
   echo "------------------------------------------------------"
-  echo "Application not found $sourceDir"
+  echo "Application not found $APP_DIR"
   echo "Create new application using:"
   echo "  $>./zf.sh new appname"
   echo "------------------------------------------------------"
@@ -167,23 +177,7 @@ showHelpCmd(){
 showInvalidAppName(){
   echo ""
   echo "------------------------------------------------------"
-  echo "$appDir already exist, try another appname"
-  echo "------------------------------------------------------"
-  echo ""
-}
-
-showInvalidNewCmd(){
-  echo ""
-  echo "------------------------------------------------------"
-  echo "Invalid command new $APPNAME"
-  echo "------------------------------------------------------"
-  echo ""
-}
-
-showInvalidInstallCmd(){
-  echo ""
-  echo "------------------------------------------------------"
-  echo "Invalid command install $APPNAME $3"
+  echo "$APP_DIR already exist, try another appname"
   echo "------------------------------------------------------"
   echo ""
 }
@@ -205,17 +199,17 @@ runCmd(){
     #cd $WORK_DIR
     local stopCompile=0
 
-    if [ $quit -eq 0 ]
+    if [ $quit -eq 0 ] && [ -f $SOURCE_JS_TO_COMPILE ]
     then
-      nimJsCompileCmd $sourceJsToCompile
+      nimJsCompileCmd $SOURCE_JS_TO_COMPILE
 
       stopCompile=$?
 
       if [ $stopCompile -eq 0 ]
       then
-        for file in $sourceJsDir/*.js
+        for file in $SOURCE_JS_DIR/*.js
         do
-          local destFile=${file//$sourceJsDir/$sourceJsOutputDir}
+          local destFile=${file//$SOURCE_JS_DIR/$SOURCE_JS_COMPILED_DIR}
           mv $file $destFile
         done
       fi
@@ -224,7 +218,7 @@ runCmd(){
     if [ $stopCompile -eq 0 ]
     then
       ps -ef | grep "./$APPNAME" | awk '{print $2}' | xargs kill -9 \
-      && echo "Server killed." || echo "Server not running."
+      && echo $APPNAME" exited." || echo $APPNAME" exited."
     fi
 
     if [ $quit -eq 1 ]
@@ -232,17 +226,22 @@ runCmd(){
       exit
     fi
 
-    if [ $stopCompile -eq 0 ]
+    if [ $stopCompile -eq 0 ] && [ -f $SOURCE_TO_COMPILE ]
     then
-      nimCompileCmd $sourceToCompile
+      if [ $RELEASE_MODE -eq 0 ]
+      then
+        nimCompileCmd $SOURCE_TO_COMPILE
+      else
+        nimCompileReleaseCmd $SOURCE_TO_COMPILE
+      fi
 
       stopCompile=$?
 
       if [ $stopCompile -eq 0 ]
       then
-        if [ $build -eq 0 ]
+        if [ $BUILD -eq 0 ]
         then
-          exeAppName=${sourceToCompile##*/}
+          exeAppName=${SOURCE_TO_COMPILE##*/}
           cd $APP_DIR
           appRunCmd ${exeAppName//.nim/""} &
           cd -
@@ -264,18 +263,35 @@ runCmd(){
   done
 }
 
-newProjectCmd(){
-  local sourceZfTplToCompile=$sourceDir/"zfTpl.nim"
-  local sourceZfJsTplToCompile=$sourceJsDir/"zfTpl.nim"
-  mv $sourceZfTplToCompile $sourceToCompile
-  mv $sourceZfJsTplToCompile $sourceJsToCompile
-  local outputCompiledJsName=${sourceJsToCompile##*/}
+newWebProjectCmd(){
+  local templateDir="templates/web"
+  if [ ! -d $APP_DIR ]
+  then
+    cp -r $templateDir $APP_DIR
+    cp "zf.sh" $APP_DIR
+    cp "overridecmd.sh.example" $APP_DIR
+    echo $APPNAME > $APP_DIR/$DEFAULT_APP
+  else
+    showInvalidAppName
+  fi
+  local sourceToCompile=$APP_DIR/"web.nim"
+  local sourceJsToCompile=$SOURCE_JS_DIR/"web.nim"
+  if [ ! -d $SOURCE_JS_COMPILED_DIR ]
+  then
+    mkdir $SOURCE_JS_COMPILED_DIR
+    if [ ! $? -eq 0 ]
+    then
+      showFailedCreateJsOutputDir
+    fi
+  fi
+  mv $sourceToCompile $SOURCE_TO_COMPILE
+  mv $sourceJsToCompile $SOURCE_JS_TO_COMPILE
+  local outputCompiledJsName=${SOURCE_JS_TO_COMPILE##*/}
   outputCompiledJsName=${outputCompiledJsName//".nim"/".js"}
-  local staticIndexHtmlTmp=$staticIndexHtml".tmp"
-  sed 's/zfTpl.js/'$outputCompiledJsName'/g' $staticIndexHtml > $staticIndexHtmlTmp
-  mv $staticIndexHtmlTmp $staticIndexHtml
-
-  if [ -d $sourceDir ]
+  local STATIC_INDEX_HTMLTmp=$STATIC_INDEX_HTML".tmp"
+  sed 's/web.js/'$outputCompiledJsName'/g' $STATIC_INDEX_HTML > $STATIC_INDEX_HTMLTmp
+  mv $STATIC_INDEX_HTMLTmp $STATIC_INDEX_HTML
+  if [ -d $APP_DIR ]
   then
     showNewProjectHints
   else
@@ -283,9 +299,44 @@ newProjectCmd(){
   fi
 }
 
+newConsoleProjectCmd(){
+  local templateDir="templates/console"
+  if [ ! -d $APP_DIR ]
+  then
+    cp -r $templateDir $APP_DIR
+    cp "zf.sh" $APP_DIR
+    echo $APPNAME > $APP_DIR/$DEFAULT_APP
+  else
+    showInvalidAppName
+  fi
+  local sourceToCompile=$APP_DIR/"console.nim"
+  mv $sourceToCompile $SOURCE_TO_COMPILE
+  if [ -d $APP_DIR ]
+  then
+    showNewProjectHints
+  else
+    showFailedCreateProject
+  fi
+}
+
+newProjectCmd(){
+  # get application type on new project
+  # default is web
+  local appType=$1
+  case $appType in
+    "web")
+      newWebProjectCmd
+      ;;
+
+    "console")
+      newConsoleProjectCmd
+      ;;
+  esac
+}
+
 installDeps(){
-  local depsFile=$sourceDir/"deps"
-  local depsFolder=$WORK_DIR/"nimbleDeps"
+  local depsFile=$APP_DIR/"deps"
+  local depsFolder=$APP_DIR/"nimbleDeps"
 
   if [ ! -d $depsFolder ]
   then
@@ -431,146 +482,78 @@ showDefaultApp(){
   echo ""
 }
 
+releaseCmd(){
+  echo "release command not implemented!"
+}
+
 # verify command action
 # parameter $1 is type of command ex, run:appname:...
 verifyCmd(){
-  if [ $CMD != "" ]
+  # always compy the latest zf.sh
+  # if not from app dir
+  if [ $APP_DIR != $WORK_DIR ] && [ -d $APP_DIR ]
   then
-    sourceDir=$APP_DIR
-
-    if [ -d $sourceDir ]
-    then
-
-      if [ $APPNAME != "" ]
-      then
-        local sourceToCompile=$sourceDir/$APPNAME"App.nim"
-
-        local sourceJsDir=$sourceDir"/src/tojs"
-        local sourceJsOutputDir=$sourceDir"/www/private/js/compiled"
-        if [ ! -d $sourceJsOutputDir ]
-        then
-          mkdir $sourceJsOutputDir
-          if [ ! $? -eq 0 ]
-          then
-            showFailedCreateJsOutputDir
-          fi
-        fi
-
-        local sourceJsToCompile=$sourceJsDir/$APPNAME"Js.nim"
-        local staticIndexHtml=$sourceDir"/www/index.html"
-
-        setCmdParam $sourceDir \
-          $sourceToCompile \
-          $sourceJsDir \
-          $sourceJsToCompile \
-          $sourceJsOutputDir \
-          0 \
-          $staticIndexHtml
-      fi
-
-      case $CMD in
-        "run")
-          runCmd
-          ;;
-        "build")
-          build=1
-          runCmd
-          ;;
-        "delete")
-          deleteAppCmd
-          ;;
-        "config")
-          showAppConfig
-          ;;
-        "new")
-          newProjectCmd
-          ;;
-        "list-apps")
-          showListApps
-          ;;
-        "default-app")
-          showDefaultApp
-          ;;
-        "install-deps")
-          installDeps
-          ;;
-        "set-default")
-          echo $APPNAME > $DEFAULT_APP
-          ;;
-        *)
-          ;;
-      esac
-
-      unsetCmdParam
-
-    else
-      showFailedAppNotFound
-    fi
-  else
-    showInvalidCmd
+    cp "zf.sh" $APP_DIR
   fi
-}
 
-# parse command
-main(){
+  if [ -f $APPNAME"App.nim" ]
+  then
+    showNotAllowedCmd
+    showHelpCmd
+    return
+  fi
+
+  setCmdParam
+
   case $CMD in
     "run")
-      verifyCmd "run" $APPNAME
+      runCmd
+      ;;
+    "release-run")
+      # set release mode to false
+      RELEASE_MODE=1
+      runCmd
       ;;
     "build")
-      verifyCmd "build" $APPNAME
+      BUILD=1
+      runCmd
       ;;
-    "list-apps")
-      verifyCmd "list-apps"
+    "release-build")
+      RELEASE_MODE=1
+      BUILD=1
+      runCmd
       ;;
     "delete")
-      verifyCmd "delete" $APPNAME
+      deleteAppCmd
       ;;
     "config")
-      verifyCmd "config" $APPNAME
+      showAppConfig
       ;;
     "new")
-      if [ -f $APPNAME"App.nim" ]
-      then
-        showNotAllowedCmd
-        return
-      fi
-
-      if [ "$APPNAME" != "" ]
-      then
-        #local appDir=$PROJECT_DIR/$APPNAME
-        local appDir=$APP_DIR
-        local zfTplDir="zfTpl"
-        if [ ! -d $appDir ]
-        then
-          cp -r $zfTplDir $appDir
-          cp "zf.sh" $appDir
-          echo $APPNAME > $appDir/$DEFAULT_APP
-          verifyCmd "new" $APPNAME
-        else
-          showInvalidAppName
-        fi
-      else
-        showInvalidNewCmd
-      fi
+      newProjectCmd "web"
       ;;
-    "install-deps")
-      verifyCmd "install-deps" $APPNAME
+    "new-console")
+      newProjectCmd "console"
       ;;
-    "set-default")
-      verifyCmd "set-default" $APPNAME
+    "list-apps")
+      showListApps
       ;;
     "default-app")
-      verifyCmd "default-app"
+      showDefaultApp
       ;;
-    "--help")
-      showHelpCmd
+    "install-deps")
+      installDeps
+      ;;
+    "set-default")
+      echo $APPNAME > $DEFAULT_APP
       ;;
     *)
       showHelpCmd
       ;;
   esac
+
+  unsetCmdParam
 }
 
 # call main script
-main $@
+verifyCmd $@
