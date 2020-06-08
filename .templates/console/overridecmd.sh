@@ -7,11 +7,11 @@
 # nim compile command
 
 nimCompileCmd(){
-  nim "c" "-d:nimDebugDlOpen" $1
+  nim c -d:nimDebugDlOpen -o:$OUT_APPNAME $1
 }
 
 nimCompileReleaseCmd(){
-  nim "c" "-d:release" $1
+  nim c -d:release -o:$OUT_APPNAME $1
 }
 
 #################

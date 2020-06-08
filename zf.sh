@@ -9,26 +9,6 @@
 # Git: https://github.com/zendbit
 #
 
-# nim js source compile command
-nimJsCompileCmd(){
-  nim "js" $1
-}
-
-# nim compile command
-nimCompileCmd(){
-  nim "c" "-d:ssl" "--opt:none" "-d:nimDebugDlOpen" $1
-}
-
-# nim compile command
-nimCompileReleaseCmd(){
-  nim "c" "-d:ssl" "-d:release" $1
-}
-
-# app run command
-appRunCmd(){
-  ./$1
-}
-
 # retrieve command param
 CMD=$1
 APPNAME=$2
@@ -56,6 +36,28 @@ then
   mkdir -p $PROJECT_DIR
 fi
 
+APP_SRC_DIR=$APP_DIR/"src"
+
+# nim js source compile command
+nimJsCompileCmd(){
+  nim js -o:JS_OUT_APPNAME $1
+}
+
+# nim compile command
+nimCompileCmd(){
+  nim c -d:ssl --opt:none -d:nimDebugDlOpen -o:$OUT_APPNAME $1
+}
+
+# nim compile command
+nimCompileReleaseCmd(){
+  nim c -d:ssl -d:release -o:$OUT_APPNAME $1
+}
+
+# app run command
+appRunCmd(){
+  ./$1
+}
+
 # check if overridecmd.sh exist
 OVERRIDE_CMD=$APP_DIR/"overridecmd.sh"
 if [ -f $OVERRIDE_CMD ]
@@ -66,11 +68,13 @@ fi
 setCmdParam(){
   if [ $APPNAME != "" ]
   then
-    SOURCE_TO_COMPILE=$APP_DIR/$APPNAME"App.nim"
-    SOURCE_JS_DIR=$APP_DIR"/src/tojs"
-    SOURCE_JS_COMPILED_DIR=$APP_DIR"/www/private/js/compiled"
-    SOURCE_JS_TO_COMPILE=$SOURCE_JS_DIR/$APPNAME"Js.nim"
-    STATIC_INDEX_HTML=$APP_DIR"/www/index.html"
+    OUT_APPNAME=$APP_DIR/$APPNAME"App"
+    SRC_TO_COMPILE=$APP_SRC_DIR/$APPNAME"App.nim"
+    JS_SRC_DIR=$APP_SRC_DIR/"tojs"
+    JS_SRC_COMPILED_DIR=$APP_DIR/"www/private/js/compiled"
+    JS_SRC_TO_COMPILE=$JS_SRC_DIR/$APPNAME"Js.nim"
+    JS_OUT_APPNAME=$JS_SRC_COMPILED_DIR/$APPNAME"App.js"
+    STATIC_INDEX_HTML=$APP_DIR/"www/index.html"
   fi
 
   BUILD=0
@@ -78,10 +82,10 @@ setCmdParam(){
 }
 
 unsetCmdParam(){
-  unset SOURCE_TO_COMPILE
-  unset SOURCE_JS_DIR
-  unset SOURCE_JS_TO_COMPILE
-  unset SOURCE_JS_COMPILED_DIR
+  unset SRC_TO_COMPILE
+  unset JS_SRC_DIR
+  unset JS_SRC_TO_COMPILE
+  unset JS_SRC_COMPILED_DIR
   unset BUILD
   unset STATIC_INDEX_HTML
   unset RELEASE_MODE
@@ -130,7 +134,7 @@ showFailedCreateProject(){
 showFailedCreateJsOutputDir(){
   echo ""
   echo "------------------------------------------------------"
-  echo "Failed to create $SOURCE_JS_COMPILED_DIR directory"
+  echo "Failed to create $JS_SRC_COMPILED_DIR directory"
   echo "------------------------------------------------------"
   echo ""
 }
@@ -200,20 +204,20 @@ runCmd(){
     #cd $WORK_DIR
     local stopCompile=0
 
-    if [ $quit -eq 0 ] && [ -f $SOURCE_JS_TO_COMPILE ]
+    if [ $quit -eq 0 ] && [ -f $JS_SRC_TO_COMPILE ]
     then
-      nimJsCompileCmd $SOURCE_JS_TO_COMPILE
+      nimJsCompileCmd $JS_SRC_TO_COMPILE
 
       stopCompile=$?
 
-      if [ $stopCompile -eq 0 ]
-      then
-        for file in $SOURCE_JS_DIR/*.js
-        do
-          local destFile=${file//$SOURCE_JS_DIR/$SOURCE_JS_COMPILED_DIR}
-          mv $file $destFile
-        done
-      fi
+      #if [ $stopCompile -eq 0 ]
+      #then
+      #  for file in $JS_SRC_DIR/*.js
+      #  do
+      #    local destFile=${file//$JS_SRC_DIR/$JS_SRC_COMPILED_DIR}
+      #    mv $file $destFile
+      #  done
+      #fi
     fi
 
     if [ $stopCompile -eq 0 ]
@@ -227,13 +231,13 @@ runCmd(){
       exit
     fi
 
-    if [ $stopCompile -eq 0 ] && [ -f $SOURCE_TO_COMPILE ]
+    if [ $stopCompile -eq 0 ] && [ -f $SRC_TO_COMPILE ]
     then
       if [ $RELEASE_MODE -eq 0 ]
       then
-        nimCompileCmd $SOURCE_TO_COMPILE
+        nimCompileCmd $SRC_TO_COMPILE
       else
-        nimCompileReleaseCmd $SOURCE_TO_COMPILE
+        nimCompileReleaseCmd $SRC_TO_COMPILE
       fi
 
       stopCompile=$?
@@ -242,7 +246,7 @@ runCmd(){
       then
         if [ $BUILD -eq 0 ]
         then
-          exeAppName=${SOURCE_TO_COMPILE##*/}
+          exeAppName=${SRC_TO_COMPILE##*/}
           cd $APP_DIR
           appRunCmd ${exeAppName//.nim/""} &
           cd -
@@ -275,19 +279,19 @@ newWebProjectCmd(){
   else
     showInvalidAppName
   fi
-  local sourceToCompile=$APP_DIR/"web.nim"
-  local sourceJsToCompile=$SOURCE_JS_DIR/"web.nim"
-  if [ ! -d $SOURCE_JS_COMPILED_DIR ]
+  local sourceToCompile=$APP_SRC_DIR/"web.nim"
+  local sourceJsToCompile=$JS_SRC_DIR/"web.nim"
+  if [ ! -d $JS_SRC_COMPILED_DIR ]
   then
-    mkdir $SOURCE_JS_COMPILED_DIR
+    mkdir $JS_SRC_COMPILED_DIR
     if [ ! $? -eq 0 ]
     then
       showFailedCreateJsOutputDir
     fi
   fi
-  mv $sourceToCompile $SOURCE_TO_COMPILE
-  mv $sourceJsToCompile $SOURCE_JS_TO_COMPILE
-  local outputCompiledJsName=${SOURCE_JS_TO_COMPILE##*/}
+  mv $sourceToCompile $SRC_TO_COMPILE
+  mv $sourceJsToCompile $JS_SRC_TO_COMPILE
+  local outputCompiledJsName=${JS_SRC_TO_COMPILE##*/}
   outputCompiledJsName=${outputCompiledJsName//".nim"/".js"}
   local STATIC_INDEX_HTMLTmp=$STATIC_INDEX_HTML".tmp"
   sed 's/web.js/'$outputCompiledJsName'/g' $STATIC_INDEX_HTML > $STATIC_INDEX_HTMLTmp
@@ -310,8 +314,8 @@ newConsoleProjectCmd(){
   else
     showInvalidAppName
   fi
-  local sourceToCompile=$APP_DIR/"console.nim"
-  mv $sourceToCompile $SOURCE_TO_COMPILE
+  local sourceToCompile=$APP_SRC_DIR/"console.nim"
+  mv $sourceToCompile $SRC_TO_COMPILE
   if [ -d $APP_DIR ]
   then
     showNewProjectHints

@@ -7,7 +7,7 @@
 # nim js source compile command
 
 nimJsCompileCmd(){
-  nim "js" $1
+  nim js -o:$JS_OUT_APPNAME $1
 }
 
 ################
@@ -17,11 +17,11 @@ nimJsCompileCmd(){
 # nim compile command
 
 nimCompileCmd(){
-  nim "c" "-d:ssl" "-d:nimDebugDlOpen" $1
+  nim c -d:ssl -d:nimDebugDlOpen -o:$OUT_APPNAME $1
 }
 
 nimCompileReleaseCmd(){
-  nim "c" "-d:ssl" "-d:release" $1
+  nim c -d:ssl -d:release -o:$OUT_APPNAME $1
 }
 
 #################

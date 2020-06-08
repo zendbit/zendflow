@@ -6,13 +6,9 @@ import
   os,
   strutils
 
-let pluginDataDir = joinPath("src", "plugins", "data")
-let csrfDb = joinPath(pluginDataDir, "csrf.db")
-# init and create table
-if not dirExists(pluginDataDir):
-  createDir(pluginDataDir)
+let csrfDb = "csrf.db"
 
-if dirExists(pluginDataDir):
+if not fileExists(csrfDb):
   let db = open(csrfDb, "", "", "")
   db.exec(sql"""
     CREATE TABLE IF NOT EXISTS csrf (
