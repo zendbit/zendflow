@@ -7,13 +7,13 @@ import
 proc templateDir(): string =
   var tplDir = zfJsonSettings(){"templateDir"}.getStr()
   if tplDir == "":
-    tplDir = joinPath("src", "pages")
+    tplDir = "html"
   return tplDir
 
 # load template file
 # templateDir/{a.b.c}.html
 proc loadTpl*(tpl: string): string =
-  let tpl = tpl.replace(".", $DirSep)
-  let tplFile = joinPath(templateDir(), &"{tpl}.html")
+  let t = tpl.replace(".", $DirSep)
+  let tplFile = joinPath(templateDir(), &"{t}.html")
   if fileExists(tplFile):
     return  open(tplFile).readAll()

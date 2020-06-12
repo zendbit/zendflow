@@ -1,6 +1,6 @@
 import
-  init,
-  jObj,
+  plugins/init,
+  plugins/jObj,
   strutils
 
 # example call the jquery
@@ -18,6 +18,7 @@ var a = newJObj()
   .add("el", "#app")
   .add("data", newJObj()
     .add("message", "Hello Vue"))
+
 discard vue(a)
 
 jq(document.body).append(document.body).append(
@@ -34,6 +35,7 @@ var b = newJObj()
   .add("el", "#app-2")
   .add("data", newJObj()
     .add("message", DateTime().toString()))
+
 discard vue(b)
 
 jq(document.body).append(document.body).append(
@@ -47,6 +49,7 @@ var c = newJObj()
   .add("el", "#app-3")
   .add("data", newJObj()
     .add("seen", true))
+
 discard vue(c)
 
 jq(document.body).append(document.body).append(
@@ -66,6 +69,7 @@ var d = newJObj()
     .add("todos", @[
       newJObj().add("text", "Learn nim"),
       newJObj().add("text", "Hack the nim")]))
+
 discard vue(d)
 
 jq(document.body).append(document.body).append(
@@ -87,6 +91,7 @@ var e = newJObj()
       for i in countdown(high(s), 0):
           reverse.add(s[i])
       return join(reverse, " ").cstring))
+
 discard vue(e)
 
 # also can call the console log from here :-)

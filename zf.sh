@@ -37,6 +37,7 @@ then
 fi
 
 APP_SRC_DIR=$APP_DIR/"src"
+APP_SRC2JS_DIR=$APP_DIR/"src2js"
 
 # nim js source compile command
 nimJsCompileCmd(){
@@ -45,7 +46,7 @@ nimJsCompileCmd(){
 
 # nim compile command
 nimCompileCmd(){
-  nim c -d:ssl --opt:none -d:nimDebugDlOpen -o:$OUT_APPNAME $1
+  nim c -d:ssl -d:nimDebugDlOpen --opt:none -o:$OUT_APPNAME $1
 }
 
 # nim compile command
@@ -70,9 +71,8 @@ setCmdParam(){
   then
     OUT_APPNAME=$APP_DIR/$APPNAME"App"
     SRC_TO_COMPILE=$APP_SRC_DIR/$APPNAME"App.nim"
-    JS_SRC_DIR=$APP_SRC_DIR/"tojs"
     JS_SRC_COMPILED_DIR=$APP_DIR/"www/private/js/compiled"
-    JS_SRC_TO_COMPILE=$JS_SRC_DIR/$APPNAME"Js.nim"
+    JS_SRC_TO_COMPILE=$APP_SRC2JS_DIR/$APPNAME"App.nim"
     JS_OUT_APPNAME=$JS_SRC_COMPILED_DIR/$APPNAME"App.js"
     STATIC_INDEX_HTML=$APP_DIR/"www/index.html"
   fi
@@ -83,7 +83,6 @@ setCmdParam(){
 
 unsetCmdParam(){
   unset SRC_TO_COMPILE
-  unset JS_SRC_DIR
   unset JS_SRC_TO_COMPILE
   unset JS_SRC_COMPILED_DIR
   unset BUILD
@@ -206,18 +205,10 @@ runCmd(){
 
     if [ $quit -eq 0 ] && [ -f $JS_SRC_TO_COMPILE ]
     then
+      rm -f $JS_OUT_APPNAME
       nimJsCompileCmd $JS_SRC_TO_COMPILE
 
       stopCompile=$?
-
-      #if [ $stopCompile -eq 0 ]
-      #then
-      #  for file in $JS_SRC_DIR/*.js
-      #  do
-      #    local destFile=${file//$JS_SRC_DIR/$JS_SRC_COMPILED_DIR}
-      #    mv $file $destFile
-      #  done
-      #fi
     fi
 
     if [ $stopCompile -eq 0 ]
@@ -233,6 +224,7 @@ runCmd(){
 
     if [ $stopCompile -eq 0 ] && [ -f $SRC_TO_COMPILE ]
     then
+      rm -f $OUT_APPNAME
       if [ $RELEASE_MODE -eq 0 ]
       then
         nimCompileCmd $SRC_TO_COMPILE
@@ -280,7 +272,7 @@ newWebProjectCmd(){
     showInvalidAppName
   fi
   local sourceToCompile=$APP_SRC_DIR/"web.nim"
-  local sourceJsToCompile=$JS_SRC_DIR/"web.nim"
+  local sourceJsToCompile=$APP_SRC2JS_DIR/"web.nim"
   if [ ! -d $JS_SRC_COMPILED_DIR ]
   then
     mkdir $JS_SRC_COMPILED_DIR
@@ -291,7 +283,7 @@ newWebProjectCmd(){
   fi
   mv $sourceToCompile $SRC_TO_COMPILE
   mv $sourceJsToCompile $JS_SRC_TO_COMPILE
-  local outputCompiledJsName=${JS_SRC_TO_COMPILE##*/}
+  local outputCompiledJsName=${JS_OUT_APPNAME##*/}
   outputCompiledJsName=${outputCompiledJsName//".nim"/".js"}
   local STATIC_INDEX_HTMLTmp=$STATIC_INDEX_HTML".tmp"
   sed 's/web.js/'$outputCompiledJsName'/g' $STATIC_INDEX_HTML > $STATIC_INDEX_HTMLTmp

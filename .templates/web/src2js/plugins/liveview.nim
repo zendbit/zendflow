@@ -21,9 +21,7 @@ proc lvVisitPage*(target: string, params: JsonNode = JsonNode()) =
   let queryString = parseUri3(target).getQueryString()
   if queryString != "":
     window.location.hash = ("#" & queryString).cstring
-
   lvAction(%*{"action": "visitPage", "target": target, "params": params})
-
   lastVisitedPage = target
 
 proc lvUpdateState*(params: JsonNode = JsonNode()) =

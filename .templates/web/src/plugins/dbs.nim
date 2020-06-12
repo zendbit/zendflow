@@ -6,7 +6,7 @@ import
   strformat
 
 type
-  Dbs*[T] = ref object
+  Dbs*[T] = object
     conn: T
     database: string
     username: string
@@ -72,12 +72,16 @@ proc tryMySqlCheck*(self: Dbs): bool =
     except Exception as ex:
       echo ex.msg
 
-proc trySqliteConn*(self: Dbs): db_sqlite.DbConn =
-  return db_sqlite.open(
-    self.database,
-    "",
-    "",
-    "")
+proc trySqliteConn*(self: Dbs): bool =
+  try:
+    self.conn = db_sqlite.open(
+      self.database,
+      "",
+      "",
+      "")
+    return true
+  except Exception as ex:
+    echo ex.msg
 
 proc trySqliteCheck*(self: Dbs): bool =
     try:
