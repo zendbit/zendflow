@@ -7,7 +7,8 @@
 develop uri3
 develop zfblast
 develop zfcore
-install moustachu
+install karax
 #install nake
 #develop other_nimble_package
 #install other_nimble_package
+#install moustachu

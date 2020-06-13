@@ -14,7 +14,7 @@ CMD=$1
 APPNAME=$2
 
 # project directory
-DEFAULT_APP="defaultapp"
+DEFAULT_APP=".defaultapp"
 
 if [ "$APPNAME" == "" ] && [ -f $DEFAULT_APP ]
 then
@@ -207,7 +207,6 @@ runCmd(){
     then
       rm -f $JS_OUT_APPNAME
       nimJsCompileCmd $JS_SRC_TO_COMPILE
-
       stopCompile=$?
     fi
 
@@ -241,7 +240,7 @@ runCmd(){
           exeAppName=${SRC_TO_COMPILE##*/}
           cd $APP_DIR
           appRunCmd ${exeAppName//.nim/""} &
-          cd -
+          cd - &>/dev/null
           showRunHelp
         else
           exit
@@ -262,32 +261,46 @@ runCmd(){
 
 newWebProjectCmd(){
   local templateDir=".templates/web"
+
   if [ ! -d $APP_DIR ]
   then
     cp -r $templateDir $APP_DIR
     cp "zf.sh" $APP_DIR
-    cp "overridecmd.sh.example" $APP_DIR
     echo $APPNAME > $APP_DIR/$DEFAULT_APP
   else
     showInvalidAppName
   fi
+
   local sourceToCompile=$APP_SRC_DIR/"web.nim"
   local sourceJsToCompile=$APP_SRC2JS_DIR/"web.nim"
+
   if [ ! -d $JS_SRC_COMPILED_DIR ]
   then
-    mkdir $JS_SRC_COMPILED_DIR
+    mkdir -p $JS_SRC_COMPILED_DIR
     if [ ! $? -eq 0 ]
     then
       showFailedCreateJsOutputDir
     fi
   fi
+
   mv $sourceToCompile $SRC_TO_COMPILE
   mv $sourceJsToCompile $JS_SRC_TO_COMPILE
   local outputCompiledJsName=${JS_OUT_APPNAME##*/}
   outputCompiledJsName=${outputCompiledJsName//".nim"/".js"}
-  local STATIC_INDEX_HTMLTmp=$STATIC_INDEX_HTML".tmp"
-  sed 's/web.js/'$outputCompiledJsName'/g' $STATIC_INDEX_HTML > $STATIC_INDEX_HTMLTmp
-  mv $STATIC_INDEX_HTMLTmp $STATIC_INDEX_HTML
+  # run karun to create html of the js apps
+  if [ -x $(which karun) ]
+  then
+    cd $APP_SRC2JS_DIR
+    karun $JS_SRC_TO_COMPILE
+    cd - &>/dev/null
+    local outputCompiledJs=${JS_SRC_TO_COMPILE//".nim"/".js"}
+    mv ${JS_SRC_TO_COMPILE//".nim"/".html"} $STATIC_INDEX_HTML
+    local STATIC_INDEX_HTMLTmp=$STATIC_INDEX_HTML".tmp"
+    sed 's|'$outputCompiledJsName'|'"/private/js/compiled/$outputCompiledJsName"'|g' $STATIC_INDEX_HTML > $STATIC_INDEX_HTMLTmp
+    mv $STATIC_INDEX_HTMLTmp $STATIC_INDEX_HTML
+    mv ${JS_SRC_TO_COMPILE//".nim"/".js"} $JS_SRC_COMPILED_DIR
+  fi
+
   if [ -d $APP_DIR ]
   then
     showNewProjectHints
@@ -466,10 +479,10 @@ showDefaultApp(){
   echo ""
   echo "------------------------------------------------------"
 
-  if [ -f "$WORK_DIR/defaultapp" ]
+  if [ -f "$WORK_DIR/.defaultapp" ]
   then
     echo "Default app:"
-    cat "$WORK_DIR/defaultapp"
+    cat "$WORK_DIR/.defaultapp"
   else
     echo "Default app not set, use command below to set default app"
     echo "  $>./zf.sh set-default appname"
