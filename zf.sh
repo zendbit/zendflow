@@ -36,8 +36,8 @@ then
   mkdir -p $PROJECT_DIR
 fi
 
-APP_SRC_DIR=$APP_DIR/"src"
-APP_SRC2JS_DIR=$APP_DIR/"src2js"
+APP_SRC_DIR=$APP_DIR/"server"
+APP_SRC2JS_DIR=$APP_DIR/"spa"
 
 # nim js source compile command
 nimJsCompileCmd(){
