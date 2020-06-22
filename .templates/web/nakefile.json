@@ -1,0 +1,12 @@
+{
+  "appInfo": {
+    "appName": "",
+    "appType": "web"
+  },
+  "nimble": [
+    "develop uri3",
+    "develop zfblast",
+    "develop zfcore",
+    "install karax"
+  ]
+}

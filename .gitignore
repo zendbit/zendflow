@@ -4,3 +4,5 @@ projects/
 defaultapp
 nimbleDeps/
 
+apps
+.nimdeps
