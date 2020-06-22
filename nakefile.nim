@@ -6,7 +6,14 @@ import
   json,
   osproc
 
-let cmdParams = commandLineParams()
+let cmdLineParams = commandLineParams()
+var cmdParams: seq[string]
+var cmdOptions: seq[string]
+for clp in cmdLineParams:
+  if clp.startsWith("-"):
+    cmdOptions.add(clp)
+  else:
+    cmdParams.add(clp)
 
 var appsDir = "apps"
 
@@ -107,7 +114,7 @@ proc build(appName:string, appType:string, release: bool = false): bool =
       buildParams.insert("-d:release", 2)
     else:
       buildParams.insert("-o:nimDebugDlOpen", 2)
-    echo buildParams
+
     if execCmd(join(buildParams, " ")) == 0:
       result = true
 
@@ -128,6 +135,62 @@ proc installDeps(appName: string) =
       echo "Trying get latest " & pkgName & " -> " & pkgDir
       shell(@["cd", pkgDir, "&&", "git", "pull"].join(" "))
 
+proc run(appName: string) =
+  if not isUmbrellaMode():
+    shell(joinPath(".", (@[appName & "App"] & cmdOptions).join(" ")))
+  else:
+    shell(joinPath(appsDir, appName, (@[appName & "App"] & cmdOptions).join(" ")))
+
+proc newApp(appName: string, appType: string) =
+  let appDir = joinPath(appsDir, appName)
+  let appSrcDir = joinPath(appsDir, appName, "src")
+
+  if isAppExist(appName):
+    echo &"App {appName} already exist."
+    return
+
+  case appType
+  of "console":
+    copyDir(consoleAppDir, appDir)
+    copyFile(nakefile, joinPath(appDir, nakefile))
+    moveFile(
+      joinPath(appSrcDir, "app.nim"),
+      joinPath(appSrcDir, appName & "App.nim"))
+  of "web":
+    copyDir(webAppDir, appDir)
+    copyFile(nakefile, joinPath(appDir, nakefile))
+    let wwwDir = joinPath(appDir, "www")
+    let jsCompiledDir = joinPath(wwwDir, "private", "js", "compiled")
+    if not existsDir(jsCompiledDir):
+      createDir(jsCompiledDir)
+    for appSrc in ["server", "spa"]:
+      let webSrcDir = joinPath(appSrcDir, appSrc)
+      let appChangedName = joinPath(webSrcDir, appName & "App.nim")
+      moveFile(
+        joinPath(webSrcDir, "app.nim"),
+        appChangedName)
+      if appSrc == "spa":
+        let outJs = joinPath(jsCompiledDir, appName & "App.js")
+        let outIndexHtml = joinPath(wwwDir, "index.html")
+        if shell("karun", appChangedName):
+          moveFile(appName & "App.js", outJs)
+          moveFile(appName & "App.html", outIndexHtml)
+          var f = open(outIndexHtml, FileMode.fmRead)
+          let outHtml = f.readAll().replace(appName & "App.js",
+            outJs.replace(wwwDir))
+          f.close()
+          f = open(outIndexHtml, FileMode.fmWrite)
+          f.write(outHtml)
+          f.close()
+  else:
+    echo "app template not found."
+
+  if existsDir(appDir):
+    let jsonNake = loadJsonNakeFile(appName)
+    jsonNake["appInfo"]["appName"] = %appName
+    open(joinPath(appDir, jsonNakefile), FileMode.fmWrite).write(jsonNake.pretty())
+    echo &"app {appName} created."
+
 task "new", "create new app. Ex: nake new console.":
   if not isUmbrellaMode(true):
     return
@@ -135,54 +198,7 @@ task "new", "create new app. Ex: nake new console.":
   if cmdParams.len() > 2:
     let appName = cmdParams[2]
     let appType = cmdParams[1]
-    let appDir = joinPath(appsDir, appName)
-    let appSrcDir = joinPath(appsDir, appName, "src")
-
-    if isAppExist(appName):
-      echo &"App {appName} already exist."
-      return
-
-    case appType
-    of "console":
-      copyDir(consoleAppDir, appDir)
-      copyFile(nakefile, joinPath(appDir, nakefile))
-      moveFile(
-        joinPath(appSrcDir, "app.nim"),
-        joinPath(appSrcDir, appName & "App.nim"))
-    of "web":
-      copyDir(webAppDir, appDir)
-      copyFile(nakefile, joinPath(appDir, nakefile))
-      let wwwDir = joinPath(appDir, "www")
-      let jsCompiledDir = joinPath(wwwDir, "private", "js", "compiled")
-      if not existsDir(jsCompiledDir):
-        createDir(jsCompiledDir)
-      for appSrc in ["server", "spa"]:
-        let webSrcDir = joinPath(appSrcDir, appSrc)
-        let appChangedName = joinPath(webSrcDir, appName & "App.nim")
-        moveFile(
-          joinPath(webSrcDir, "app.nim"),
-          appChangedName)
-        if appSrc == "spa":
-          let outJs = joinPath(jsCompiledDir, appName & "App.js")
-          let outIndexHtml = joinPath(wwwDir, "index.html")
-          if shell("karun", appChangedName):
-            moveFile(appName & "App.js", outJs)
-            moveFile(appName & "App.html", outIndexHtml)
-            var f = open(outIndexHtml, FileMode.fmRead)
-            let outHtml = f.readAll().replace(appName & "App.js",
-              outJs.replace(wwwDir))
-            f.close()
-            f = open(outIndexHtml, FileMode.fmWrite)
-            f.write(outHtml)
-            f.close()
-    else:
-      echo "app template not found."
-
-    if existsDir(appDir):
-      let jsonNake = loadJsonNakeFile(appName)
-      jsonNake["appInfo"]["appName"] = %appName
-      open(joinPath(appDir, jsonNakefile), FileMode.fmWrite).write(jsonNake.pretty())
-      echo &"app {appName} created."
+    newApp(appName, appType)
 
   else:
     echo "invalid new command arguments."
@@ -231,13 +247,10 @@ task "run", "run app, ex: nake run [appname].":
   let defApp = defaultApp()
   if cmdParams.len() > 1:
     let appName = cmdParams[1]
-    shell(joinPath(appsDir, appName, appName & "App"))
+    run(appName)
 
-  elif isAppExist(defApp.appName):
-    shell(joinPath(appsDir, defApp.appName, defApp.appName & "App"))
-
-  elif not isUmbrellaMode():
-    shell(joinPath(".", defApp.appName & "App"))
+  elif isAppExist(defApp.appName) or not isUmbrellaMode():
+    run(defApp.appName)
 
   else:
     echo "invalid run arguments."
@@ -248,15 +261,11 @@ task "build-run", "build and then run the app. Ex: nake build-run [appname].":
     let appName = cmdParams[1]
     let appType = loadJsonNakeFile(appName){"appInfo"}{"appType"}.getStr()
     if build(appName, appType):
-      shell(joinPath(appsDir, appName, appName & "App"))
+      run(appName)
 
-  elif isAppExist(defApp.appName):
+  elif isAppExist(defApp.appName) or not isUmbrellaMode():
     if build(defApp.appName, defApp.appType):
-      shell(joinPath(appsDir, defApp.appName, defApp.appName & "App"))
-
-  elif not isUmbrellaMode():
-    if build(defApp.appName, defApp.appType):
-      shell(".", joinPath(defApp.appName & "App"))
+      run(defApp.appName)
 
   else:
     echo "invalid run arguments."
@@ -267,15 +276,11 @@ task "release-run", "release and then run the app. Ex: nake release-run [appname
     let appName = cmdParams[1]
     let appType = loadJsonNakeFile(appName){"appInfo"}{"appType"}.getStr()
     if build(appName, appType, true):
-      shell(joinPath(appsDir, appName, appName & "App"))
+      run(appName)
 
-  elif isAppExist(defApp.appName):
+  elif isAppExist(defApp.appName) or not isUmbrellaMode():
     if build(defApp.appName, defApp.appType, true):
-      shell(joinPath(appsDir, defApp.appName, defApp.appName & "App"))
-
-  elif not isUmbrellaMode():
-    if build(defApp.appName, defApp.appType, true):
-      shell(joinPath(".", defApp.appName & "App"))
+      run(defApp.appName)
 
   else:
     echo "invalid run arguments."
