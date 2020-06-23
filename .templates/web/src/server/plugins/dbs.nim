@@ -2,8 +2,10 @@ import
   db_postgres,
   db_mysql,
   db_sqlite,
-  zfcore/zendFlow,
   strformat
+
+import
+  zfcore/zendFlow
 
 type
   Dbs* = object
@@ -29,7 +31,7 @@ proc newDbs*(
 
   return instance
 
-proc tryPgSqlConn*(self: Dbs): tuple[success: bool, conn: db_postgres.DbConn] =
+proc tryPgSqlConn*(self: Dbs): tuple[success: bool, conn: db_postgres.DbConn, msg: string] =
     try:
       result = (
         true,
@@ -39,20 +41,21 @@ proc tryPgSqlConn*(self: Dbs): tuple[success: bool, conn: db_postgres.DbConn] =
         self.password,
         (&"host={self.host} " &
         &"port={self.port} " &
-        &"dbname={self.database} ")))
+        &"dbname={self.database} ")),
+        "OK")
     except Exception as ex:
-      echo ex.msg
+      result = (false, nil, ex.msg)
 
-proc tryPgSqlCheck*(self: Dbs): bool =
+proc tryPgSqlCheck*(self: Dbs): tuple[success: bool, msg: string] =
     try:
       let c = self.tryPgSqlConn()
       if c.success:
         c.conn.close()
-      return true
+      return (true, "OK")
     except Exception as ex:
-      echo ex.msg
+      result = (false, ex.msg)
 
-proc tryMySqlConn*(self: Dbs): tuple[success: bool, conn: db_mysql.DbConn] =
+proc tryMySqlConn*(self: Dbs): tuple[success: bool, conn: db_mysql.DbConn, msg: string] =
     try:
       result = (
         true,
@@ -62,20 +65,21 @@ proc tryMySqlConn*(self: Dbs): tuple[success: bool, conn: db_mysql.DbConn] =
         self.password,
         (&"host={self.host} " &
         &"port={self.port} " &
-        &"dbname={self.database} ")))
+        &"dbname={self.database} ")),
+        "OK")
     except Exception as ex:
-      echo ex.msg
+      result = (false, nil, ex.msg)
 
-proc tryMySqlCheck*(self: Dbs): bool =
+proc tryMySqlCheck*(self: Dbs): tuple[success: bool, msg: string] =
     try:
       let c = self.tryMySqlConn()
       if c.success:
         c.conn.close()
-      return true
+      return (true, "OK")
     except Exception as ex:
-      echo ex.msg
+      result = (false, ex.msg)
 
-proc trySqliteConn*(self: Dbs): tuple[success: bool, conn: db_sqlite.DbConn] =
+proc trySqliteConn*(self: Dbs): tuple[success: bool, conn: db_sqlite.DbConn, msg: string] =
   try:
     result = (
       true,
@@ -83,15 +87,16 @@ proc trySqliteConn*(self: Dbs): tuple[success: bool, conn: db_sqlite.DbConn] =
       self.database,
       "",
       "",
-      ""))
+      ""),
+      "OK")
   except Exception as ex:
-    echo ex.msg
+    result = (false, nil, ex.msg)
 
-proc trySqliteCheck*(self: Dbs): bool =
+proc trySqliteCheck*(self: Dbs): tuple[success: bool, msg: string] =
     try:
       let c = self.trySqliteConn()
       if c.success:
         c.conn.close()
-      return true
+      return (true, "OK")
     except Exception as ex:
-      echo ex.msg
+      result = (false, ex.msg)
