@@ -7,3 +7,4 @@ nimbleDeps/
 apps
 .nimdeps
 nakefile
+.tmp
