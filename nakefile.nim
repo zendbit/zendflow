@@ -53,6 +53,10 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
   else:
     # check if apps folder exist, if not create the dir
     discard existsOrCreateDir(appsDir)
+    if not existsFile(jsonNakefile):
+      let f = open(jsonNakefile, FileMode.fmWrite)
+      f.write((%*{"jsonNakeFile": ""}).pretty())
+      f.close()
     result = true
 
 proc defaultApp(appName: string = ""): tuple[appName: string, appType: string] =
