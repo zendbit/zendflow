@@ -1,12 +1,137 @@
 {
-  "appInfo": {
-    "appName": "",
-    "appType": "web"
+  "appinfo": {
+    "appname": "",
+    "apptype": "web"
   },
   "nimble": [
     "develop uri3",
     "develop zfblast",
     "develop zfcore",
     "install karax"
+  ],
+  "init_var": {
+    "app_dir": "{apps_dir}::{appname}",
+    "src_server_dir": "{app_dir}::src::server",
+    "src_spa_dir": "{app_dir}::src::spa",
+    "www_dir": "{app_dir}::www",
+    "compiled_js_dir": "{www_dir}::private::js::compiled"
+  },
+  "init": [
+    {
+      "action": "copy_dir",
+      "list": [
+        {
+          "src": "{templates_dir}::{apptype}",
+          "dest": "{app_dir}"
+        }
+      ]
+    },
+    {
+      "action": "copy_file",
+      "list": [
+        {
+          "src": "nakefile.nim",
+          "dest": "{app_dir}::nakefile.nim"
+        }
+      ]
+    },
+    {
+      "action": "move_file",
+      "list": [
+        {
+          "src": "{src_server_dir}::app.nim",
+          "dest": "{src_server_dir}::{appname}.nim"
+        },
+        {
+          "src": "{src_spa_dir}::app.nim",
+          "dest": "{src_spa_dir}::{appname}.nim"
+        }
+      ]
+    },
+    {
+      "action": "create_dir",
+      "list": ["{compiled_js_dir}"]
+    },
+    {
+      "action": "cmd",
+      "exe": "karun",
+      "props": {
+        "src": "{src_spa_dir}::{appname}.nim"
+      },
+      "options": "{src}"
+    },
+    {
+      "action": "move_file",
+      "list": [
+        {
+          "src": "{appname}.html",
+          "dest": "{www_dir}::index.html"
+        },
+        {
+          "src": "{appname}.js",
+          "dest": "{compiled_js_dir}::{appname}.js"
+        }
+      ]
+    },
+    {
+      "action": "replace_str",
+      "file": "{www_dir}::index.html",
+      "list": [
+        {
+          "old": "{appname}.js",
+          "new": "/private/js/compiled/{appname}.js"
+        }
+      ]
+    }
+  ],
+  "debug": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{current_app_dir}::src::server::{appname}.nim",
+        "out": "{current_app_dir}::{appname}"
+      },
+      "options": "c -d:nimDebugDlOpen -d:ssl -o:{out} {src}",
+      "next": [
+        {
+          "action": "cmd",
+          "exe" : "nim",
+          "props": {
+            "src": "{current_app_dir}::src::spa::{appname}.nim",
+            "out": "{current_app_dir}::www::private::js::compiled::{appname}.js"
+          },
+          "options": "js -o:{out} {src}"
+        }
+      ]
+    }
+  ],
+  "release": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{current_app_dir}::src::server::{appname}.nim",
+        "out": "{current_app_dir}::{appname}"
+      },
+      "options": "c -d:nimDebugDlOpen -d:ssl -d:release -o:{out} {src}",
+      "next": [
+        {
+          "action": "cmd",
+          "exe" : "nim",
+          "props": {
+            "src": "{current_app_dir}::src::spa::{appname}.nim",
+            "out": "{current_app_dir}::www::private::js:compiled::{appname}.js"
+          },
+          "options": "js -o:{out} {src}"
+        }
+      ]
+    }
+  ],
+  "run": [
+    {
+      "action": "cmd",
+      "exe": "{current_app_dir}::{appname}"
+    }
   ]
 }

@@ -1,7 +1,68 @@
 {
-  "appInfo": {
-    "appName": "",
-    "appType": "console"
+  "appinfo": {
+    "appname": "",
+    "apptype": "console"
   },
-  "nimble": []
+  "nimble": [],
+  "init_var": {
+    "app_dir": "{apps_dir}::{appname}",
+    "app_src_dir": "{app_dir}::src"
+  },
+  "init": [
+    {
+      "action": "copy_dir",
+      "list": [
+        {
+          "src": "{templates_dir}::{apptype}",
+          "dest": "{app_dir}"
+        }
+      ]
+    },
+    {
+      "action": "copy_file",
+      "list": [
+        {
+          "src": "nakefile.nim",
+          "dest": "{app_dir}::nakefile.nim"
+        }
+      ]
+    },
+    {
+      "action": "move_file",
+      "list": [
+        {
+          "src": "{app_src_dir}::app.nim",
+          "dest": "{app_src_dir}::{appname}.nim"
+        }
+      ]
+    }
+  ],
+  "debug": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{current_app_dir}::src::{appname}.nim",
+        "out": "{current_app_dir}::{appname}"
+      },
+      "options": "c -d:nimDebugDlOpen -o:{out} {src}"
+    }
+  ],
+  "release": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{current_app_dir}::src::{appname}.nim",
+        "out": "{current_app_dir}::{appname}"
+      },
+      "options": "c -d:release -o:{out} {src}"
+    }
+  ],
+  "run": [
+    {
+      "action": "cmd",
+      "exe": "{current_app_dir}::{appname}"
+    }
+  ]
 }
