@@ -50,7 +50,9 @@
     },
     {
       "action": "create_dir",
-      "list": ["{compiled_js_dir}"]
+      "list": [
+        {"name": "{compiled_js_dir}"}
+      ]
     },
     {
       "action": "cmd",
