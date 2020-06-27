@@ -37,11 +37,11 @@ available nake tasks:
 Available tasks:
 new - create new app. Ex: nake new console.
 default-app - get/set default app. Ex: nake default-app [appname].
-build - build app, Ex: nake build [appname].
-release - release app, Ex: nake release [appname].
+debug - build debug app, Ex: nake debug [appname].
+release - build release app, Ex: nake release [appname].
 run - run app, ex: nake run [appname].
-build-run - build and then run the app. Ex: nake build-run [appname].
-release-run - release and then run the app. Ex: nake release-run [appname].
+debug-run - build debug and then run the app. Ex: nake debug-run [appname].
+release-run - build release and then run the app. Ex: nake release-run [appname].
 list-apps - show available app. Ex: nake list-app
 delete-app - delete app. Ex: nake delete-app appname.
 install-deps - install nimble app depedencies. Ex: nake install-deps [appname].
@@ -60,14 +60,14 @@ nake new console myconsole
 
 after new command you can find the generated app from the templates in the apps/[your_application_name] folder.
 
-build only the app:
+build debug only the app:
 ```
-nake build mywebsite
+nake debug mywebsite
 ```
 
-build and run the app:
+debug and run the app:
 ```
-nake build-run mywebsite
+nake debug-run mywebsite
 ```
 
 release only the app:
@@ -92,8 +92,8 @@ nake default-app mywebsite
 
 after we set the default app, we can directly call the nake build, build-run etc whithout defines the app appname
 ```
-nake build
-nake build-run
+nake debug
+nake debug-run
 nake release
 nake run
 etc...
