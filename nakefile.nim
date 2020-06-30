@@ -28,8 +28,8 @@ const
 # depend on the top level of the nakefile.json
 if jsonNakefile.existsFile():
   let jnode = jsonNakefile.parseFile()
-  appsDir = jnode{"apps_dir"}.getStr().replace("::", $DirSep)
-  templatesDir = jnode{"templates_dir"}.getStr().replace("::", $DirSep)
+  appsDir = jnode{"appsDir"}.getStr().replace("::", $DirSep)
+  templatesDir = jnode{"templatesDir"}.getStr().replace("::", $DirSep)
 
 proc loadJsonNakefile(appName: string = ""): JsonNode =
   result = %*{}
@@ -58,9 +58,9 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
     if not jsonNakefile.existsFile():
       let f = jsonNakefile.open(FileMode.fmWrite)
       f.write((%*{
-        "json_nakefile": "",
-        "templates_dir": ".templates",
-        "apps_dir": "apps"}).pretty())
+        "jsonNakefile": "",
+        "templatesDir": ".templates",
+        "appsDir": "apps"}).pretty())
       f.close()
     result = true
 
@@ -102,7 +102,7 @@ proc doActionList(actionList: JsonNode) =
     for action in actionList:
       let actionType = action{"action"}.getStr()
       case actionType
-      of "copy_dir", "copy_file", "move_file", "move_dir":
+      of "copyDir", "copyFile", "moveFile", "moveDir":
         let list = action{"list"}
         if not list.isNil():
           for l in list:
@@ -119,16 +119,16 @@ proc doActionList(actionList: JsonNode) =
               var errMsg = ""
               try:
                 case actionType
-                of "copy_dir":
+                of "copyDir":
                   echo &"copy dir {src} -> {dest}"
                   src.copyDir(dest)
-                of "copy_file":
+                of "copyFile":
                   echo &"copy file {src} -> {dest}"
                   src.copyFile(dest)
-                of "move_file":
+                of "moveFile":
                   echo &"move file {src} -> {dest}"
                   src.moveFile(dest)
-                of "move_dir":
+                of "moveDir":
                   echo &"move dir {src} -> {dest}"
                   src.moveDir(dest)
               except Exception as ex:
@@ -182,7 +182,7 @@ proc doActionList(actionList: JsonNode) =
           if not err.isNil() and err.kind == JsonNodeKind.JArray:
             err.doActionList()
 
-      of "replace_str":
+      of "replaceStr":
         let desc = action{"desc"}
         if not desc.isNil():
           echo desc.getStr()
@@ -217,7 +217,7 @@ proc doActionList(actionList: JsonNode) =
             if not err.isNil() and err.kind == JsonNodeKind.JArray:
               err.doActionList()
 
-      of "remove_file", "remove_dir", "create_dir":
+      of "removeFile", "removeDir", "createDir":
         let list = action{"list"}
         if not list.isNil() and list.kind == JsonNodeKind.JArray:
           for l in list:
@@ -235,13 +235,13 @@ proc doActionList(actionList: JsonNode) =
                 let name = name.getStr().cleanDoubleColon()
                 try:
                   case actionType
-                  of "remove_file":
+                  of "removeFile":
                     echo &"remove file -> {name}"
                     name.removeFile()
-                  of "remove_dir":
+                  of "removeDir":
                     echo &"remove dir -> {name}"
                     name.removeDir()
-                  of "create_dir":
+                  of "createDir":
                     echo &"create dir -> {name}"
                     name.createDir()
                 except Exception as ex:
@@ -259,27 +259,27 @@ proc doActionList(actionList: JsonNode) =
     echo "not valid action list, action list should be in json array."
 
 proc defaultApp(): tuple[appName: string, appType: string] =
-  var appname = ""
-  var apptype = ""
+  var appName = ""
+  var appType = ""
 
   let jsonNake = loadJsonNakefile()
-  if not isNil(jsonNake{"json_nakefile"}):
-    let forwardJsonNakefile = jsonNake{"json_nakefile"}.getStr()
+  if not isNil(jsonNake{"jsonNakefile"}):
+    let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
     if forwardJsonNakefile != "" and forwardJsonNakefile.existsFile():
       let jsonNake = forwardJsonNakefile.parseFile()
-      appname = jsonNake{"appinfo"}{"appname"}.getStr()
-      apptype = jsonNake{"appinfo"}{"apptype"}.getStr()
+      appName = jsonNake{"appInfo"}{"appName"}.getStr()
+      appType = jsonNake{"appInfo"}{"appType"}.getStr()
   
   else:
-    appname = jsonNake{"appinfo"}{"appname"}.getStr()
-    apptype = jsonNake{"appinfo"}{"apptype"}.getStr()
+    appName = jsonNake{"appInfo"}{"appName"}.getStr()
+    appType = jsonNake{"appInfo"}{"appType"}.getStr()
 
-  return (appname, apptype)
+  return (appName, appType)
 
 proc setDefaultApp(appName: string): bool =
   let jsonNake = loadJsonNakefile()
-  if not jsonNake{"json_nakefile"}.isNil():
-    jsonNake["json_nakefile"] = %appsDir.joinPath(appName, jsonNakefile)
+  if not jsonNake{"jsonNakefile"}.isNil():
+    jsonNake["jsonNakefile"] = %appsDir.joinPath(appName, jsonNakefile)
     let f = jsonNakefile.open(FileMode.fmWrite)
     f.write(jsonNake.pretty(2))
     f.close()
@@ -294,12 +294,12 @@ proc isAppExists(appName: string): bool =
   result = appsDir.joinPath(appName).existsDir() and
     appsDir.joinPath(appName, jsonNakefile).existsFile()
 
-  # check if the jsonNakefile contains appinfo -> appname
+  # check if the jsonNakefile contains appInfo -> appName
   # this mean directly run from the app dir
   if not result:
     let jnake = loadJsonNakefile()
-    if not jnake{"appinfo"}.isNil():
-      result = not jnake{"appinfo"}{"appname"}.isNil()
+    if not jnake{"appInfo"}.isNil():
+      result = not jnake{"appInfo"}{"appName"}.isNil()
 
 proc installDeps(appName: string) =
   let nimble = appName.loadJsonNakefile(){"nimble"}
@@ -322,7 +322,7 @@ proc existsTemplates(templateName: string): bool =
       return true
 
 # this will read from templates nakefile.json
-# .templates/apptype/nakefile.json
+# .templates/appType/nakefile.json
 # and will process init section
 proc newApp(appName: string, appType: string) =
   let appDir = appsDir.joinPath(appName)
@@ -336,22 +336,22 @@ proc newApp(appName: string, appType: string) =
     let fpath = templatesDir.joinPath(appType, jsonNakefile)
     if existsFile(fpath):
       let f = fpath.open(FileMode.fmRead)
-      var fcontent = f.readAll().replace("{appname}", appName)
+      var fcontent = f.readAll().replace("{appName}", appName)
       f.close()
 
       var jnode = fcontent.parseJson()
       if not isNil(jnode):
-        jnode["appinfo"]["appname"] = %appName
-        jnode["appinfo"]["apptype"] = %appType
+        jnode["appInfo"]["appName"] = %appName
+        jnode["appInfo"]["appType"] = %appType
         fcontent = $jnode
 
-        var varnode = jnode{"init_var"}
+        var varnode = jnode{"initVar"}
         if not varnode.isNil():
           varnode = varnode.subtituteVar()
           for k, v in varnode:
             fcontent = fcontent.replace("{" & k & "}", v.getStr())
 
-        varnode = jnode{"appinfo"}
+        varnode = jnode{"appInfo"}
         if not varnode.isNil():
           varnode = varnode.subtituteVar()
           for k, v in varnode:
@@ -359,8 +359,8 @@ proc newApp(appName: string, appType: string) =
 
         # replace templates and apps dir definition
         # this defined in the base nakefile.json
-        fcontent = fcontent.replace("{templates_dir}", templatesDir)
-        fcontent = fcontent.replace("{apps_dir}", appsDir)
+        fcontent = fcontent.replace("{templatesDir}", templatesDir)
+        fcontent = fcontent.replace("{appsDir}", appsDir)
 
         jnode = fcontent.parseJson()
         let initnode = jnode{"init"}
@@ -371,9 +371,9 @@ proc newApp(appName: string, appType: string) =
             # remove from node then save nakefile.json to the appdir
             # remove:
             # init section
-            # init_var section
+            # initVar section
             jnode.delete("init")
-            jnode.delete("init_var")
+            jnode.delete("initVar")
             let f = appDir.joinPath(jsonNakefile).open(FileMode.fmWrite)
             f.write(jnode.pretty(2))
             f.close()
@@ -397,7 +397,7 @@ task "new", "create new app. Ex: nake new console.":
   else:
     echo "invalid new command arguments."
 
-task "default-app", "get/set default app. Ex: nake default-app [appname].":
+task "default-app", "get/set default app. Ex: nake default-app [appName].":
   if not isUmbrellaMode(true):
     return
 
@@ -410,7 +410,7 @@ task "default-app", "get/set default app. Ex: nake default-app [appname].":
   else:
     echo defaultApp()
 
-task "debug", "build debug app, Ex: nake debug [appname].":
+task "debug", "build debug app, Ex: nake debug [appName].":
   let defApp = defaultApp()
   var appName = defApp.appName
 
@@ -421,13 +421,13 @@ task "debug", "build debug app, Ex: nake debug [appname].":
     var actionList = appName.loadJsonNakefile(){"debug"}
     if not isNil(actionList):
       actionList = ($actionList).replace("::", $DirSep)
-        .replace("{current_app_dir}", appName.currentAppDir()).parseJson()
+        .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
       actionList.doActionList()
 
   else:
     echo "invalid arguments."
 
-task "release", "build release app, Ex: nake release [appname].":
+task "release", "build release app, Ex: nake release [appName].":
   let defApp = defaultApp()
   var appName = defApp.appName
 
@@ -438,13 +438,13 @@ task "release", "build release app, Ex: nake release [appname].":
     var actionList = appName.loadJsonNakefile(){"release"}
     if not actionList.isNil():
       actionList = ($actionList).replace("::", $DirSep)
-        .replace("{current_app_dir}", appName.currentAppDir()).parseJson()
+        .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
       actionList.doActionList()
 
   else:
     echo "invalid arguments."
 
-task "run", "run app, ex: nake run [appname].":
+task "run", "run app, ex: nake run [appName].":
   let defApp = defaultApp()
   var appName = defApp.appName
 
@@ -455,13 +455,13 @@ task "run", "run app, ex: nake run [appname].":
     var actionList = appName.loadJsonNakefile(){"run"}
     if not actionList.isNil():
       actionList = ($actionList).replace("::", $DirSep)
-        .replace("{current_app_dir}", appName.currentAppDir()).parseJson()
+        .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
       actionList.doActionList()
 
   else:
     echo "invalid arguments."
 
-task "debug-run", "build debug and then run the app. Ex: nake debug-run [appname].":
+task "debug-run", "build debug and then run the app. Ex: nake debug-run [appName].":
   let defApp = defaultApp()
   var appName = defApp.appName
 
@@ -473,13 +473,13 @@ task "debug-run", "build debug and then run the app. Ex: nake debug-run [appname
     for actionList in [jnode{"debug"}, jnode{"run"}]:
       if not actionList.isNil():
         let actionToDo = ($actionList).replace("::", $DirSep)
-          .replace("{current_app_dir}", appName.currentAppDir()).parseJson()
+          .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
         actionToDo.doActionList()
 
   else:
     echo "invalid arguments."
 
-task "release-run", "build release and then run the app. Ex: nake release-run [appname].":
+task "release-run", "build release and then run the app. Ex: nake release-run [appName].":
   let defApp = defaultApp()
   var appName = defApp.appName
 
@@ -491,7 +491,7 @@ task "release-run", "build release and then run the app. Ex: nake release-run [a
     for actionList in [jnode{"release"}, jnode{"run"}]:
       if not actionList.isNil():
         let actionToDo = ($actionList).replace("::", $DirSep)
-          .replace("{current_app_dir}", appName.currentAppDir()).parseJson()
+          .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
         actionToDo.doActionList()
 
   else:
@@ -506,7 +506,7 @@ task "list-apps", "show available app. Ex: nake list-app":
       if dir.joinPath(jsonNakefile).existsFile():
         echo "-> " & dir.extractFilename()
 
-task "delete-app", "delete app. Ex: nake delete-app appname.":
+task "delete-app", "delete app. Ex: nake delete-app appName.":
   if not true.isUmbrellaMode():
     return
 
@@ -527,7 +527,7 @@ task "delete-app", "delete app. Ex: nake delete-app appname.":
   else:
     echo "invalid arguments."
 
-task "install-deps", "install nimble app depedencies. Ex: nake install-deps [appname].":
+task "install-deps", "install nimble app depedencies. Ex: nake install-deps [appName].":
   let defApp = defaultApp()
   if not nimdepsDir.existsDir():
     nimdepsDir.createDir()

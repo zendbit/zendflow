@@ -1,38 +1,38 @@
 {
-  "appinfo": {
-    "appname": "",
-    "apptype": "console"
+  "appInfo": {
+    "appName": "",
+    "appType": "console"
   },
   "nimble": [],
-  "init_var": {
-    "app_dir": "{apps_dir}::{appname}",
-    "app_src_dir": "{app_dir}::src"
+  "initVar": {
+    "appDir": "{appsDir}::{appName}",
+    "appSrcDir": "{appDir}::src"
   },
   "init": [
     {
-      "action": "copy_dir",
+      "action": "copyDir",
       "list": [
         {
-          "src": "{templates_dir}::{apptype}",
-          "dest": "{app_dir}"
+          "src": "{templatesDir}::{appType}",
+          "dest": "{appDir}"
         }
       ]
     },
     {
-      "action": "copy_file",
+      "action": "copyFile",
       "list": [
         {
           "src": "nakefile.nim",
-          "dest": "{app_dir}::nakefile.nim"
+          "dest": "{appDir}::nakefile.nim"
         }
       ]
     },
     {
-      "action": "move_file",
+      "action": "moveFile",
       "list": [
         {
-          "src": "{app_src_dir}::app.nim",
-          "dest": "{app_src_dir}::{appname}.nim"
+          "src": "{appSrcDir}::app.nim",
+          "dest": "{appSrcDir}::{appName}.nim"
         }
       ]
     }
@@ -42,8 +42,8 @@
       "action": "cmd",
       "exe": "nim",
       "props": {
-        "src": "{current_app_dir}::src::{appname}.nim",
-        "out": "{current_app_dir}::{appname}"
+        "src": "{currentAppDir}::src::{appName}.nim",
+        "out": "{currentAppDir}::{appName}"
       },
       "options": "c -d:nimDebugDlOpen -o:{out} {src}"
     }
@@ -53,8 +53,8 @@
       "action": "cmd",
       "exe": "nim",
       "props": {
-        "src": "{current_app_dir}::src::{appname}.nim",
-        "out": "{current_app_dir}::{appname}"
+        "src": "{currentAppDir}::src::{appName}.nim",
+        "out": "{currentAppDir}::{appName}"
       },
       "options": "c -d:release -o:{out} {src}"
     }
@@ -62,7 +62,7 @@
   "run": [
     {
       "action": "cmd",
-      "exe": "{current_app_dir}::{appname}"
+      "exe": "{currentAppDir}::{appName}"
     }
   ]
 }

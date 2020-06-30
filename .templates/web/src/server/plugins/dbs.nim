@@ -16,14 +16,14 @@ type
     port: int
 
 proc newDbs*(
-  database: string,
   username: string,
   password: string,
+  database: string,
   host: string,
   port: int): Dbs =
   let instance = Dbs(
-    username: username,
     database: database,
+    username: username,
     password: password,
     host: host,
     port: port
