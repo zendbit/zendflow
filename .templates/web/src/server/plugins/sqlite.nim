@@ -8,7 +8,7 @@ import
   dbs,
   settings
 
-proc pgConn(): DbConn =
+proc sqConn*(): DbConn =
   if not jsonSettings.isNil():
     let pgsql = jsonSettings{"pgsql"}
     if not pgsql.isNil():
@@ -24,3 +24,6 @@ proc pgConn(): DbConn =
 
       else:
         echo conn.msg
+
+export
+  db_sqlite

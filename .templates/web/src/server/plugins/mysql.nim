@@ -8,7 +8,7 @@ import
   dbs,
   settings
 
-proc conn(): DbConn =
+proc myConn*(): DbConn =
   if not jsonSettings.isNil():
     let pgsql = jsonSettings{"pgsql"}
     if not pgsql.isNil():
@@ -24,3 +24,6 @@ proc conn(): DbConn =
 
       else:
         echo conn.msg
+
+export
+  db_mysql
