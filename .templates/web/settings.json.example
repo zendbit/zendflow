@@ -15,5 +15,20 @@
       "verify": true,
       "port": 8443
     }
+  },
+  "database": {
+    "pgsql": {
+      "host": "127.0.0.1",
+      "port": 5432,
+      "username": "admin",
+      "password": "secret",
+      "database": "mydb"
+    }
+  },
+  "auth": {
+    "basicAuth": {
+      "username": "foo",
+      "password": "bar"
+    }
   }
 }

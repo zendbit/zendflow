@@ -5,4 +5,12 @@ import
 let jsonSettingsFile = joinPath(getAppDir(), "settings.json")
 var jsonSettings*: JsonNode
 if existsFile(jsonSettingsFile):
-  jsonSettings = parseFile(jsonSettingsFile)
+  try:
+    echo "settings.json found."
+    jsonSettings = parseFile(jsonSettingsFile)
+
+  except Exception as ex:
+    echo ex.msg
+
+else:
+  echo "settings.json not found!!."

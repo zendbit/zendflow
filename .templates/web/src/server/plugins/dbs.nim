@@ -5,10 +5,10 @@ import
   strformat
 
 import
-  zfcore/zendFlow
+  zfcore/zendflow
 
 type
-  Dbs* = object
+  Dbs* = ref object
     database: string
     username: string
     password: string
@@ -16,11 +16,11 @@ type
     port: int
 
 proc newDbs*(
-  username: string,
-  password: string,
   database: string,
-  host: string,
-  port: int): Dbs =
+  username: string = "",
+  password: string = "",
+  host: string = "",
+  port: int = 0): Dbs =
   let instance = Dbs(
     database: database,
     username: username,
@@ -35,13 +35,13 @@ proc tryPgSqlConn*(self: Dbs): tuple[success: bool, conn: db_postgres.DbConn, ms
     try:
       result = (
         true,
-        db_postgres.open(
-        "",
-        self.username,
-        self.password,
-        (&"host={self.host} " &
-        &"port={self.port} " &
-        &"dbname={self.database} ")),
+          db_postgres.open(
+          "",
+          self.username,
+          self.password,
+          (&"host={self.host} " &
+          &"port={self.port} " &
+          &"dbname={self.database} ")),
         "OK")
     except Exception as ex:
       result = (false, nil, ex.msg)
@@ -60,12 +60,12 @@ proc tryMySqlConn*(self: Dbs): tuple[success: bool, conn: db_mysql.DbConn, msg: 
       result = (
         true,
         db_mysql.open(
-        "",
-        self.username,
-        self.password,
-        (&"host={self.host} " &
-        &"port={self.port} " &
-        &"dbname={self.database} ")),
+          "",
+          self.username,
+          self.password,
+          (&"host={self.host} " &
+          &"port={self.port} " &
+          &"dbname={self.database} ")),
         "OK")
     except Exception as ex:
       result = (false, nil, ex.msg)
@@ -84,10 +84,10 @@ proc trySqliteConn*(self: Dbs): tuple[success: bool, conn: db_sqlite.DbConn, msg
     result = (
       true,
       db_sqlite.open(
-      self.database,
-      "",
-      "",
-      ""),
+        self.database,
+        "",
+        "",
+        ""),
       "OK")
   except Exception as ex:
     result = (false, nil, ex.msg)

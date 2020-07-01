@@ -1,29 +1,72 @@
 import
-  db_postgres
+  db_postgres,
+  strformat
 
 import
-  zfcore/zendFlow
+  zfcore/zendflow
 
 import
   dbs,
   settings
 
-proc pgConn*(): DbConn =
-  if not jsonSettings.isNil():
-    let pgsql = jsonSettings{"pgsql"}
-    if not pgsql.isNil():
-      let conn = newDbs(
-        pgsql{"username"}.getStr(),
-        pgsql{"password"}.getStr(),
-        pgsql{"database"}.getStr(),
-        pgsql{"host"}.getStr(),
-        pgsql{"port"}.getInt()).tryPgSqlConn()
+type
+  PgSql* = ref object
+    connId: string
+    conn: DbConn
 
-      if conn.success:
-        result = conn.conn
+#var db: DBConn
+
+#
+# this will read the settings.json on the section
+# "database": {
+#   "your_connId_setting": {
+#     "username": "",
+#     "password": "",
+#     "database": "",
+#     "host": "",
+#     "port": 1234
+#   }
+# }
+#
+proc newPgSql*(connId: string): PgSql =
+  if not jsonSettings.isNil:
+    let db = jsonSettings{"database"}
+    if not db.isNil:
+      let dbConf = db{connId}
+      if not dbConf.isNil:
+        result = PgSql(connId: connId)
+        let c = newDbs(
+          dbConf{"database"}.getStr(),
+          dbConf{"username"}.getStr(),
+          dbConf{"password"}.getStr(),
+          dbConf{"host"}.getStr(),
+          dbConf{"port"}.getInt()).tryPgSqlConn()
+
+        if c.success:
+          result.conn = c.conn
+        else:
+          echo c.msg
 
       else:
-        echo conn.msg
+        echo &"database {connId} not found!!."
+
+    else:
+      echo "database section not found!!."
+
+# close database connection
+proc close*(self: PgSql) =
+  if not self.isNil:
+    self.conn.close()
+
+# get connId
+proc connId*(self: PgSql): string =
+  if not self.isNil:
+    result = self.connId
+
+# get dbconn
+proc conn*(self: PgSql): DbConn =
+  if not self.isNil:
+    result = self.conn
 
 export
   db_postgres
