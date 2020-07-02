@@ -4,9 +4,10 @@
     "appType": "web"
   },
   "nimble": [
-    "develop uri3",
-    "develop zfblast",
-    "develop zfcore",
+    "develop https://github.com/zendbit/nim.uri3",
+    "develop https://github.com/zendbit/nim.zfblast",
+    "develop https://github.com/zendbit/nim.zfcore",
+    "develop https://github.com/zendbit/nim.zfplugs",
     "install karax"
   ],
   "initVar": {
