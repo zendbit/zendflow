@@ -1,0 +1,26 @@
+{
+  "appRootDir": "",
+  "keepAliveMax": 100,
+  "keepAliveTimeout": 15,
+  "maxBodyLength": 268435456,
+  "debug": false,
+  "http": {
+    "port": 8080,
+    "address": "0.0.0.0",
+    "reuseAddress": true,
+    "reusePort": false,
+    "secure": {
+      "cert": "ssl/certificate.pem",
+      "key": "ssl/key.pem",
+      "verify": true,
+      "port": 8443
+    }
+  },
+  "postgreSql": {
+    "username": "",
+    "password": "",
+    "host": "",
+    "port": 5432,
+    "database": ""
+  }
+}

@@ -1,11 +1,7 @@
 .DS_Store
 
-projects/
-defaultapp
-nimbleDeps/
-
-apps
-.nimdeps
-nakefile
-.tmp
-/nakefile.json
+./apps
+./.nimdeps
+./nakefile
+./.tmp
+./nakefile.json

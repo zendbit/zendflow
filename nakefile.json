@@ -1,0 +1,5 @@
+{
+  "jsonNakefile": "apps/postfixToolsApi/nakefile.json",
+  "templatesDir": ".templates",
+  "appsDir": "apps"
+}

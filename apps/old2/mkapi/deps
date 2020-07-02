@@ -1,0 +1,13 @@
+# use # char for comment
+# this dependency list for the project
+# run via nims with:
+#   nim zf.sh install-deps
+
+# example:
+#develop uri3 -> will install the url3 dependency
+#develop zfblast
+#develop zfcore
+#install moustachu
+#install nake
+#develop other_nimble_package
+#install other_nimble_package
