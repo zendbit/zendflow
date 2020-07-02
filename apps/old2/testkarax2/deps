@@ -1,0 +1,14 @@
+# use # char for comment
+# this dependency list for the project
+# run via nims with:
+#   nim zf.sh install-deps
+
+# zendflow required zfcore
+develop uri3
+develop zfblast
+develop zfcore
+install karax
+#install nake
+#develop other_nimble_package
+#install other_nimble_package
+#install moustachu

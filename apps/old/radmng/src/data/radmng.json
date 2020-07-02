@@ -1,0 +1,10 @@
+{
+  "radConfPath": "/opt/pkg/etc/raddb/radiusd.conf",
+  "setupSection": {
+    "title": "RadMNG",
+    "headerTitle": "RadMNG by Skala",
+    "pageTitle": "RadMNG Setup",
+    "footerCopyright": "<strong>Copyright &copy; 2019-2020 <a href=\"https://skala.dev\">Skala Dev</a>.</strong> All rights reserved.",
+    "footerAppVersion": "Version 0.0.1"
+  }
+}

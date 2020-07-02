@@ -1,0 +1,54 @@
+{{#isLoading}}
+  <div class="col-auto">
+    Loading...
+  </div>
+{{/isLoading}}
+{{^isLoading}}
+  {{^isRadConfExists}}
+    <div class="col-auto">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title m-0">Validate Freeradius</h5>
+        </div>
+        <div class="card-body">
+          <div class="card-text">
+            Please check radius installation, there is no radiusd.conf or freeradius.conf file found.
+          </div>
+        </div>
+      </div>
+    </div>
+  {{/isRadConfExists}}
+  {{#isRadConfExists}}
+    <div class="col-auto">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title m-0">Path Environment</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Path</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#radEnv}}
+                <tr>
+                  <td>{{name}}</td>
+                  <td>{{path}}</td>
+                </tr>
+              {{/radEnv}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {{/isRadConfExists}}
+{{/isLoading}}
+{{^isLoading}}
+  <div class="col-lg-10">
+    <hr />
+    <a id="databaseSetup" href="?section=databaseSetup" class="btn bg-gradient-primary">Database Setup &#187;</a>
+  </div>
+{{/isLoading}}

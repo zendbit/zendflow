@@ -1,0 +1,35 @@
+{
+  "appInfo": {
+    "appName": "irigasi",
+    "appType": "console"
+  },
+  "nimble": [],
+  "debug": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{currentAppDir}::src::irigasi.nim",
+        "out": "{currentAppDir}::irigasi"
+      },
+      "options": "c -d:nimDebugDlOpen -o:{out} {src}"
+    }
+  ],
+  "release": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{currentAppDir}::src::irigasi.nim",
+        "out": "{currentAppDir}::irigasi"
+      },
+      "options": "c -d:release -o:{out} {src}"
+    }
+  ],
+  "run": [
+    {
+      "action": "cmd",
+      "exe": "{currentAppDir}::irigasi"
+    }
+  ]
+}
