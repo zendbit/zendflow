@@ -35,7 +35,7 @@
 ]#
 
 import
-  zfcore/zendFlow,
+  zfcore,
   example
 
 #
@@ -249,4 +249,3 @@ zf:
     #
     echo "Hello World"
 
-serve()

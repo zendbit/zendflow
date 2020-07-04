@@ -3,7 +3,7 @@
   "keepAliveMax": 100,
   "keepAliveTimeout": 15,
   "maxBodyLength": 268435456,
-  "debug": false,
+  "trace": false,
   "http": {
     "port": 8080,
     "address": "0.0.0.0",
