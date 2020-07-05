@@ -318,7 +318,7 @@ proc installDeps(appName: string) =
       if errorCode != 0:
         for err in output.split("\n"):
           let errMsg = err.strip
-          if errMsg != "" and errMsg.toLower().contains("error"):
+          if errMsg != "" and errMsg.toLower().contains("'"):
             var depDir: array[1, string]
             if errMsg.match(re"[\w\W]+\'([\w\W]+)\'[\w\W]+$", depDir):
               if depDir[0].existsDir:
