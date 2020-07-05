@@ -8,6 +8,7 @@
     "develop https://github.com/zendbit/nim.zfblast",
     "develop https://github.com/zendbit/nim.zfcore",
     "develop https://github.com/zendbit/nim.zfplugs",
+    "develop https://github.com/zendbit/nim.stdext",
     "install karax"
   ],
   "initVar": {
