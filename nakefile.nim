@@ -315,6 +315,7 @@ proc installDeps(appName: string) =
     
     elif pkgCmd.startsWith("develop"):
       let (output, errorCode) = @["cd", nimdepsDir, "&&", "nimble", "-y", pkgCmd].join(" ").execCmdEx
+      echo output
       if errorCode != 0:
         for err in output.split("\n"):
           let errMsg = err.strip
