@@ -1,5 +1,4 @@
 {
-  "appRootDir": "",
   "keepAliveMax": 100,
   "keepAliveTimeout": 15,
   "maxBodyLength": 268435456,
