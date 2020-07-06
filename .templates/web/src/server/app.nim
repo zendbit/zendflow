@@ -102,7 +102,7 @@ routes:
     # ctx instance of HttpCtx exposed here :-)
     # ws is shorthand of ctx.websocket
     #
-    if not isNil(ws):
+    if not ws.isNil:
       case ws.state:
       of WSState.HandShake:
         echo "HandShake state"
