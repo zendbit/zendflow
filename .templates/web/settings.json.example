@@ -2,6 +2,8 @@
   "keepAliveMax": 100,
   "keepAliveTimeout": 15,
   "maxBodyLength": 268435456,
+  "readBodyBuffer": 1024,
+  "maxResponseBodyLength": 52428800,
   "trace": false,
   "http": {
     "port": 8080,
