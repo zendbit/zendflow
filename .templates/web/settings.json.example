@@ -2,7 +2,7 @@
   "keepAliveMax": 100,
   "keepAliveTimeout": 15,
   "maxBodyLength": 268435456,
-  "readBodyBuffer": 1024,
+  "readBodyBuffer": 51200,
   "maxResponseBodyLength": 52428800,
   "trace": false,
   "http": {
