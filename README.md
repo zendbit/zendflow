@@ -22,6 +22,12 @@ Follow this nim language installation and setup [Nim Language Download](https://
 nimble install nake
 ```
 
+## dont forget to add ~/.nimble/bin in your home dir in to the sytem env
+different distribution have different location, in this case I put it into ~/.profile
+```
+PATH=~/.nimble/bin:PATH
+```
+
 ## Clone zendflow repo and quick start
 ```
 git clone https://github.com/zendbit/zendflow.git
@@ -66,14 +72,64 @@ nake new web mywebsite
 after new command you can find the generated app from the templates in the apps/[your_application_name] folder.
 
 first open the nakefile.json
+
 console app nakefile.json
+if we want to add some depedency just put into the nimble array
 ```
-test
+{
+  "appInfo": {
+    "appName": "myconsole",
+    "appType": "console"
+  },
+  "nimble": [],
+  "debug": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{currentAppDir}::src::myconsole.nim",
+        "out": "{currentAppDir}::myconsole"
+      },
+      "options": "c -d:nimDebugDlOpen -o:{out} {src}"
+    }
+  ],
+  "release": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{currentAppDir}::src::myconsole.nim",
+        "out": "{currentAppDir}::{appName}"
+      },
+      "options": "c -d:release -o:{out} {src}"
+    }
+  ],
+  "run": [
+    {
+      "action": "cmd",
+      "exe": "{currentAppDir}::{appName}"
+    }
+  ]
+}
 ```
 
-web app nakefile.json
+for example nimble depedencies on the web app nakefile.json
+the nimble package tool support install/develop directly from the git repo like go lang.
+see: https://github.com/nim-lang/nimble
 ```
-test
+"nimble": [
+    "develop https://github.com/zendbit/nim.uri3",
+    "develop https://github.com/zendbit/nim.zfblast",
+    "develop https://github.com/zendbit/nim.zfcore",
+    "develop https://github.com/zendbit/nim.zfplugs",
+    "develop https://github.com/zendbit/nim.stdext",
+    "install karax"
+  ]
+```
+
+for updating the app depedencies and installing we can directly using the nimble tools or using this command:
+```
+nake install-deps mywebsite
 ```
 
 build debug only the app:
@@ -123,31 +179,4 @@ nake list-apps
 delete the app:
 ```
 nake delete-app appname
-```
-
-define app depedencies for distribution and deployment
-lets open the "nakefile.json", we can modify the nimble array as we need. We can define install or develop mode when add to the depedencies
-```
-{
-  "appInfo": {
-    "appName": "test",
-    "appType": "console"
-  },
-  "nimble": [
-    "install url3",
-    "install gatabase",
-    "develop zfcore"
-    etc...
-  ]
-}
-```
-
-after we configured the depedencies, we can run install-deps command
-```
-nake install-deps appname
-```
-
-or if we already set the default app, we can just call
-```
-nake install-deps
 ```
