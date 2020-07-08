@@ -4,7 +4,7 @@ Zendflow now transformed to universal tools for nim lang, the main idea is for m
 Zendflow currently support this apps template:
 - Web application template:
 we are using this framework for the web apps: https://github.com/zendbit/nim.zfcore
-High performance asynchttpserver and web framework for nim language. This is ready for production :-) better run under nginx proxy. **for this release not supported windows, need to changes the zf.nims shell cmd to support windows system**
+High performance asynchttpserver and web framework for nim language. This is ready for production :-) better run under nginx proxy. **On windows system you can use WSL(Window System for Linux) or using mingw, I don't have windows machine for testing the cmd compatibilty.**
 
 start from version 1.0.6 websocket ready
 
@@ -58,7 +58,23 @@ example create new console app:
 nake new console myconsole
 ```
 
+example create new web app:
+```
+nake new web mywebsite
+```
+
 after new command you can find the generated app from the templates in the apps/[your_application_name] folder.
+
+first open the nakefile.json
+console app nakefile.json
+```
+test
+```
+
+web app nakefile.json
+```
+test
+```
 
 build debug only the app:
 ```
