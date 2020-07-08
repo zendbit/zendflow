@@ -4,7 +4,7 @@ Zendflow now transformed to universal tools for nim lang, the main idea is for m
 Zendflow currently support this apps template:
 - Web application template:
 we are using this framework for the web apps: https://github.com/zendbit/nim.zfcore
-High performance asynchttpserver and web framework for nim language. This is ready for production :-) better run under nginx proxy. **for this release not supported windows, need to changes the zf.nims shell cmd to support windows system**
+High performance asynchttpserver and web framework for nim language. This is ready for production :-) better run under nginx proxy. **On windows system you can use WSL(Window System for Linux) or using mingw, I don't have windows machine for testing the cmd compatibilty.**
 
 start from version 1.0.6 websocket ready
 
@@ -20,6 +20,12 @@ Follow this nim language installation and setup [Nim Language Download](https://
 ## Install nake from Nimble
 ```
 nimble install nake
+```
+
+## dont forget to add ~/.nimble/bin in your home dir in to the sytem env
+different distribution have different location, in this case I put it into ~/.profile
+```
+PATH=~/.nimble/bin:PATH
 ```
 
 ## Clone zendflow repo and quick start
@@ -58,7 +64,73 @@ example create new console app:
 nake new console myconsole
 ```
 
+example create new web app:
+```
+nake new web mywebsite
+```
+
 after new command you can find the generated app from the templates in the apps/[your_application_name] folder.
+
+first open the nakefile.json
+
+console app nakefile.json
+if we want to add some depedency just put into the nimble array
+```
+{
+  "appInfo": {
+    "appName": "myconsole",
+    "appType": "console"
+  },
+  "nimble": [],
+  "debug": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{currentAppDir}::src::myconsole.nim",
+        "out": "{currentAppDir}::myconsole"
+      },
+      "options": "c -d:nimDebugDlOpen -o:{out} {src}"
+    }
+  ],
+  "release": [
+    {
+      "action": "cmd",
+      "exe": "nim",
+      "props": {
+        "src": "{currentAppDir}::src::myconsole.nim",
+        "out": "{currentAppDir}::{appName}"
+      },
+      "options": "c -d:release -o:{out} {src}"
+    }
+  ],
+  "run": [
+    {
+      "action": "cmd",
+      "exe": "{currentAppDir}::{appName}"
+    }
+  ]
+}
+```
+
+for example nimble depedencies on the web app nakefile.json
+the nimble package tool support install/develop directly from the git repo like go lang.
+see: https://github.com/nim-lang/nimble
+```
+"nimble": [
+    "develop https://github.com/zendbit/nim.uri3",
+    "develop https://github.com/zendbit/nim.zfblast",
+    "develop https://github.com/zendbit/nim.zfcore",
+    "develop https://github.com/zendbit/nim.zfplugs",
+    "develop https://github.com/zendbit/nim.stdext",
+    "install karax"
+  ]
+```
+
+for updating the app depedencies and installing we can directly using the nimble tools or using this command:
+```
+nake install-deps mywebsite
+```
 
 build debug only the app:
 ```
@@ -107,31 +179,4 @@ nake list-apps
 delete the app:
 ```
 nake delete-app appname
-```
-
-define app depedencies for distribution and deployment
-lets open the "nakefile.json", we can modify the nimble array as we need. We can define install or develop mode when add to the depedencies
-```
-{
-  "appInfo": {
-    "appName": "test",
-    "appType": "console"
-  },
-  "nimble": [
-    "install url3",
-    "install gatabase",
-    "develop zfcore"
-    etc...
-  ]
-}
-```
-
-after we configured the depedencies, we can run install-deps command
-```
-nake install-deps appname
-```
-
-or if we already set the default app, we can just call
-```
-nake install-deps
 ```
