@@ -39,12 +39,8 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
   if not templatesDir.existsDir:
     if showMsg:
       echo "Not in umbrella mode."
-      echo "available command:"
-      echo "nake debug"
-      echo "nake debug-run"
-      echo "nake release"
-      echo "nake release-run"
-      echo "nake run"
+      echo "Command new, delete, list-apps not allowed."
+      echo ""
     result = false
   else:
     # check if apps folder exist, if not create the dir
@@ -463,7 +459,6 @@ task "install-deps", "install nimble app depedencies. Ex: nake install-deps [app
 
 task "help", "show available tasks. Ex: nake help.":
   "nake".shell()
-
 
 #
 # make nake run with nakefile.json task description
