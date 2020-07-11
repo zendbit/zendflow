@@ -1,0 +1,68 @@
+{
+  "appInfo": {
+    "appName": "",
+    "appType": "console"
+  },
+  "nimble": [],
+  "initVar": {
+    "appDir": "{appsDir}::{appName}",
+    "appSrcDir": "{appDir}::src"
+  },
+  "init": [
+    {
+      "action": "copyDir",
+      "list": [
+        {
+          "src": "{templatesDir}::{appType}",
+          "dest": "{appDir}"
+        }
+      ]
+    },
+    {
+      "action": "copyFile",
+      "list": [
+        {
+          "src": "nakefile.nim",
+          "dest": "{appDir}::nakefile.nim"
+        }
+      ]
+    },
+    {
+      "action": "moveFile",
+      "list": [
+        {
+          "src": "{appSrcDir}::app.nim",
+          "dest": "{appSrcDir}::{appName}.nim"
+        }
+      ]
+    }
+  ],
+  "build": {
+    "desc": "build the app.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nim",
+        "props": {
+          "src": "{currentAppDir}::src::{appName}.nim",
+          "out": "{currentAppDir}::lib"
+        },
+        "options": "c -d:nimDebugDlOpen --app:staticlib --outdir:{out} {src}"
+      }
+    ]
+  },
+  "release": {
+    "desc": "release the app.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nim",
+        "props": {
+          "src": "{currentAppDir}::src::{appName}.nim",
+          "out": "{currentAppDir}::lib"
+        },
+        "options": "c -d:release --app:staticlib --outdir:{out} {src}"
+      }
+    ]
+  }
+}
