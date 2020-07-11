@@ -39,7 +39,7 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
   if not templatesDir.existsDir:
     if showMsg:
       echo "Not in umbrella mode."
-      echo "Command new, delete, list-apps not allowed."
+      echo "Command new, delete, list-apps, default-app not allowed."
       echo ""
     result = false
   else:
