@@ -1,7 +1,8 @@
 {
   "appInfo": {
     "appName": "",
-    "appType": "console"
+    "appType": "staticlib",
+    "appDesc": "create native static lib."
   },
   "nimble": [],
   "initVar": {

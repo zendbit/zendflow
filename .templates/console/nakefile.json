@@ -1,7 +1,8 @@
 {
   "appInfo": {
     "appName": "",
-    "appType": "console"
+    "appType": "console",
+    "appDesc": "create console app."
   },
   "nimble": [],
   "initVar": {
@@ -100,7 +101,7 @@
     ]
   },
   "run": {
-    "desc": "run the app.":
+    "desc": "run the app.",
     "tasks": [
       {
         "action": "cmd",

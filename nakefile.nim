@@ -26,6 +26,9 @@ if jsonNakefile.existsFile:
   templatesDir = jnode{"templatesDir"}.getStr().replace("::", $DirSep)
 
 proc loadJsonNakefile(appName: string = ""): JsonNode =
+  #
+  # load nakefile.json
+  #
   result = %*{}
   try:
     if appsDir.joinPath(appName, jsonNakefile).existsFile:
@@ -36,6 +39,11 @@ proc loadJsonNakefile(appName: string = ""): JsonNode =
     discard
 
 proc isUmbrellaMode(showMsg: bool = false): bool =
+  #
+  # check is in umbrella mode
+  # the umbrella mode is in the top of zendflow dir
+  # non umbrella mode is in the application dir
+  #
   if not templatesDir.existsDir:
     if showMsg:
       echo ""
@@ -55,12 +63,12 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
       f.close()
     result = true
 
-# this function will subtitute variable
-# defined int the nakefile.json
-# ex:
-# {"foo": "hello", "bar": "{foo} world"}
-# into {"foo": "hello", "bar": "hello world"}
 proc subtituteVar(varnode: JsonNode): JsonNode =
+  # this function will subtitute variable
+  # defined int the nakefile.json
+  # ex:
+  # {"foo": "hello", "bar": "{foo} world"}
+  # into {"foo": "hello", "bar": "hello world"}
   result = %*{}
   for k, v in varnode:
     var svar = v.getStr()
@@ -73,10 +81,10 @@ proc subtituteVar(varnode: JsonNode): JsonNode =
 
     result[k] = %svar
 
-# this will remove leading or ending double colon
-# ::hello::world::
-# will transform to hello::world
 proc cleanDoubleColon(str: string): string =
+  # this will remove leading or ending double colon
+  # ::hello::world::
+  # will transform to hello::world
   result = str.strip()
   if result == "::" or result == "":
     result = ""
@@ -87,8 +95,11 @@ proc cleanDoubleColon(str: string): string =
     if result.endsWith("::"):
       result = result.subStr(0, high(result) - 2)
 
-# will process action list
 proc doActionList(actionList: JsonNode) =
+  #
+  # will process action list
+  # process tasks section in the nakefile.json
+  #
   if not actionList.isNil and actionList.kind == JsonNodeKind.JArray:
     for action in actionList:
       let actionType = action{"action"}.getStr()
@@ -251,6 +262,10 @@ proc doActionList(actionList: JsonNode) =
     echo "not valid action list, action list should be in json array."
 
 proc defaultApp(): tuple[appName: string, appType: string] =
+  #
+  # get default app
+  # return tupple with appName and appType
+  #
   var appName = ""
   var appType = ""
 
@@ -269,6 +284,9 @@ proc defaultApp(): tuple[appName: string, appType: string] =
   return (appName, appType)
 
 proc setDefaultApp(appName: string): bool =
+  #
+  # set default app
+  #
   let jsonNake = loadJsonNakefile()
   if not jsonNake{"jsonNakefile"}.isNil:
     jsonNake["jsonNakefile"] = %appsDir.joinPath(appName, jsonNakefile)
@@ -278,11 +296,17 @@ proc setDefaultApp(appName: string): bool =
     result = true
 
 proc currentAppDir(appName: string): string =
+  #
+  # get current app dir with given appname
+  #
   result = "."
   if appsDir != "":
     result = appsDir.joinPath(appName)
 
 proc isAppExists(appName: string): bool =
+  #
+  # check if application name folder exists
+  #
   result = appsDir.joinPath(appName).existsDir and
     appsDir.joinPath(appName, jsonNakefile).existsFile
 
@@ -293,8 +317,11 @@ proc isAppExists(appName: string): bool =
     if not jnake{"appInfo"}.isNil:
       result = not jnake{"appInfo"}{"appName"}.isNil
 
-
 proc installDeps(appName: string) =
+  #
+  # install depedencies in the nimble section
+  # nakefile.json
+  #
   let nimble = appName.loadJsonNakefile(){"nimble"}
   "nimble update".shell
   for pkg in nimble:
@@ -319,10 +346,28 @@ proc installDeps(appName: string) =
         echo output
 
 proc existsTemplates(templateName: string): bool =
+  #
+  # check if template exists
+  # available template is in the .template dir
+  #
   for kind, path in templatesDir.walkDir:
     if kind == PathComponent.pcDir and
       path.endsWith(DirSep & templateName):
       return true
+
+proc showTemplateList() =
+  #
+  # show available template list
+  #
+  if templatesDir.existsDir:
+    for kind, path in templatesDir.walkDir:
+      if kind == PathComponent.pcDir:
+        let f = path.joinPath(jsonNakefile)
+        if f.existsFile:
+          let appInfo = f.parseFile(){"appInfo"}
+          if not appInfo.isNil and appInfo.hasKey("appType") and
+            appInfo.hasKey("appDesc"):
+            echo appInfo{"appType"}.getStr & " -> " & appInfo{"appDesc"}.getStr
 
 # this will read from templates nakefile.json
 # .templates/appType/nakefile.json
@@ -387,7 +432,12 @@ proc newApp(appName: string, appType: string) =
       echo &"{fpath} not found."
   else:
     echo &"{appType} template not found."
-  
+
+task "templates", "show template available app template.":
+  if not true.isUmbrellaMode():
+    return
+  showTemplateList()
+
 task "new", "create new app. Ex: nake new console.":
   if not true.isUmbrellaMode():
     return

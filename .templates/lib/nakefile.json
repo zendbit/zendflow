@@ -1,7 +1,8 @@
 {
   "appInfo": {
     "appName": "",
-    "appType": "console"
+    "appType": "lib",
+    "appDesc": "create native dynamic lib."
   },
   "nimble": [],
   "initVar": {

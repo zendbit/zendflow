@@ -1,7 +1,8 @@
 {
   "appInfo": {
     "appName": "",
-    "appType": "web"
+    "appType": "web",
+    "appDesc": "create web app with zfcore."
   },
   "nimble": [
     "develop https://github.com/zendbit/nim.uri3",
