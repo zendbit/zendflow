@@ -38,6 +38,7 @@ proc loadJsonNakefile(appName: string = ""): JsonNode =
 proc isUmbrellaMode(showMsg: bool = false): bool =
   if not templatesDir.existsDir:
     if showMsg:
+      echo ""
       echo "Not in umbrella mode."
       echo "Command new, delete, list-apps, default-app not allowed."
       echo ""

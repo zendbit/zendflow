@@ -45,26 +45,9 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}"
+          "out": "{currentAppDir}::lib"
         },
-        "options": "c -d:nimDebugDlOpen --outdir:{out} {src}"
-      }
-    ]
-  },
-  "build-run": {
-    "desc": "build the app, then run it.",
-    "tasks": [
-      {
-        "action": "cmd",
-        "exe": "nake",
-        "options": "build",
-        "next": [
-          {
-            "action": "cmd",
-            "exe": "nake",
-            "options": "run"
-          }
-        ]
+        "options": "c -d:nimDebugDlOpen --app:lib --outdir:{out} {src}"
       }
     ]
   },
@@ -76,35 +59,9 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}"
+          "out": "{currentAppDir}::lib"
         },
-        "options": "c -d:release --outdir:{out} {src}"
-      }
-    ]
-  },
-  "release-run": {
-    "desc": "release the app.",
-    "tasks": [
-      {
-        "action": "cmd",
-        "exe": "nake",
-        "options": "release",
-        "next": [
-          {
-            "action": "cmd",
-            "exe": "nake",
-            "options": "run"
-          }
-        ]
-      }
-    ]
-  },
-  "run": {
-    "desc": "run the app.":
-    "tasks": [
-      {
-        "action": "cmd",
-        "exe": "{currentAppDir}::{appName}"
+        "options": "c -d:release --app:lib --outdir:{out} {src}"
       }
     ]
   }

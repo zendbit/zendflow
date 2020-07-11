@@ -96,18 +96,18 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::server::{appName}.nim",
-          "out": "{currentAppDir}::{appName}"
+          "out": "{currentAppDir}"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl -o:{out} {src}",
+        "options": "c -d:nimDebugDlOpen -d:ssl --outdir:{out} {src}",
         "next": [
           {
             "action": "cmd",
             "exe" : "nim",
             "props": {
               "src": "{currentAppDir}::src::spa::{appName}.nim",
-              "out": "{currentAppDir}::www::private::js::compiled::{appName}.js"
+              "out": "{currentAppDir}::www::private::js::compiled"
             },
-            "options": "js -o:{out} {src}"
+            "options": "js --outdir:{out} {src}"
           }
         ]
       }
@@ -138,18 +138,18 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::server::{appName}.nim",
-          "out": "{currentAppDir}::{appName}"
+          "out": "{currentAppDir}"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl -d:release -o:{out} {src}",
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:release --outdir:{out} {src}",
         "next": [
           {
             "action": "cmd",
             "exe" : "nim",
             "props": {
               "src": "{currentAppDir}::src::spa::{appName}.nim",
-              "out": "{currentAppDir}::www::private::js:compiled::{appName}.js"
+              "out": "{currentAppDir}::www::private::js:compiled"
             },
-            "options": "js -o:{out} {src}"
+            "options": "js --outdir:{out} {src}"
           }
         ]
       }
