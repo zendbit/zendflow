@@ -1,11 +1,5 @@
-import
-  nake,
-  os,
-  strutils,
-  strformat,
-  json,
-  osproc,
-  re
+import nake, nakelib, os, strutils, strformat,
+  json, osproc, re
 
 let cmdLineParams = commandLineParams()
 var cmdParams: seq[string]
@@ -422,93 +416,6 @@ task "default-app", "get/set default app. Ex: nake default-app [appName].":
   else:
     echo defaultApp()
 
-task "debug", "build debug app, Ex: nake debug [appName].":
-  let defApp = defaultApp()
-  var appName = defApp.appName
-
-  if cmdParams.len > 1:
-    appName = cmdParams[1]
-
-  if appName.isAppExists():
-    var actionList = appName.loadJsonNakefile(){"debug"}
-    if not isNil(actionList):
-      actionList = ($actionList).replace("::", $DirSep)
-        .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
-      actionList.doActionList
-
-  else:
-    echo "invalid arguments."
-
-task "release", "build release app, Ex: nake release [appName].":
-  let defApp = defaultApp()
-  var appName = defApp.appName
-
-  if cmdParams.len > 1:
-    appName = cmdParams[1]
-
-  if appName.isAppExists():
-    var actionList = appName.loadJsonNakefile(){"release"}
-    if not actionList.isNil:
-      actionList = ($actionList).replace("::", $DirSep)
-        .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
-      actionList.doActionList
-
-  else:
-    echo "invalid arguments."
-
-task "run", "run app, ex: nake run [appName].":
-  let defApp = defaultApp()
-  var appName = defApp.appName
-
-  if cmdParams.len > 1:
-    appName = cmdParams[1]
-
-  if isAppExists(appName):
-    var actionList = appName.loadJsonNakefile(){"run"}
-    if not actionList.isNil:
-      actionList = ($actionList).replace("::", $DirSep)
-        .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
-      actionList.doActionList
-
-  else:
-    echo "invalid arguments."
-
-task "debug-run", "build debug and then run the app. Ex: nake debug-run [appName].":
-  let defApp = defaultApp()
-  var appName = defApp.appName
-
-  if cmdParams.len > 1:
-    appName = cmdParams[1]
-
-  if appName.isAppExists():
-    var jnode = appName.loadJsonNakefile()
-    for actionList in [jnode{"debug"}, jnode{"run"}]:
-      if not actionList.isNil:
-        let actionToDo = ($actionList).replace("::", $DirSep)
-          .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
-        actionToDo.doActionList
-
-  else:
-    echo "invalid arguments."
-
-task "release-run", "build release and then run the app. Ex: nake release-run [appName].":
-  let defApp = defaultApp()
-  var appName = defApp.appName
-
-  if cmdParams.len > 1:
-    appName = cmdParams[1]
-
-  if appName.isAppExists():
-    var jnode = appName.loadJsonNakefile()
-    for actionList in [jnode{"release"}, jnode{"run"}]:
-      if not actionList.isNil:
-        let actionToDo = ($actionList).replace("::", $DirSep)
-          .replace("{currentAppDir}", appName.currentAppDir()).parseJson()
-        actionToDo.doActionList
-
-  else:
-    echo "invalid arguments."
-
 task "list-apps", "show available app. Ex: nake list-app":
   if not true.isUmbrellaMode():
     return
@@ -555,4 +462,37 @@ task "install-deps", "install nimble app depedencies. Ex: nake install-deps [app
     echo "invalid arguments."
 
 task "help", "show available tasks. Ex: nake help.":
+  "nake".shell()
+
+
+#
+# make nake run with nakefile.json task description
+# this make more portable
+#
+let defApp = defaultApp()
+var appName = defApp.appName
+
+if cmdParams.len > 1:
+  appName = cmdParams[1]
+
+proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
+  if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
+    task name, desc:
+      let actionToDo = ($taskList).replace("::", $DirSep)
+        .replace("{currentAppDir}", appName.currentAppDir).parseJson
+      actionToDo.doActionList
+  else:
+    echo "invalid task list {name} , should be in JArray."
+
+if appName.isAppExists():
+  var jnode = appName.loadJsonNakefile()
+  for k, v in jnode:
+    if k in ["appInfo", "nimble"]:
+      continue
+    var desc = v{"desc"}.getStr
+    if desc == "": desc = k
+    let actionList = v{"tasks"}
+    k.addNakeTask(desc, actionList)
+
+else:
   "nake".shell()

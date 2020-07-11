@@ -37,32 +37,75 @@
       ]
     }
   ],
-  "debug": [
-    {
-      "action": "cmd",
-      "exe": "nim",
-      "props": {
-        "src": "{currentAppDir}::src::{appName}.nim",
-        "out": "{currentAppDir}::{appName}"
-      },
-      "options": "c -d:nimDebugDlOpen -o:{out} {src}"
-    }
-  ],
-  "release": [
-    {
-      "action": "cmd",
-      "exe": "nim",
-      "props": {
-        "src": "{currentAppDir}::src::{appName}.nim",
-        "out": "{currentAppDir}::{appName}"
-      },
-      "options": "c -d:release -o:{out} {src}"
-    }
-  ],
-  "run": [
-    {
-      "action": "cmd",
-      "exe": "{currentAppDir}::{appName}"
-    }
-  ]
+  "build": {
+    "desc": "build the app.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nim",
+        "props": {
+          "src": "{currentAppDir}::src::{appName}.nim",
+          "out": "{currentAppDir}::{appName}"
+        },
+        "options": "c -d:nimDebugDlOpen -o:{out} {src}"
+      }
+    ]
+  },
+  "build-run": {
+    "desc": "build the app, then run it.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "build",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "nake",
+            "options": "run"
+          }
+        ]
+      }
+    ]
+  },
+  "release": {
+    "desc": "release the app.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nim",
+        "props": {
+          "src": "{currentAppDir}::src::{appName}.nim",
+          "out": "{currentAppDir}::{appName}"
+        },
+        "options": "c -d:release -o:{out} {src}"
+      }
+    ]
+  },
+  "release-run": {
+    "desc": "release the app.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "release",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "nake",
+            "options": "run"
+          }
+        ]
+      }
+    ]
+  },
+  "run": {
+    "desc": "run the app.":
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "{currentAppDir}::{appName}"
+      }
+    ]
+  }
 }
