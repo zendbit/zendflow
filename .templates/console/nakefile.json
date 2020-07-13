@@ -46,7 +46,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}"
+          "out": "{currentAppDir}::bin"
         },
         "options": "c -d:nimDebugDlOpen --outdir:{out} {src}"
       }
@@ -58,12 +58,12 @@
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "build",
+        "options": "build {appName}",
         "next": [
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "run"
+            "options": "run {appName}"
           }
         ]
       }
@@ -77,7 +77,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}"
+          "out": "{currentAppDir}::bin"
         },
         "options": "c -d:release --outdir:{out} {src}"
       }
@@ -89,12 +89,12 @@
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "release",
+        "options": "release {appName}",
         "next": [
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "run"
+            "options": "run {appName}"
           }
         ]
       }
@@ -105,7 +105,7 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "{currentAppDir}::{appName}"
+        "exe": "{currentAppDir}::bin::{appName}"
       }
     ]
   }

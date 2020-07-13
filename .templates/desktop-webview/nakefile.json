@@ -1,8 +1,8 @@
 {
   "appInfo": {
     "appName": "",
-    "appType": "web",
-    "appDesc": "create web app with zfcore."
+    "appType": "desktop-webview",
+    "appDesc": "create desktop webview using zfcore as server and https://github.com/zserge/webview as webkit engine."
   },
   "nimble": [
     "develop https://github.com/zendbit/nim.uri3",
@@ -10,12 +10,15 @@
     "develop https://github.com/zendbit/nim.zfcore",
     "develop https://github.com/zendbit/nim.zfplugs",
     "develop https://github.com/zendbit/nim.stdext",
-    "install karax"
+    "install karax",
+    "install https://github.com/oskca/webview"
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
+    "srcDir": "{appDir}::src",
     "srcServerDir": "{appDir}::src::server",
     "srcSpaDir": "{appDir}::src::spa",
+    "srcWebviewDir": "{appDir}::src::webview",
     "wwwDir": "{appDir}::www",
     "compiledJsDir": "{wwwDir}::private::js::compiled"
   },
@@ -42,12 +45,8 @@
       "action": "moveFile",
       "list": [
         {
-          "src": "{srcServerDir}::app.nim",
-          "dest": "{srcServerDir}::{appName}.nim"
-        },
-        {
-          "src": "{srcSpaDir}::app.nim",
-          "dest": "{srcSpaDir}::{appName}.nim"
+          "src": "{srcDir}::app.nim",
+          "dest": "{srcDir}::{appName}.nim"
         }
       ]
     },
@@ -61,7 +60,7 @@
       "action": "cmd",
       "exe": "karun",
       "props": {
-        "src": "{srcSpaDir}::{appName}.nim"
+        "src": "{srcSpaDir}::app.nim"
       },
       "options": "{src}"
     },
@@ -69,12 +68,12 @@
       "action": "moveFile",
       "list": [
         {
-          "src": "{appName}.html",
+          "src": "app.html",
           "dest": "{wwwDir}::index.html"
         },
         {
-          "src": "{appName}.js",
-          "dest": "{compiledJsDir}::{appName}.js"
+          "src": "app.js",
+          "dest": "{compiledJsDir}::app.js"
         }
       ]
     },
@@ -83,8 +82,8 @@
       "file": "{wwwDir}::index.html",
       "list": [
         {
-          "old": "{appName}.js",
-          "new": "/private/js/compiled/{appName}.js"
+          "old": "app.js",
+          "new": "/private/js/compiled/app.js"
         }
       ]
     }
@@ -96,7 +95,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "src": "{currentAppDir}::src::{appName}.nim",
           "out": "{currentAppDir}"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl --threads:on --outdir:{out} {src}",
@@ -105,27 +104,10 @@
             "action": "cmd",
             "exe" : "nim",
             "props": {
-              "src": "{currentAppDir}::src::spa::{appName}.nim",
+              "src": "{currentAppDir}::src::spa::app.nim",
               "out": "{currentAppDir}::www::private::js::compiled"
             },
-            "options": "js --outdir:{out} {src}",
-            "next": [
-              {
-                "action": "removeDir",
-                "list": [
-                  {"name": "{currentAppDir}::bin::www"}
-                ]
-              },
-              {
-                "action": "copyDir",
-                "list": [
-                  {
-                    "src": "{currentAppDir}::www",
-                    "dest": "{currentAppDir}::bin::www"
-                  }
-                ]
-              }
-            ]
+            "options": "js --outdir:{out} {src}"
           }
         ]
       }
@@ -137,12 +119,12 @@
         {
           "action": "cmd",
           "exe": "nake",
-          "options": "build {appName}",
+          "options": "build",
           "next": [
             {
               "action": "cmd",
               "exe": "nake",
-              "options": "run {appName}"
+              "options": "run"
             }
           ]
         }
@@ -155,7 +137,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "src": "{currentAppDir}::src::{appName}.nim",
           "out": "{currentAppDir}"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl --threads:on -d:release --outdir:{out} {src}",
@@ -164,27 +146,10 @@
             "action": "cmd",
             "exe" : "nim",
             "props": {
-              "src": "{currentAppDir}::src::spa::{appName}.nim",
+              "src": "{currentAppDir}::src::spa::app.nim",
               "out": "{currentAppDir}::www::private::js:compiled"
             },
-            "options": "js --outdir:{out} {src}",
-            "next": [
-              {
-                "action": "removeDir",
-                "list": [
-                  {"name": "{currentAppDir}::bin::www"}
-                ]
-              },
-              {
-                "action": "copyDir",
-                "list": [
-                  {
-                    "src": "{currentAppDir}::www",
-                    "dest": "{currentAppDir}::bin::www"
-                  }
-                ]
-              }
-            ]
+            "options": "js --outdir:{out} {src}"
           }
         ]
       }
@@ -196,12 +161,12 @@
       {
         "action": "cmd",
         "exe": "nim",
-        "options": "release {appName}",
+        "options": "release",
         "next": [
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "run {appName}"
+            "options": "run"
           }
         ]
       }
@@ -212,7 +177,7 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "{currentAppDir}::bin::{appName}"
+        "exe": "{currentAppDir}::{appName}"
       }
     ]
   }
