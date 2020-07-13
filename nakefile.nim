@@ -360,6 +360,7 @@ proc showTemplateList() =
   # show available template list
   #
   if templatesDir.existsDir:
+    echo ""
     for kind, path in templatesDir.walkDir:
       if kind == PathComponent.pcDir:
         let f = path.joinPath(jsonNakefile)
@@ -368,6 +369,7 @@ proc showTemplateList() =
           if not appInfo.isNil and appInfo.hasKey("appType") and
             appInfo.hasKey("appDesc"):
             echo appInfo{"appType"}.getStr & " -> " & appInfo{"appDesc"}.getStr
+    echo ""
 
 # this will read from templates nakefile.json
 # .templates/appType/nakefile.json
@@ -445,7 +447,13 @@ task "new", "create new app. Ex: nake new console.":
   if cmdParams.len > 2:
     let appName = cmdParams[2]
     let appType = cmdParams[1]
-    appName.newApp(appType)
+    var appNameMatch: array[1, string]
+    if appName.match(re"([a-zA-Z\d_]+)*$", appNameMatch):
+      appName.newApp(appType)
+    else:
+      echo ""
+      echo "application name is not valid, only a-zA-Z0-9_"
+      echo ""
 
   else:
     echo "invalid new command arguments."
@@ -457,9 +465,13 @@ task "default-app", "get/set default app. Ex: nake default-app [appName].":
   if cmdParams.len > 1:
     let appName = cmdParams[1]
     if not appName.setDefaultApp() and not appName.isAppExists():
+      echo ""
       echo &"app {appName} doesn't exist."
+      echo ""
     else:
+      echo ""
       echo &"default app changed to {appName}."
+      echo ""
   else:
     echo defaultApp()
 
@@ -468,9 +480,11 @@ task "list-apps", "show available app. Ex: nake list-app":
     return
 
   if appsDir.existsDir:
+    echo ""
     for dir in joinPath(appsDir, "*").walkDirs:
       if dir.joinPath(jsonNakefile).existsFile:
         echo "-> " & dir.extractFilename()
+    echo ""
 
 task "delete-app", "delete app. Ex: nake delete-app appName.":
   if not true.isUmbrellaMode():
@@ -482,16 +496,24 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
       if appDir.existsDir:
         appDir.removeDir
         if not appDir.existsDir:
+          echo ""
           echo &"{appDir} deleted."
+          echo ""
         else:
+          echo ""
           echo &"fail to delete {appDir}."
+          echo ""
       else:
+        echo ""
         echo &"{appDir} not found."
+        echo ""
     echo ""
     echo "available apps:"
     shell("nake list-apps")
   else:
+    echo ""
     echo "invalid arguments."
+    echo ""
 
 task "install-deps", "install nimble app depedencies. Ex: nake install-deps [appName].":
   let defApp = defaultApp()
@@ -506,7 +528,9 @@ task "install-deps", "install nimble app depedencies. Ex: nake install-deps [app
     defApp.appName.installDeps()
 
   else:
+    echo ""
     echo "invalid arguments."
+    echo ""
 
 task "help", "show available tasks. Ex: nake help.":
   "nake".shell()
