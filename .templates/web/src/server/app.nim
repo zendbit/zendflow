@@ -1,5 +1,5 @@
 #[
-  ZendFlow web framework for nim language
+  zfcore web framework for nim language
   This framework if free to use and to modify
   License: BSD
   Author: Amru Rosyada
@@ -33,9 +33,7 @@
     zfmacros -> zfcore macros helper
 ]#
 
-import
-  zfcore,
-  example
+import zfcore, example
 
 #
 # configuration:
@@ -188,7 +186,7 @@ routes:
 
   # using regex for matching the request
   # the regex is regex match like in pcre standard like regex on python, perl etc
-  # <ids:re[([0-9]+)_([0-9]+)]:len[2]>
+  # <ids:re[([0-9]+)_([0-9]+)]>
   # - the ids wil capture as parameter name
   # - the len[2] is for len for capturing in this case in the () bracket,
   #   will capture ([0-9]+) twice
@@ -199,7 +197,7 @@ routes:
   #   in this case we use <name>
   # - <name> will capture segment value in there as name,
   #   we can access param value and query string in HttpCtx.params["name"] or other param name
-  get "/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>":
+  get "/home/<ids:re[([0-9]+)_([0-9]+)]>/<name>":
     echo "Welcome home"
     # capture regex result from the url
     echo reParams["ids"]

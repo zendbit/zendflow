@@ -97,7 +97,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::server::{appName}.nim",
-          "out": "{currentAppDir}"
+          "out": "{currentAppDir}::bin"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl --threads:on --outdir:{out} {src}",
         "next": [
@@ -122,6 +122,15 @@
                   {
                     "src": "{currentAppDir}::www",
                     "dest": "{currentAppDir}::bin::www"
+                  }
+                ]
+              },
+              {
+                "action": "copyFile",
+                "list": [
+                  {
+                    "src": "{currentAppDir}::settings.json",
+                    "dest": "{currentAppDir}::bin/settings.json"
                   }
                 ]
               }
@@ -156,7 +165,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::server::{appName}.nim",
-          "out": "{currentAppDir}"
+          "out": "{currentAppDir}::bin"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl --threads:on -d:release --outdir:{out} {src}",
         "next": [
@@ -181,6 +190,15 @@
                   {
                     "src": "{currentAppDir}::www",
                     "dest": "{currentAppDir}::bin::www"
+                  }
+                ]
+              },
+              {
+                "action": "copyFile",
+                "list": [
+                  {
+                    "src": "{currentAppDir}::settings.json",
+                    "dest": "{currentAppDir}::bin/settings.json"
                   }
                 ]
               }
