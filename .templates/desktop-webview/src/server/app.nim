@@ -33,11 +33,10 @@
     zfmacros -> zfcore macros helper
 ]#
 
-import
-  zfcore,
-  example
+import zfcore, example
+export zfcore
 
-proc runServer*(): Future[void] {.async.} =
+proc runServer*(zfcoreInstance: ZFCore) {.gcsafe.} =
   #
   # configuration:
   # copy settings.json.example as settings.json
@@ -161,7 +160,7 @@ proc runServer*(): Future[void] {.async.} =
                 "This is from the endpoint :-)",
                 1,
                 WSOpCode.TextFrame.uint8)
-              await ws.send()
+              ws.send()
             of WSOpCode.BinaryFrame.uint8:
               echo "Binary frame received"
             of WSOpCode.ContinuationFrame.uint8:

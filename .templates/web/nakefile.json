@@ -130,7 +130,7 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin/settings.json"
+                    "dest": "{currentAppDir}::bin::settings.json"
                   }
                 ]
               }
@@ -198,7 +198,7 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin/settings.json"
+                    "dest": "{currentAppDir}::bin::settings.json"
                   }
                 ]
               }

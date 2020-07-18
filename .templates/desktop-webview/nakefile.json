@@ -96,7 +96,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}"
+          "out": "{currentAppDir}::bin"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl --threads:on --outdir:{out} {src}",
         "next": [
@@ -107,7 +107,33 @@
               "src": "{currentAppDir}::src::spa::app.nim",
               "out": "{currentAppDir}::www::private::js::compiled"
             },
-            "options": "js --outdir:{out} {src}"
+            "options": "js --outdir:{out} {src}",
+            "next": [
+              {
+                "action": "removeDir",
+                "list": [
+                  {"name": "{currentAppDir}::bin::www"}
+                ]
+              },
+              {
+                "action": "copyDir",
+                "list": [
+                  {
+                    "src": "{currentAppDir}::www",
+                    "dest": "{currentAppDir}::bin::www"
+                  }
+                ]
+              },
+              {
+                "action": "copyFile",
+                "list": [
+                  {
+                    "src": "{currentAppDir}::settings.json",
+                    "dest": "{currentAppDir}::bin::settings.json"
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
@@ -119,12 +145,12 @@
         {
           "action": "cmd",
           "exe": "nake",
-          "options": "build",
+          "options": "build {appName}",
           "next": [
             {
               "action": "cmd",
               "exe": "nake",
-              "options": "run"
+              "options": "run {appName}"
             }
           ]
         }
@@ -138,7 +164,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}"
+          "out": "{currentAppDir}::bin"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl --threads:on -d:release --outdir:{out} {src}",
         "next": [
@@ -149,7 +175,33 @@
               "src": "{currentAppDir}::src::spa::app.nim",
               "out": "{currentAppDir}::www::private::js:compiled"
             },
-            "options": "js --outdir:{out} {src}"
+            "options": "js --outdir:{out} {src}",
+            "next": [
+              {
+                "action": "removeDir",
+                "list": [
+                  {"name": "{currentAppDir}::bin::www"}
+                ]
+              },
+              {
+                "action": "copyDir",
+                "list": [
+                  {
+                    "src": "{currentAppDir}::www",
+                    "dest": "{currentAppDir}::bin::www"
+                  }
+                ]
+              },
+              {
+                "action": "copyFile",
+                "list": [
+                  {
+                    "src": "{currentAppDir}::settings.json",
+                    "dest": "{currentAppDir}::bin::settings.json"
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
@@ -161,12 +213,12 @@
       {
         "action": "cmd",
         "exe": "nim",
-        "options": "release",
+        "options": "release {appName}",
         "next": [
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "run"
+            "options": "run {appName}"
           }
         ]
       }
@@ -177,7 +229,7 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "{currentAppDir}::{appName}"
+        "exe": "{currentAppDir}::bin::{appName}"
       }
     ]
   }
