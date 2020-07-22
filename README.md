@@ -18,23 +18,23 @@ Create nim console apps
 Follow this nim language installation and setup [Nim Language Download](https://nim-lang.org/install.html)
 
 ## Install nake from Nimble
-```
+```shell
 nimble install nake
 ```
 
 ## dont forget to add ~/.nimble/bin in your home dir in to the sytem env
 different distribution have different location, in this case I put it into ~/.profile
-```
+```shell
 PATH=~/.nimble/bin:PATH
 ```
 
 ## Clone zendflow repo and quick start
-```
+```shell
 git clone https://github.com/zendbit/zendflow.git
 ```
 
 goto zendflow dir
-```
+```shell
 cd zendflow
 ```
 
@@ -55,17 +55,17 @@ help - show available tasks. Ex: nake help.
 ```
 
 example create new web app:
-```
+```shell
 nake new web mywebsite
 ```
 
 example create new console app:
-```
+```shell
 nake new console myconsole
 ```
 
 example create new web app:
-```
+```shell
 nake new web mywebsite
 ```
 
@@ -75,7 +75,7 @@ first open the nakefile.json
 
 console app nakefile.json
 if we want to add some depedency just put into the nimble array
-```
+```javascript
 {
   "appInfo": {
     "appName": "myconsole",
@@ -116,7 +116,7 @@ if we want to add some depedency just put into the nimble array
 for example nimble depedencies on the web app nakefile.json
 the nimble package tool support install/develop directly from the git repo like go lang.
 see: https://github.com/nim-lang/nimble
-```
+```javascript
 "nimble": [
     "develop https://github.com/zendbit/nim.uri3",
     "develop https://github.com/zendbit/nim.zfblast",
@@ -128,42 +128,42 @@ see: https://github.com/nim-lang/nimble
 ```
 
 for updating the app depedencies and installing we can directly using the nimble tools or using this command:
-```
+```shell
 nake install-deps mywebsite
 ```
 
 build debug only the app:
-```
+```shell
 nake debug mywebsite
 ```
 
 debug and run the app:
-```
+```shell
 nake debug-run mywebsite
 ```
 
 release only the app:
-```
+```shell
 nake release mywebsite
 ```
 
 release and then run the app:
-```
+```shell
 nake release-run mywebsite
 ```
 
 run the app only:
-```
+```shell
 nake run mywebsite
 ```
 
 if we focused on the one app for development and tired to write the app name, we can set the default app:
-```
+```shell
 nake default-app mywebsite
 ```
 
 after we set the default app, we can directly call the nake build, build-run etc whithout defines the app appname
-```
+```shell
 nake debug
 nake debug-run
 nake release
@@ -172,11 +172,11 @@ etc...
 ```
 
 show available apps:
-```
+```shell
 nake list-apps
 ```
 
 delete the app:
-```
+```shell
 nake delete-app appname
 ```
