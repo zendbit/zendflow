@@ -212,7 +212,7 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "nim",
+        "exe": "nake",
         "options": "release {appName}",
         "next": [
           {
