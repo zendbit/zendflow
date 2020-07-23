@@ -95,6 +95,51 @@ proc cleanDoubleColon(str: string): string =
     if result.endsWith("::"):
       result = result.subStr(0, high(result) - 2)
 
+proc moveDirContents(src: string, dest: string, includes: JsonNode, excludes: JsonNode = nil, mode = "copy", fileOnly = false) =
+  #
+  # for move dir contents of dir
+  # with filtering options
+  #
+  echo &"{mode} {src}{$DirSep}{includes} -> {dest}{$DirSep}{includes}"
+  for (kind, path) in src.walkDir:
+    let filename = path.extractFilename
+    let pathSrc = src.joinPath(filename)
+    let pathDest = dest.joinPath(filename)
+    if not excludes.isNil and %filename in excludes:
+      continue
+    if fileOnly and (kind == pcDir or kind == pcLinkToDir): continue
+    if %filename in includes or %"*" in includes:
+      if kind == pcFile or kind == pcLinkToFile:
+        case mode
+        of "copy":
+          pathSrc.copyFile(pathDest)
+        of "move":
+          pathSrc.moveFile(pathDest)
+      else:
+        case mode
+        of "copy":
+          pathSrc.copyDir(pathDest)
+        of "move":
+          pathSrc.copyDir(pathDest)
+
+proc removeDirContents(src: string, includes: JsonNode, excludes: JsonNode = nil, fileOnly = false) =
+  #
+  # for remove contents of dir
+  # with filtering options
+  #
+  echo &"remove {src}{$DirSep}{includes}"
+  for (kind, path) in src.walkDir:
+    let filename = path.extractFilename
+    let pathSrc = src.joinPath(filename)
+    if not excludes.isNil and %filename in excludes:
+      continue
+    if fileOnly and (kind == pcDir or kind == pcLinkToDir): continue
+    if %filename in includes or %"*" in includes:
+      if kind == pcFile or kind == pcLinkToFile:
+        pathSrc.removeFile
+      else:
+        pathSrc.removeDir
+
 proc doActionList(actionList: JsonNode) =
   #
   # will process action list
@@ -110,9 +155,11 @@ proc doActionList(actionList: JsonNode) =
           for l in list:
             let src = l{"src"}
             let dest = l{"dest"}
+            let includes = l{"includes"}
+            let excludes = l{"excludes"}
             if not src.isNil and not dest.isNil:
-              let src = src.getStr().cleanDoubleColon()
-              let dest = dest.getStr().cleanDoubleColon()
+              let src = src.getStr().cleanDoubleColon
+              let dest = dest.getStr().cleanDoubleColon
               let next = l{"next"}
               let err = l{"err"}
               let desc = l{"desc"}
@@ -122,17 +169,29 @@ proc doActionList(actionList: JsonNode) =
               try:
                 case actionType
                 of "copyDir":
-                  echo &"copy dir {src} -> {dest}"
-                  src.copyDir(dest)
+                  if includes.isNil:
+                    echo &"copy {src} -> {dest}"
+                    src.copyDir(dest)
+                  else:
+                    src.moveDirContents(dest, includes, excludes, "copy")
                 of "copyFile":
-                  echo &"copy file {src} -> {dest}"
-                  src.copyFile(dest)
+                  if includes.isNil:
+                    echo &"copy {src} -> {dest}"
+                    src.copyFile(dest)
+                  else:
+                    src.moveDirContents(dest, includes, excludes, "copy", true)
                 of "moveFile":
-                  echo &"move file {src} -> {dest}"
-                  src.moveFile(dest)
+                  if includes.isNil:
+                    echo &"move {src} -> {dest}"
+                    src.moveFile(dest)
+                  else:
+                    src.moveDirContents(dest, includes, excludes, "move", true)
                 of "moveDir":
-                  echo &"move dir {src} -> {dest}"
-                  src.moveDir(dest)
+                  if includes.isNil:
+                    echo &"move {src} -> {dest}"
+                    src.moveDir(dest)
+                  else:
+                    src.moveDirContents(dest, includes, excludes, "move")
               except Exception as ex:
                 errMsg = ex.msg
 
@@ -228,6 +287,8 @@ proc doActionList(actionList: JsonNode) =
               let desc = l{"desc"}
               let next = l{"next"}
               let err = l{"err"}
+              let includes = l{"includes"}
+              let excludes = l{"excludes"}
               var errMsg = ""
 
               if not desc.isNil:
@@ -238,13 +299,19 @@ proc doActionList(actionList: JsonNode) =
                 try:
                   case actionType
                   of "removeFile":
-                    echo &"remove file -> {name}"
-                    name.removeFile()
+                    if includes.isNil:
+                      echo &"remove -> {name}"
+                      name.removeFile()
+                    else:
+                      name.removeDirContents(includes, excludes, true)
                   of "removeDir":
-                    echo &"remove dir -> {name}"
-                    name.removeDir()
+                    if includes.isNil:
+                      echo &"remove -> {name}"
+                      name.removeDir()
+                    else:
+                      name.removeDirContents(includes, excludes)
                   of "createDir":
-                    echo &"create dir -> {name}"
+                    echo &"create -> {name}"
                     name.createDir()
                 except Exception as ex:
                   errMsg = ex.msg
