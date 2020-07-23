@@ -38,32 +38,31 @@
       ]
     }
   ],
-  "build": {
-    "desc": "build the app.",
+  "debug": {
+    "desc": "debug the app.",
     "tasks": [
       {
         "action": "cmd",
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}::bin"
+          "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen --outdir:{out} {src}"
       }
     ]
   },
-  "build-run": {
-    "desc": "build the app, then run it.",
+  "debug-run": {
+    "desc": "debug the app, then run it.",
     "tasks": [
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "build {appName}",
+        "options": "debug {appName}",
         "next": [
           {
             "action": "cmd",
-            "exe": "nake",
-            "options": "run {appName}"
+            "exe": "{currentAppDir}::bin::debug::{appName}"
           }
         ]
       }
@@ -77,14 +76,14 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}::bin"
+          "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:release --outdir:{out} {src}"
       }
     ]
   },
   "release-run": {
-    "desc": "release the app.",
+    "desc": "release the app, then run it.",
     "tasks": [
       {
         "action": "cmd",
@@ -93,19 +92,60 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "nake",
-            "options": "run {appName}"
+            "exe": "{currentAppDir}::bin::release::{appName}"
           }
         ]
       }
     ]
   },
-  "run": {
-    "desc": "run the app.",
+  "clean-release-run": {
+    "desc": "clean release run the app.",
     "tasks": [
       {
-        "action": "cmd",
-        "exe": "{currentAppDir}::bin::{appName}"
+        "action": "removeDir",
+        "list": [
+          {
+            "name": "{currentAppDir}::bin::release",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "nake",
+                "options": "release-run {appName}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "clean-debug-run": {
+    "desc": "clean debug run the app.",
+    "tasks": [
+      {
+        "action": "removeDir",
+        "list": [
+          {
+            "name": "{currentAppDir}::bin::debug",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "nake",
+                "options": "debug-run {appName}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "clean-all": {
+    "desc": "clean bin dir.",
+    "tasks": [
+      {
+        "action": "removeDir",
+        "list": [
+          {"name": "{currentAppDir}::bin"}
+        ]
       }
     ]
   }

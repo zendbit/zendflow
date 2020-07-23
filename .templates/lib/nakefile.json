@@ -38,15 +38,15 @@
       ]
     }
   ],
-  "build": {
-    "desc": "build the app.",
+  "debug": {
+    "desc": "debug the app.",
     "tasks": [
       {
         "action": "cmd",
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}::lib"
+          "out": "{currentAppDir}::lib::debug"
         },
         "options": "c -d:nimDebugDlOpen --app:lib --outdir:{out} {src}"
       }
@@ -60,9 +60,60 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}::lib"
+          "out": "{currentAppDir}::lib::release"
         },
         "options": "c -d:release --app:lib --outdir:{out} {src}"
+      }
+    ]
+  },
+  "clean-debug": {
+    "desc": "clean debug the app",
+    "tasks": [
+      {
+        "action": "removeDir",
+        "list": [
+          {
+            "name": "{currentAppDir}::lib::debug",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "nake",
+                "options": "debug {appName}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "clean-release": {
+    "desc": "clean release the app",
+    "tasks": [
+      {
+        "action": "removeDir",
+        "list": [
+          {
+            "name": "{currentAppDir}::lib::release",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "nake",
+                "options": "release {appName}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "clean-all": {
+    "desc": "clean lib dir.",
+    "tasks": [
+      {
+        "action": "removeDir",
+        "list": [
+          {"name": "{currentAppDir}::lib"}
+        ]
       }
     ]
   }

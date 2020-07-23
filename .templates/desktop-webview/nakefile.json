@@ -86,17 +86,27 @@
           "new": "/private/js/compiled/app.js"
         }
       ]
+    },
+    {
+      "action": "replaceStr",
+      "file": "{srcDir}::run.nim",
+      "list": [
+        {
+          "old": "appName",
+          "new": "{appName}"
+        }
+      ]
     }
   ],
-  "build": {
-    "desc": "build the app.",
+  "debug": {
+    "desc": "debug the app.",
     "tasks": [
       {
         "action": "cmd",
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}::bin"
+          "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl --threads:on --outdir:{out} {src}",
         "next": [
@@ -112,7 +122,7 @@
               {
                 "action": "removeDir",
                 "list": [
-                  {"name": "{currentAppDir}::bin::www"}
+                  {"name": "{currentAppDir}::bin::debug::www"}
                 ]
               },
               {
@@ -120,7 +130,7 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::www",
-                    "dest": "{currentAppDir}::bin::www"
+                    "dest": "{currentAppDir}::bin::debug::www"
                   }
                 ]
               },
@@ -129,7 +139,7 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin::settings.json"
+                    "dest": "{currentAppDir}::bin::debug::settings.json"
                   }
                 ]
               }
@@ -139,18 +149,17 @@
       }
     ]
   },
-  "build-run": {
-    "desc": "build the app then run it.",
+  "debug-run": {
+    "desc": "debug the app then run it.",
     "tasks": [
         {
           "action": "cmd",
           "exe": "nake",
-          "options": "build {appName}",
+          "options": "debug {appName}",
           "next": [
             {
               "action": "cmd",
-              "exe": "nake",
-              "options": "run {appName}"
+              "exe": "{currentAppDir}::bin::debug::{appName}"
             }
           ]
         }
@@ -164,7 +173,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}::bin"
+          "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl --threads:on -d:release --outdir:{out} {src}",
         "next": [
@@ -180,7 +189,7 @@
               {
                 "action": "removeDir",
                 "list": [
-                  {"name": "{currentAppDir}::bin::www"}
+                  {"name": "{currentAppDir}::bin::release::www"}
                 ]
               },
               {
@@ -188,7 +197,7 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::www",
-                    "dest": "{currentAppDir}::bin::www"
+                    "dest": "{currentAppDir}::bin::release::www"
                   }
                 ]
               },
@@ -197,7 +206,7 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin::settings.json"
+                    "dest": "{currentAppDir}::bin::release::settings.json"
                   }
                 ]
               }
@@ -217,19 +226,60 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "nake",
-            "options": "run {appName}"
+            "exe": "{currentAppDir}::bin::release::{appName}"
           }
         ]
       }
     ]
   },
-  "run": {
-    "desc": "run the app.",
+  "clean-release-run": {
+    "desc": "clean release then run the app.",
     "tasks": [
       {
-        "action": "cmd",
-        "exe": "{currentAppDir}::bin::{appName}"
+        "action": "removeDir",
+        "list":[
+          {
+            "name": "{currentAppDir}::bin::release",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "nake",
+                "options": "release-run {appName}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "clean-debug-run": {
+    "desc": "clean debug then run the app.",
+    "tasks": [
+      {
+        "action": "removeDir",
+        "list":[
+          {
+            "name": "{currentAppDir}::bin::debug",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "nake",
+                "options": "debug-run {appName}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "clean-all": {
+    "desc": "clean bin dir.",
+    "tasks": [
+      {
+        "action": "removeDir",
+        "list": [
+          {"name": "{currentAppDir}::bin"}
+        ]
       }
     ]
   }
