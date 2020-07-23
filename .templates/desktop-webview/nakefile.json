@@ -182,7 +182,7 @@
             "exe" : "nim",
             "props": {
               "src": "{currentAppDir}::src::spa::app.nim",
-              "out": "{currentAppDir}::www::private::js:compiled"
+              "out": "{currentAppDir}::www::private::js::compiled"
             },
             "options": "js --outdir:{out} {src}",
             "next": [
