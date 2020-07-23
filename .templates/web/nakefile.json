@@ -5,6 +5,7 @@
     "appDesc": "create web app with zfcore."
   },
   "nimble": [
+    "install zip",
     "develop https://github.com/zendbit/nim.uri3",
     "develop https://github.com/zendbit/nim.zfblast",
     "develop https://github.com/zendbit/nim.zfcore",
