@@ -200,6 +200,8 @@ proc doActionList(actionList: JsonNode) =
                 err.doActionList
               elif not next.isNil and next.kind == JsonNodeKind.JArray:
                 next.doActionList
+              else:
+                QuitFailure.quit
 
       of "cmd":
         let desc = action{"desc"}
@@ -242,6 +244,8 @@ proc doActionList(actionList: JsonNode) =
         else:
           if not err.isNil and err.kind == JsonNodeKind.JArray:
             err.doActionList
+          else:
+            errCode.quit
 
       of "replaceStr":
         let desc = action{"desc"}
@@ -277,6 +281,8 @@ proc doActionList(actionList: JsonNode) =
             echo ex.msg
             if not err.isNil and err.kind == JsonNodeKind.JArray:
               err.doActionList
+            else:
+              QuitFailure.quit
 
       of "removeFile", "removeDir", "createDir":
         let list = action{"list"}
@@ -321,6 +327,8 @@ proc doActionList(actionList: JsonNode) =
                 err.doActionList
               elif not next.isNil and next.kind == JsonNodeKind.JArray:
                 next.doActionList
+              else:
+                QuitFailure.quit
 
       else:
         echo "{actionType} action not implemented."

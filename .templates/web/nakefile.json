@@ -90,8 +90,53 @@
       ]
     }
   ],
-  "debug": {
-    "desc": "debug the app.",
+  "compile-spa": {
+    "desc": "compile debug spa app only.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe" : "nim",
+        "props": {
+          "src": "{currentAppDir}::src::spa::{appName}.nim",
+          "out": "{currentAppDir}::www::private::js::compiled"
+        },
+        "options": "js --outdir:{out} {src}",
+        "next": [
+          {
+            "action": "copyDir",
+            "list": [
+              {
+                "src": "{currentAppDir}::www::private::js::compiled",
+                "dest": "{currentAppDir}::bin::debug::www::private::js::compiled",
+                "err": []
+              },
+              {
+                "src": "{currentAppDir}::www::private::js::compiled",
+                "dest": "{currentAppDir}::bin::release::www::private::js::compiled",
+                "err": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "compile-release-server": {
+    "desc": "compile release server app only",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nim",
+        "props": {
+          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "out": "{currentAppDir}::bin::release"
+        },
+        "options": "c -d:nimDebugDlOpen -d:ssl --d:release --threads:on --outdir:{out} {src}"
+      }
+    ]
+  },
+  "compile-debug-server": {
+    "desc": "compile debug server app only",
     "tasks": [
       {
         "action": "cmd",
@@ -100,23 +145,23 @@
           "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::debug"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl --threads:on --outdir:{out} {src}",
+        "options": "c -d:nimDebugDlOpen -d:ssl --threads:on --outdir:{out} {src}"
+      }
+    ]
+  },
+  "debug": {
+    "desc": "debug the app.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "compile-debug-server",
         "next": [
           {
             "action": "cmd",
-            "exe" : "nim",
-            "props": {
-              "src": "{currentAppDir}::src::spa::{appName}.nim",
-              "out": "{currentAppDir}::www::private::js::compiled"
-            },
-            "options": "js --outdir:{out} {src}",
+            "exe" : "nake",
+            "options": "compile-spa",
             "next": [
-              {
-                "action": "removeDir",
-                "list": [
-                  {"name": "{currentAppDir}::bin::debug::www"}
-                ]
-              },
               {
                 "action": "copyDir",
                 "list": [
@@ -162,28 +207,14 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "nim",
-        "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
-          "out": "{currentAppDir}::bin::release"
-        },
-        "options": "c -d:nimDebugDlOpen -d:ssl --threads:on -d:release --outdir:{out} {src}",
+        "exe": "nake",
+        "options": "compile-release-server",
         "next": [
           {
             "action": "cmd",
-            "exe" : "nim",
-            "props": {
-              "src": "{currentAppDir}::src::spa::{appName}.nim",
-              "out": "{currentAppDir}::www::private::js::compiled"
-            },
-            "options": "js --outdir:{out} {src}",
+            "exe" : "nake",
+            "options": "compile-spa",
             "next": [
-              {
-                "action": "removeDir",
-                "list": [
-                  {"name": "{currentAppDir}::bin::release::www"}
-                ]
-              },
               {
                 "action": "copyDir",
                 "list": [
