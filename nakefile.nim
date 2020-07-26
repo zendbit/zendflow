@@ -199,9 +199,10 @@ proc doActionList(actionList: JsonNode) =
                 echo errMsg
                 err.doActionList
               elif not next.isNil and next.kind == JsonNodeKind.JArray:
-                next.doActionList
-              else:
-                QuitFailure.quit
+                if errMsg != "":
+                  QuitFailure.quit
+                else:
+                  next.doActionList
 
       of "cmd":
         let desc = action{"desc"}
@@ -326,13 +327,12 @@ proc doActionList(actionList: JsonNode) =
                 echo errMsg
                 err.doActionList
               elif not next.isNil and next.kind == JsonNodeKind.JArray:
-                next.doActionList
-              else:
-                QuitFailure.quit
-
+                if errMsg != "":
+                  QuitFailure.quit
+                else:
+                  next.doActionList
       else:
         echo "{actionType} action not implemented."
-
   else:
     echo "not valid action list, action list should be in json array."
 

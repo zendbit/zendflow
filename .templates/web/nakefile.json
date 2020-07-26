@@ -131,7 +131,7 @@
           "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::release"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl --d:release --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
       }
     ]
   },
@@ -145,7 +145,7 @@
           "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::debug"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
       }
     ]
   },
@@ -155,12 +155,12 @@
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "compile-debug-server",
+        "options": "compile-debug-server {appName}",
         "next": [
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-spa",
+            "options": "compile-spa {appName}",
             "next": [
               {
                 "action": "copyDir",
@@ -208,12 +208,12 @@
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "compile-release-server",
+        "options": "compile-release-server {appName}",
         "next": [
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-spa",
+            "options": "compile-spa {appName}",
             "next": [
               {
                 "action": "copyDir",
