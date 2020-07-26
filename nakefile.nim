@@ -1,5 +1,5 @@
 import nake, nakelib, os, strutils, strformat,
-  json, osproc, re
+  json, osproc, re, distros
 
 let cmdLineParams = commandLineParams()
 var cmdParams: seq[string]
@@ -15,7 +15,6 @@ var templatesDir = ""
 
 const
   jsonNakefile = "nakefile.json"
-  nakefile = "nakefile.nim"
   nimdepsDir = ".nimdeps"
 
 # init appsDir and templatesDir
@@ -24,6 +23,23 @@ if jsonNakefile.existsFile:
   let jnode = jsonNakefile.parseFile()
   appsDir = jnode{"appsDir"}.getStr().replace("::", $DirSep)
   templatesDir = jnode{"templatesDir"}.getStr().replace("::", $DirSep)
+
+proc isInPlatform(platform: string): bool =
+  #
+  # define on platform specific
+  # currently will check
+  # onPlatform : {
+  #   "windows": {},
+  #   "macosx": {},
+  #   "posix": {},
+  #   "bsd": {}
+  # }
+  #
+  result = platform.toLower in [
+    ($Windows).toLower,
+    ($Posix).toLower,
+    ($MacOSX).toLower,
+    ($BSD).toLower]
 
 proc loadJsonNakefile(appName: string = ""): JsonNode =
   #
@@ -147,6 +163,19 @@ proc doActionList(actionList: JsonNode) =
   #
   if not actionList.isNil and actionList.kind == JsonNodeKind.JArray:
     for action in actionList:
+      # check on platform action
+      # then override the action command
+      let onPlatform = action{"onPlatform"}
+      var onPlatformAction: JsonNode
+      if not onPlatform.isNil:
+        for k, v in onPlatform:
+          if k.isInPlatform:
+            # override depend on the onplatform specific
+            if not onPlatformAction.isNil:
+              for k, v in onPlatformAction:
+                action[k] = v
+            break
+
       let actionType = action{"action"}.getStr()
       case actionType
       of "copyDir", "copyFile", "moveFile", "moveDir":
