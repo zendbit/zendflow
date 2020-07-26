@@ -100,7 +100,7 @@
     }
   ],
   "compile-spa": {
-    "desc": "compile debug spa app only.",
+    "desc": "compile spa app only.",
     "tasks": [
       {
         "action": "cmd",
@@ -109,20 +109,45 @@
           "src": "{currentAppDir}::src::spa::app.nim",
           "out": "{currentAppDir}::www::private::js::compiled"
         },
-        "options": "js --outdir:{out} {src}",
+        "options": "js --outdir:{out} {src}"
+      }
+    ]
+  },
+  "compile-debug-spa": {
+    "desc": "compile debug spa app only.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe" : "nake",
+        "options": "compile-spa {appName}",
         "next": [
           {
             "action": "copyDir",
             "list": [
               {
                 "src": "{currentAppDir}::www::private::js::compiled",
-                "dest": "{currentAppDir}::bin::debug::www::private::js::compiled",
-                "err": []
-              },
+                "dest": "{currentAppDir}::bin::debug::www::private::js::compiled"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "compile-release-spa": {
+    "desc": "compile release spa app only.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe" : "nake",
+        "options": "compile-spa {appName}",
+        "next": [
+          {
+            "action": "copyDir",
+            "list": [
               {
                 "src": "{currentAppDir}::www::private::js::compiled",
-                "dest": "{currentAppDir}::bin::release::www::private::js::compiled",
-                "err": []
+                "dest": "{currentAppDir}::bin::release::www::private::js::compiled"
               }
             ]
           }
@@ -169,7 +194,7 @@
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-spa {appName}",
+            "options": "compile-debug-spa {appName}",
             "next": [
               {
                 "action": "copyDir",
@@ -198,17 +223,17 @@
   "debug-run": {
     "desc": "debug the app then run it.",
     "tasks": [
-        {
-          "action": "cmd",
-          "exe": "nake",
-          "options": "debug {appName}",
-          "next": [
-            {
-              "action": "cmd",
-              "exe": "{currentAppDir}::bin::debug::{appName}"
-            }
-          ]
-        }
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "{currentAppDir}::bin::debug::{appName}"
+          }
+        ]
+      }
     ]
   },
   "release": {
@@ -222,7 +247,7 @@
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-spa {appName}",
+            "options": "compile-release-spa {appName}",
             "next": [
               {
                 "action": "copyDir",
