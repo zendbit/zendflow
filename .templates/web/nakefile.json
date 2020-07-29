@@ -26,66 +26,76 @@
       "list": [
         {
           "src": "{templatesDir}::{appType}",
-          "dest": "{appDir}"
-        }
-      ]
-    },
-    {
-      "action": "copyFile",
-      "list": [
-        {
-          "src": "nakefile.nim",
-          "dest": "{appDir}::nakefile.nim"
-        }
-      ]
-    },
-    {
-      "action": "moveFile",
-      "list": [
-        {
-          "src": "{srcServerDir}::app.nim",
-          "dest": "{srcServerDir}::{appName}.nim"
-        },
-        {
-          "src": "{srcSpaDir}::app.nim",
-          "dest": "{srcSpaDir}::{appName}.nim"
-        }
-      ]
-    },
-    {
-      "action": "createDir",
-      "list": [
-        {"name": "{compiledJsDir}"}
-      ]
-    },
-    {
-      "action": "cmd",
-      "exe": "karun",
-      "props": {
-        "src": "{srcSpaDir}::{appName}.nim"
-      },
-      "options": "{src}"
-    },
-    {
-      "action": "moveFile",
-      "list": [
-        {
-          "src": "{appName}.html",
-          "dest": "{wwwDir}::index.html"
-        },
-        {
-          "src": "{appName}.js",
-          "dest": "{compiledJsDir}::{appName}.js"
-        }
-      ]
-    },
-    {
-      "action": "replaceStr",
-      "file": "{wwwDir}::index.html",
-      "list": [
-        {
-          "old": "{appName}.js",
-          "new": "/private/js/compiled/{appName}.js"
+          "dest": "{appDir}",
+          "next":[
+            {
+              "action": "copyFile",
+              "list": [
+                {
+                  "src": "nakefile.nim",
+                  "dest": "{appDir}::nakefile.nim",
+                  "next":[
+                    {
+                      "action": "moveFile",
+                      "list": [
+                        {
+                          "src": "{srcServerDir}::app.nim",
+                          "dest": "{srcServerDir}::{appName}_srv.nim"
+                        },
+                        {
+                          "src": "{srcSpaDir}::app.nim",
+                          "dest": "{srcSpaDir}::{appName}_spa.nim",
+                          "next": [
+                            {
+                              "action": "createDir",
+                              "list": [
+                                {"name": "{compiledJsDir}"}
+                              ]
+                            },
+                            {
+                              "action": "cmd",
+                              "exe": "karun",
+                              "props": {
+                                "src": "{srcSpaDir}::{appName}_spa.nim"
+                              },
+                              "options": "{src}",
+                              "next": [
+                                {
+                                  "action": "moveFile",
+                                  "list": [
+                                    {
+                                      "src": "{appName}_spa.html",
+                                      "dest": "{wwwDir}::index.html",
+                                      "next": [
+                                        {
+                                          "action": "replaceStr",
+                                          "file": "{wwwDir}::index.html",
+                                          "list": [
+                                            {
+                                              "old": "{appName}_spa.js",
+                                              "new": "/private/js/compiled/{appName}_spa.js"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "src": "{appName}.js",
+                                      "dest": "{compiledJsDir}::{appName}_spa.js"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }
@@ -97,7 +107,7 @@
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::spa::{appName}.nim",
+          "src": "{currentAppDir}::src::spa::{appName}_spa.nim",
           "out": "{currentAppDir}::www::private::js::compiled"
         },
         "options": "js --outdir:{out} {src}"
@@ -153,7 +163,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "src": "{currentAppDir}::src::server::{appName}_srv.nim",
           "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
@@ -167,7 +177,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "src": "{currentAppDir}::src::server::{appName}_srv.nim",
           "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
@@ -221,7 +231,12 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::debug::{appName}"
+            "exe": "{currentAppDir}::bin::debug::{appName}_srv",
+            "onPlatform": {
+              "windows": {
+                "exe": "{currentAppDir}::bin::debug::{appName}_srv.exe"
+              }
+            }
           }
         ]
       }
@@ -274,7 +289,12 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::release::{appName}"
+            "exe": "{currentAppDir}::bin::release::{appName}_srv",
+            "onPlatform": {
+              "windows": {
+                "exe": "{currentAppDir}::bin::debug::{appName}_srv.exe"
+              }
+            }
           }
         ]
       }

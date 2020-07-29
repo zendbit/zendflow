@@ -29,72 +29,109 @@
       "list": [
         {
           "src": "{templatesDir}::{appType}",
-          "dest": "{appDir}"
-        }
-      ]
-    },
-    {
-      "action": "copyFile",
-      "list": [
-        {
-          "src": "nakefile.nim",
-          "dest": "{appDir}::nakefile.nim"
-        }
-      ]
-    },
-    {
-      "action": "moveFile",
-      "list": [
-        {
-          "src": "{srcDir}::app.nim",
-          "dest": "{srcDir}::{appName}.nim"
-        }
-      ]
-    },
-    {
-      "action": "createDir",
-      "list": [
-        {"name": "{compiledJsDir}"}
-      ]
-    },
-    {
-      "action": "cmd",
-      "exe": "karun",
-      "props": {
-        "src": "{srcSpaDir}::app.nim"
-      },
-      "options": "{src}"
-    },
-    {
-      "action": "moveFile",
-      "list": [
-        {
-          "src": "app.html",
-          "dest": "{wwwDir}::index.html"
-        },
-        {
-          "src": "app.js",
-          "dest": "{compiledJsDir}::app.js"
-        }
-      ]
-    },
-    {
-      "action": "replaceStr",
-      "file": "{wwwDir}::index.html",
-      "list": [
-        {
-          "old": "app.js",
-          "new": "/private/js/compiled/app.js"
-        }
-      ]
-    },
-    {
-      "action": "replaceStr",
-      "file": "{srcDir}::run.nim",
-      "list": [
-        {
-          "old": "appName",
-          "new": "{appName}"
+          "dest": "{appDir}",
+          "next": [
+            {
+              "action": "copyFile",
+              "list": [
+                {
+                  "src": "nakefile.nim",
+                  "dest": "{appDir}::nakefile.nim",
+                  "next": [
+                    {
+                      "action": "moveFile",
+                      "list": [
+                        {
+                          "src": "{srcDir}::app.nim",
+                          "dest": "{srcDir}::{appName}.nim",
+                          "next": [
+                            {
+                              "action": "replaceStr",
+                              "file": "{srcDir}::{appName}.nim",
+                              "list": [
+                                {
+                                  "old": "appName",
+                                  "new": "{appName}"
+                                }
+                              ]
+                            },
+                            {
+                              "action": "moveDir",
+                              "list": [
+                                {
+                                  "src": "{srcServerDir}::app.nim",
+                                  "dest": "{srcServerDir}::{appName}_srv.nim"
+                                },
+                                {
+                                  "src": "{srcSpaDir}::app.nim",
+                                  "dest": "{srcSpaDir}::{appName}_spa.nim",
+                                  "next": [
+                                    {
+                                      "action": "createDir",
+                                      "list": [
+                                        {"name": "{compiledJsDir}"}
+                                      ]
+                                    },
+                                    {
+                                      "action": "cmd",
+                                      "exe": "karun",
+                                      "props": {
+                                        "src": "{srcSpaDir}::{appName}_spa.nim"
+                                      },
+                                      "options": "{src}"
+                                    },
+                                    {
+                                      "action": "moveFile",
+                                      "list": [
+                                        {
+                                          "src": "{appName}_spa.html",
+                                          "dest": "{wwwDir}::index.html"
+                                        },
+                                        {
+                                          "src": "app.js",
+                                          "dest": "{compiledJsDir}::{appName}_spa.js"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "action": "replaceStr",
+                                      "file": "{wwwDir}::index.html",
+                                      "list": [
+                                        {
+                                          "old": "{appName}_spa.js",
+                                          "new": "/private/js/compiled/{appName}_spa.js"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "src": "{srcWebviewDir}::app.nim",
+                                  "dest": "{srcWebviewDir}::{appName}_wv.nim",
+                                  "next": [
+                                    {
+                                      "action": "replaceStr",
+                                      "file": "{srcWebviewDir}::{appName}_wv.nim",
+                                      "list": [
+                                        {
+                                          "old": "appName",
+                                          "new": "{appName}"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }
@@ -106,7 +143,7 @@
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::spa::app.nim",
+          "src": "{currentAppDir}::src::spa::{appName}_spa.nim",
           "out": "{currentAppDir}::www::private::js::compiled"
         },
         "options": "js --outdir:{out} {src}"
@@ -162,10 +199,21 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
+          "src": "{currentAppDir}::src::server::{appName}_srv.nim",
           "out": "{currentAppDir}::bin::release"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "nim",
+            "props": {
+              "src": "{currentAppDir}::src::webview::{appName}_wv.nim",
+              "out": "{currentAppDir}::bin::release"
+            },
+            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
+          }
+        ]
       }
     ]
   },
@@ -176,10 +224,21 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
+          "src": "{currentAppDir}::src::server::{appName}_srv.nim",
           "out": "{currentAppDir}::bin::debug"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "nim",
+            "props": {
+              "src": "{currentAppDir}::src::webview::{appName}_wv.nim",
+              "out": "{currentAppDir}::bin::debug"
+            },
+            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
+          }
+        ]
       }
     ]
   },
@@ -225,12 +284,28 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "nake",
-        "options": "debug {appName}",
+        "exe": "nim",
+        "props": {
+          "src": "{currentAppDir}::src::{appName}.nim",
+          "out": "{currentAppDir}::bin::debug"
+        },
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}",
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::debug::{appName}"
+            "exe": "nake",
+            "options": "debug {appName}",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "{currentAppDir}::bin::debug::{appName}",
+                "onPlatform": {
+                  "windows": {
+                    "exe": "{currentAppDir}::bin::debug::{appName}.exe"
+                  }
+                }
+              }
+            ]
           }
         ]
       }
@@ -278,12 +353,28 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "nake",
-        "options": "release {appName}",
+        "exe": "nim",
+        "props": {
+          "src": "{currentAppDir}::src::{appName}.nim",
+          "out": "{currentAppDir}::bin::debug"
+        },
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:release -d:zlib --threads:on --outdir:{out} {src}",
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::release::{appName}"
+            "exe": "nake",
+            "options": "release {appName}",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "{currentAppDir}::bin::release::{appName}",
+                "onPlatform": {
+                  "windows": {
+                    "exe": "{currentAppDir}::bin::release::{appName}.exe"
+                  }
+                }
+              }
+            ]
           }
         ]
       }

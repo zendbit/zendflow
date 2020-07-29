@@ -1,6 +1,5 @@
 {
-  "keepAliveMax": 100,
-  "keepAliveTimeout": 15,
+  "keepAlive": false,
   "maxBodyLength": 268435456,
   "readBodyBuffer": 51200,
   "responseRangeBuffer": 51200,

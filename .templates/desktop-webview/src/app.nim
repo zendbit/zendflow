@@ -1,12 +1,8 @@
-import threadpool
-import webview/app as wv
-import server/app as sv
+import distros, os
 
-# start server in separate thread
-# only run with webview if in release build
-# if not just run server as ordinary web apps for easy debugging with browser
-if defined(release):
-  spawn sv.runServer(zfcoreInstance)
-  wv.runWebview()
+if detectOs(Windows):
+  discard execShellCmd("start" & getAppDir().joinPath("appName_srv.exe"))
+  discard execShellCmd("start " & getAppDir().joinPath("appName_wv.exe"))
 else:
-  sv.runServer(zfcoreInstance)
+  discard execShellCmd(getAppDir().joinPath("appName_srv &"))
+  discard execShellCmd(getAppDir().joinPath("appName_wv &"))

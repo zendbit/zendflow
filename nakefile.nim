@@ -35,11 +35,16 @@ proc isInPlatform(platform: string): bool =
   #   "bsd": {}
   # }
   #
-  result = platform.toLower in [
-    ($Windows).toLower,
-    ($Posix).toLower,
-    ($MacOSX).toLower,
-    ($BSD).toLower]
+
+  case platform.toLower
+  of ($Windows).toLower:
+    result = detectOs(Windows)
+  of ($Posix).toLower:
+    result = detectOs(Posix)
+  of ($MacOSX).toLower:
+    result = detectOs(MacOSX)
+  of ($BSD).toLower:
+    result = detectOs(BSD)
 
 proc loadJsonNakefile(appName: string = ""): JsonNode =
   #
@@ -404,6 +409,7 @@ proc currentAppDir(appName: string): string =
   # get current app dir with given appname
   #
   result = "."
+  if isInPlatform($Windows): result = ""
   if appsDir != "":
     result = appsDir.joinPath(appName)
 
@@ -552,11 +558,18 @@ task "new", "create new app. Ex: nake new console.":
     let appName = cmdParams[2]
     let appType = cmdParams[1]
     var appNameMatch: array[1, string]
-    if appName.match(re"([a-zA-Z\d_]+)*$", appNameMatch):
+    if appName.match(re"([a-z\d_]+)*$", appNameMatch):
       appName.newApp(appType)
     else:
       echo ""
-      echo "application name is not valid, only a-zA-Z0-9_"
+      echo "application name is not valid, only a-z0-9_"
+      echo "example valid name:"
+      echo "-> my_blog"
+      echo "-> my_blog32"
+      echo "-> my32"
+      echo "-> my_blog_32"
+      echo "-> 12345"
+      echo "-> myblog"
       echo ""
 
   else:
@@ -667,6 +680,3 @@ if appName.isAppExists():
     if desc == "": desc = k
     let actionList = v{"tasks"}
     k.addNakeTask(desc, actionList)
-
-else:
-  "nake".shell()
