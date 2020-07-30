@@ -80,7 +80,7 @@
                                       ]
                                     },
                                     {
-                                      "src": "{appName}.js",
+                                      "src": "{appName}_spa.js",
                                       "dest": "{compiledJsDir}::{appName}_spa.js"
                                     }
                                   ]
@@ -195,7 +195,7 @@
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-debug-spa {appName}",
+            "options": "compile-spa {appName}",
             "next": [
               {
                 "action": "copyDir",

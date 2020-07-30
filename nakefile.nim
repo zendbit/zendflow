@@ -183,7 +183,8 @@ proc doActionList(actionList: JsonNode) =
 
       let actionType = action{"action"}.getStr()
       case actionType
-      of "copyDir", "copyFile", "moveFile", "moveDir":
+      of "copyDir", "copyFile", "moveFile",
+        "moveDir", "createHardlink", "createSymlink":
         let list = action{"list"}
         if not list.isNil:
           for l in list:
@@ -226,16 +227,23 @@ proc doActionList(actionList: JsonNode) =
                     src.moveDir(dest)
                   else:
                     src.moveDirContents(dest, includes, excludes, "move")
+                of "createSymlink":
+                  echo &"symlink {src} -> {dest}"
+                  src.createSymlink(dest)
+                of "createHardlink":
+                  echo &"hardlink {src} -> {dest}"
+                  src.createHardlink(dest)
               except Exception as ex:
                 errMsg = ex.msg
 
-              if errMsg != "" and not err.isNil and err.kind == JsonNodeKind.JArray:
+              if errMsg != "":
                 echo errMsg
-                err.doActionList
-              elif not next.isNil and next.kind == JsonNodeKind.JArray:
-                if errMsg != "":
-                  QuitFailure.quit
+                if not err.isNil and err.kind == JsonNodeKind.JArray:
+                  err.doActionList
                 else:
+                  QuitFailure.quit
+
+              if not next.isNil and next.kind == JsonNodeKind.JArray:
                   next.doActionList
 
       of "cmd":
@@ -273,14 +281,14 @@ proc doActionList(actionList: JsonNode) =
         let err = action{"err"}
         echo &"""exec cmd -> {cmd.join(" ")}"""
         let errCode = cmd.join(" ").execCmd()
-        if errCode == 0:
-          if not next.isNil and next.kind == JsonNodeKind.JArray:
-            next.doActionList
-        else:
+        if errCode != 0:
           if not err.isNil and err.kind == JsonNodeKind.JArray:
             err.doActionList
           else:
             errCode.quit
+
+        if not next.isNil and next.kind == JsonNodeKind.JArray:
+          next.doActionList
 
       of "replaceStr":
         let desc = action{"desc"}
@@ -357,16 +365,17 @@ proc doActionList(actionList: JsonNode) =
                 except Exception as ex:
                   errMsg = ex.msg
 
-              if errMsg != "" and not err.isNil and err.kind == JsonNodeKind.JArray:
+              if errMsg != "":
                 echo errMsg
-                err.doActionList
-              elif not next.isNil and next.kind == JsonNodeKind.JArray:
-                if errMsg != "":
-                  QuitFailure.quit
+                if not err.isNil and err.kind == JsonNodeKind.JArray:
+                  err.doActionList
                 else:
-                  next.doActionList
+                  QuitFailure.quit
+              
+              if not next.isNil and next.kind == JsonNodeKind.JArray:
+                next.doActionList
       else:
-        echo "{actionType} action not implemented."
+        echo &"{actionType} action not implemented."
   else:
     echo "not valid action list, action list should be in json array."
 
@@ -526,7 +535,6 @@ proc newApp(appName: string, appType: string) =
         let initnode = jnode{"init"}
         if not initnode.isNil and initnode.kind == JsonNodeKind.JArray:
           ($initNode).replace("::", $DirSep).parseJson().doActionList
-          
           if appDir.existsDir:
             # remove from node then save nakefile.json to the appdir
             # remove:
@@ -537,7 +545,7 @@ proc newApp(appName: string, appType: string) =
             let f = appDir.joinPath(jsonNakefile).open(FileMode.fmWrite)
             f.write(jnode.pretty(2))
             f.close()
-            echo &"app {appName} created."
+            echo &"app {appDir} created."
         else:
           echo &"no init section template {jsonNakefile}."
     else:
@@ -669,14 +677,15 @@ proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
         .replace("{currentAppDir}", appName.currentAppDir).parseJson
       actionToDo.doActionList
   else:
-    echo "invalid task list {name} , should be in JArray."
+    echo &"invalid task list {name} , should be in JArray."
 
 if appName.isAppExists():
   var jnode = appName.loadJsonNakefile()
-  for k, v in jnode:
-    if k in ["appInfo", "nimble"]:
-      continue
-    var desc = v{"desc"}.getStr
-    if desc == "": desc = k
-    let actionList = v{"tasks"}
-    k.addNakeTask(desc, actionList)
+  if not jnode.hasKey("init") and not jnode.hasKey("initVar"):
+    for k, v in jnode:
+      if k in ["appInfo", "nimble"]:
+        continue
+      var desc = v{"desc"}.getStr
+      if desc == "": desc = k
+      let actionList = v{"tasks"}
+      k.addNakeTask(desc, actionList)

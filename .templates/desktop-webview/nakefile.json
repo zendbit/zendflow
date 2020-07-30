@@ -88,7 +88,7 @@
                                           "dest": "{wwwDir}::index.html"
                                         },
                                         {
-                                          "src": "app.js",
+                                          "src": "{appName}_spa.js",
                                           "dest": "{compiledJsDir}::{appName}_spa.js"
                                         }
                                       ]
@@ -253,10 +253,10 @@
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-debug-spa {appName}",
+            "options": "compile-spa {appName}",
             "next": [
               {
-                "action": "copyDir",
+                "action": "createHardlink",
                 "list": [
                   {
                     "src": "{currentAppDir}::www",
@@ -322,10 +322,10 @@
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-release-spa {appName}",
+            "options": "compile-spa {appName}",
             "next": [
               {
-                "action": "copyDir",
+                "action": "createHardlink",
                 "list": [
                   {
                     "src": "{currentAppDir}::www",
