@@ -1,5 +1,5 @@
 #[
-  ZendFlow web framework for nim language
+  zfcore web framework for nim language
   This framework if free to use and to modify
   License: BSD
   Author: Amru Rosyada
@@ -34,65 +34,64 @@
 ]#
 
 import zfcore, example
-export zfcore
 
-#
-# configuration:
-# copy settings.json.example as settings.json
-#
-# this is the new fashion of the zendflow framework syntax, make it easy
-# and reduce defining multiple time of callback procedures
-# this new syntax not break the old fashion, we only add macros and modify the syntax
-# on compile time
-#
-#
-# Some Important note
-# inside routes
-# routes:
-#   get "/hello":
-#     # in here we can call HttpContext
-#     # HttpContext is unique object that heandle client request and response
-#     # HttpContext containts:
-#     # ws (WebSocket):
-#     #   ws is ctx.webSocket shorthand
-#     # req (Request):
-#     #   req is ctx.request shorthand
-#     # res (Response):
-#     #   res is ctx.response shorthand
-#     # params (table[string, string]):
-#     #   params is ctx.params shorthand
-#     #   this will contains data request parameter from client
-#     #   - key value of query string
-#     #   - key value of form url encoded
-#     # reParams (table[string, @[string]]):
-#     #   reParams is ctx.reParams shorthand
-#     #   this will contains pattern matching on the url segments
-#     # formData (FormData):
-#     #   formData is ctx.formData shorthand
-#     #   this will handle form data multipart including uploaded data
-#     # json (JsonNode):
-#     #   json is ctx.json shorthand
-#     #   this will handle application/json request from client
-#     
-#
-#     # you can response to client with following type response:
-#     # HttpCode.resp("body response", httpheaders)
-#     # HttpCode is HttpCode value from the nim httpcore standard library
-#     # for example we want to reponse with Http200
-#     # Http200.resp("Hello World")
-#     # 
-#     # the default response type is text/plain
-#     # for html response use
-#     # Http200.respHtml("This is html content")
-#     #
-#     # for json response you only need to pas JsonNode object to the resp
-#     # Http200.resp(%*{"Hello": "World"})
-#     #
-#     # for send redirection web can use respRedirect
-#     # Http200.respRedirect("https://google.com")
-#     #
-#
-#
+#[
+ configuration:
+ copy settings.json.example as settings.json
+
+ this is the new fashion of the zendflow framework syntax, make it easy
+ and reduce defining multiple time of callback procedures
+ this new syntax not break the old fashion, we only add macros and modify the syntax
+ on compile time
+
+
+ Some Important note
+ inside routes
+ routes:
+   get "/hello":
+     # in here we can call HttpContext
+     # HttpContext is unique object that heandle client request and response
+     # HttpContext containts:
+     # ws (WebSocket):
+     #   ws is ctx.webSocket shorthand
+     # req (Request):
+     #   req is ctx.request shorthand
+     # res (Response):
+     #   res is ctx.response shorthand
+     # params (table[string, string]):
+     #   params is ctx.params shorthand
+     #   this will contains data request parameter from client
+     #   - key value of query string
+     #   - key value of form url encoded
+     # reParams (table[string, @[string]]):
+     #   reParams is ctx.reParams shorthand
+     #   this will contains pattern matching on the url segments
+     # formData (FormData):
+     #   formData is ctx.formData shorthand
+     #   this will handle form data multipart including uploaded data
+     # json (JsonNode):
+     #   json is ctx.json shorthand
+     #   this will handle application/json request from client
+     
+
+     # you can response to client with following type response:
+     # HttpCode.resp("body response", httpheaders)
+     # HttpCode is HttpCode value from the nim httpcore standard library
+     # for example we want to reponse with Http200
+     # Http200.resp("Hello World")
+     # 
+     # the default response type is text/plain
+     # for html response use
+     # Http200.respHtml("This is html content")
+     #
+     # for json response you only need to pas JsonNode object to the resp
+     # Http200.resp(%*{"Hello": "World"})
+     #
+     # for send redirection web can use respRedirect
+     # Http200.respRedirect("https://google.com")
+     #
+]#
+
 routes:
   # websocket example :-)
   get "/ws":
@@ -173,6 +172,8 @@ routes:
       of WSState.Close:
         echo "Close state"
         # this state will execute if the connection close
+
+
   # this static route wil serve under
   # all static resource will serve under / uri path
   # address:port/
@@ -181,9 +182,10 @@ routes:
   # it will serve with address:port/public/
   # we can retrieve using address:port/public/style/*.css
   staticDir "/"
+
   # using regex for matching the request
   # the regex is regex match like in pcre standard like regex on python, perl etc
-  # <ids:re[([0-9]+)_([0-9]+)]:len[2]>
+  # <ids:re[([0-9]+)_([0-9]+)]>
   # - the ids wil capture as parameter name
   # - the len[2] is for len for capturing in this case in the () bracket,
   #   will capture ([0-9]+) twice
@@ -194,7 +196,7 @@ routes:
   #   in this case we use <name>
   # - <name> will capture segment value in there as name,
   #   we can access param value and query string in HttpCtx.params["name"] or other param name
-  get "/home/<ids:re[([0-9]+)_([0-9]+)]:len[2]>/<name>":
+  get "/home/<ids:re[([0-9]+)_([0-9]+)]>/<name>":
     echo "Welcome home"
     # capture regex result from the url
     echo reParams["ids"]
@@ -204,10 +206,12 @@ routes:
     # using ctx.responseHeaders.add("header kye", "header value")
     res.headers.add("Content-Type", "text/plain")
     Http200.respHtml("Hello World get request")
+
   #get "/home/<id>/<name>":
   #  echo ctx.params["name"]
   #  echo ctx.params["id"]
   #  resp(Http200, "Ok")
+
   # accept request with /home/123456
   # id will capture the value 12345
   post "/home/<id>":
@@ -245,22 +249,32 @@ routes:
     # capture the <id> from the path
     echo params["id"]
     Http200.respHtml(HelloWorld().printHelloWorld)
+
+  get "/home/<id>":
+    # capture the <id> from the path
+    echo params["id"]
+    Http200.resp("Hello World patch request")
+
   patch "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World patch request")
+
   delete "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World delete request")
+
   put "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World put request")
+
   head "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World head request")
+
   # before Route here
   # you can filter the context request here before route happen
   # use full if we want to filtering the domain access or auth or other things that fun :-)
@@ -272,6 +286,7 @@ routes:
     # ctx instance of HttpCtx exposed here :-)
     #
     echo "before route"
+
   # after Route here
   # you can filter the context request here after route happen
   # use full if we want to filtering the domain access or auth or other things that fun :-)

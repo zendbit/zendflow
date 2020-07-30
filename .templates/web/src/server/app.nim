@@ -35,64 +35,63 @@
 
 import zfcore, example
 
-#
-# configuration:
-# copy settings.json.example as settings.json
-#
+#[
+ configuration:
+ copy settings.json.example as settings.json
 
-# this is the new fashion of the zendflow framework syntax, make it easy
-# and reduce defining multiple time of callback procedures
-# this new syntax not break the old fashion, we only add macros and modify the syntax
-# on compile time
-#
-#
-# Some Important note
-# inside routes
-# routes:
-#   get "/hello":
-#     # in here we can call HttpContext
-#     # HttpContext is unique object that heandle client request and response
-#     # HttpContext containts:
-#     # ws (WebSocket):
-#     #   ws is ctx.webSocket shorthand
-#     # req (Request):
-#     #   req is ctx.request shorthand
-#     # res (Response):
-#     #   res is ctx.response shorthand
-#     # params (table[string, string]):
-#     #   params is ctx.params shorthand
-#     #   this will contains data request parameter from client
-#     #   - key value of query string
-#     #   - key value of form url encoded
-#     # reParams (table[string, @[string]]):
-#     #   reParams is ctx.reParams shorthand
-#     #   this will contains pattern matching on the url segments
-#     # formData (FormData):
-#     #   formData is ctx.formData shorthand
-#     #   this will handle form data multipart including uploaded data
-#     # json (JsonNode):
-#     #   json is ctx.json shorthand
-#     #   this will handle application/json request from client
-#     
-#
-#     # you can response to client with following type response:
-#     # HttpCode.resp("body response", httpheaders)
-#     # HttpCode is HttpCode value from the nim httpcore standard library
-#     # for example we want to reponse with Http200
-#     # Http200.resp("Hello World")
-#     # 
-#     # the default response type is text/plain
-#     # for html response use
-#     # Http200.respHtml("This is html content")
-#     #
-#     # for json response you only need to pas JsonNode object to the resp
-#     # Http200.resp(%*{"Hello": "World"})
-#     #
-#     # for send redirection web can use respRedirect
-#     # Http200.respRedirect("https://google.com")
-#     #
-#
-#
+ this is the new fashion of the zendflow framework syntax, make it easy
+ and reduce defining multiple time of callback procedures
+ this new syntax not break the old fashion, we only add macros and modify the syntax
+ on compile time
+
+
+ Some Important note
+ inside routes
+ routes:
+   get "/hello":
+     # in here we can call HttpContext
+     # HttpContext is unique object that heandle client request and response
+     # HttpContext containts:
+     # ws (WebSocket):
+     #   ws is ctx.webSocket shorthand
+     # req (Request):
+     #   req is ctx.request shorthand
+     # res (Response):
+     #   res is ctx.response shorthand
+     # params (table[string, string]):
+     #   params is ctx.params shorthand
+     #   this will contains data request parameter from client
+     #   - key value of query string
+     #   - key value of form url encoded
+     # reParams (table[string, @[string]]):
+     #   reParams is ctx.reParams shorthand
+     #   this will contains pattern matching on the url segments
+     # formData (FormData):
+     #   formData is ctx.formData shorthand
+     #   this will handle form data multipart including uploaded data
+     # json (JsonNode):
+     #   json is ctx.json shorthand
+     #   this will handle application/json request from client
+     
+
+     # you can response to client with following type response:
+     # HttpCode.resp("body response", httpheaders)
+     # HttpCode is HttpCode value from the nim httpcore standard library
+     # for example we want to reponse with Http200
+     # Http200.resp("Hello World")
+     # 
+     # the default response type is text/plain
+     # for html response use
+     # Http200.respHtml("This is html content")
+     #
+     # for json response you only need to pas JsonNode object to the resp
+     # Http200.resp(%*{"Hello": "World"})
+     #
+     # for send redirection web can use respRedirect
+     # Http200.respRedirect("https://google.com")
+     #
+]#
+
 routes:
   # websocket example :-)
   get "/ws":
@@ -250,6 +249,11 @@ routes:
     # capture the <id> from the path
     echo params["id"]
     Http200.respHtml(HelloWorld().printHelloWorld)
+
+  get "/home/<id>":
+    # capture the <id> from the path
+    echo params["id"]
+    Http200.resp("Hello World patch request")
 
   patch "/home/<id>":
     # capture the <id> from the path
