@@ -211,7 +211,8 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin::debug::settings.json"
+                    "dest": "{currentAppDir}::bin::debug::settings.json",
+                    "err": []
                   }
                 ]
               }
@@ -269,7 +270,8 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin::release::settings.json"
+                    "dest": "{currentAppDir}::bin::release::settings.json",
+                    "err": []
                   }
                 ]
               }
