@@ -211,7 +211,8 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin::debug::settings.json"
+                    "dest": "{currentAppDir}::bin::debug::settings.json",
+                    "err": []
                   }
                 ]
               }
@@ -269,7 +270,8 @@
                 "list": [
                   {
                     "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin::release::settings.json"
+                    "dest": "{currentAppDir}::bin::release::settings.json",
+                    "err": []
                   }
                 ]
               }
@@ -347,6 +349,157 @@
         "action": "removeDir",
         "list": [
           {"name": "{currentAppDir}::bin"}
+        ]
+      }
+    ]
+  },
+  "watch-debug-run": {
+    "desc": "watch changes in debug mode then run.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "{currentAppDir}::bin::debug::{appName}_srv &",
+            "onPlatform": {
+              "windows": {
+                "exe": "start {currentAppDir}::bin::debug::{appName}_srv.exe"
+              }
+            },
+            "next": [
+              {
+                "action": "watch",
+                "list": [
+                  {
+                    "dir": "{currentAppDir}::src::spa",
+                    "pattern": "[\\w\\W]*\\.nim",
+                    "onModified": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-debug-spa {appName}",
+                        "next": [
+                          {
+                            "action": "copyDir",
+                            "list": [
+                              {
+                                "src": "{currentAppDir}::www",
+                                "dest": "{currentAppDir}::bin::debug::www"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dir": "{currentAppDir}::src::server",
+                    "pattern": "[\\w\\W]*\\.nim",
+                    "onModified": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-debug-server {appName}",
+                        "next": [
+                          {
+                            "action": "cmd",
+                            "exe": "killall {appName}_srv",
+                            "onPlatform": {
+                              "windows": {
+                                "exe": "taskkill /IM \"{appName}_srv.exe\" /F"
+                              }
+                            }
+                          },
+                          {
+                            "action": "cmd",
+                            "exe": "{currentAppDir}::bin::debug::{appName}_srv &",
+                            "onPlatform": {
+                              "windows": {
+                                "exe": "start {currentAppDir}::bin::debug::{appName}_srv.exe"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "watch-release-run": {
+    "desc": "watch changes in release mode then run.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "release {appName}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "{currentAppDir}::bin::release::{appName}_srv &",
+            "onPlatform": {
+              "windows": {
+                "exe": "start {currentAppDir}::bin::release::{appName}_srv.exe"
+              }
+            },
+            "next": [
+              {
+                "action": "watch",
+                "list": [
+                  {
+                    "dir": "{currentAppDir}::src::spa",
+                    "pattern": "[\\w\\W]*\\.nim",
+                    "onModified": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-release-spa {appName}"
+                      }
+                    ]
+                  },
+                  {
+                    "dir": "{currentAppDir}::src::server",
+                    "pattern": "[\\w\\W]*\\.nim",
+                    "onModified": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-release-server {appName}",
+                        "next": [
+                          {
+                            "action": "cmd",
+                            "exe": "killall {appName}_srv",
+                            "onPlatform": {
+                              "windows": {
+                                "exe": "taskkill /IM \"{appName}_srv.exe\" /F"
+                              }
+                            }
+                          },
+                          {
+                            "action": "cmd",
+                            "exe": "{currentAppDir}::bin::release::{appName}_srv &",
+                            "onPlatform": {
+                              "windows": {
+                                "exe": "start {currentAppDir}::bin::release::{appName}_srv.exe"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
         ]
       }
     ]

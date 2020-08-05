@@ -17,8 +17,9 @@ Create nim console apps
 
 Follow this nim language installation and setup [Nim Language Download](https://nim-lang.org/install.html)
 
-## Install nake from Nimble
+## Install nake and nwatchdog from Nimble
 ```shell
+nimble install nake
 nimble install nake
 ```
 

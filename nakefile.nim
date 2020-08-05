@@ -1,5 +1,6 @@
 import nake, nakelib, os, strutils, strformat,
-  json, osproc, re, distros
+  json, osproc, re, distros, times
+import nwatchdog
 
 let cmdLineParams = commandLineParams()
 var cmdParams: seq[string]
@@ -12,6 +13,7 @@ for clp in cmdLineParams:
 
 var appsDir = ""
 var templatesDir = ""
+let watchDog = NWatchDog[JsonNode]()
 
 const
   jsonNakefile = "nakefile.json"
@@ -23,6 +25,44 @@ if jsonNakefile.existsFile:
   let jnode = jsonNakefile.parseFile()
   appsDir = jnode{"appsDir"}.getStr().replace("::", $DirSep)
   templatesDir = jnode{"templatesDir"}.getStr().replace("::", $DirSep)
+
+proc copyDir(src, dest: string, newer: bool = true) =
+  #[
+    copy dir and file if newer only
+    default newer params is true
+    if it newer false just user the os.copyDir
+  ]#
+  if not newer:
+    os.copyDir(src, dest)
+  else:
+    if src.existsDir:
+      if not dest.existsDir:
+        dest.createDir
+      for f in src.walkDirRec:
+        let destPath = dest.joinPath(f.replace(src, ""))
+        if f.existsDir:
+          if not destPath.existsDir:
+            destPath.createDir
+        if f.existsFile:
+          if destPath.existsFile:
+            if f.getLastModificationTime() < destPath.getLastModificationTime():
+              continue
+          let destDir = destPath.splitPath.head
+          if not destDir.existsFile:
+            destDir.createDir
+        f.copyFile(destPath)
+
+proc copyFile(src, dest: string, newer: bool = true) =
+  #[
+    copy file if newer only
+    default newer params is true
+    if it newer false just user the os.copyDir
+  ]#
+  if src.existsFile and dest.existsFile and newer:
+    if src.getLastModificationTime() < dest.getLastModificationTime():
+      return
+
+  os.copyFile(src, dest)
 
 proc isInPlatform(platform: string): bool =
   #
@@ -141,7 +181,7 @@ proc moveDirContents(src: string, dest: string, includes: JsonNode, excludes: Js
         of "copy":
           pathSrc.copyDir(pathDest)
         of "move":
-          pathSrc.copyDir(pathDest)
+          pathSrc.moveDir(pathDest)
 
 proc removeDirContents(src: string, includes: JsonNode, excludes: JsonNode = nil, fileOnly = false) =
   #
@@ -374,6 +414,34 @@ proc doActionList(actionList: JsonNode) =
               
               if not next.isNil and next.kind == JsonNodeKind.JArray:
                 next.doActionList
+
+      of "watch":
+        let list = action{"list"}
+        if not list.isNil and list.kind == JsonNodeKind.JArray:
+          for l in list:
+            let dir = l{"dir"}
+            let pattern = l{"pattern"}
+            if not dir.isNil and not pattern.isNil:
+              watchDog.add(
+                dir.getStr,
+                pattern.getStr,
+                proc (file: string, event: NWatchEvent, param: JsonNode) =
+                  let onModified = param{"onModified"}
+                  let onCreated = param{"onCreated"}
+                  let onDeleted = param{"onDeleted"}
+                  case event
+                  of Modified:
+                    if not onModified.isNil:
+                      onModified.doActionList
+                  of Created:
+                    if not onCreated.isNil:
+                      onCreated.doActionList
+                  of Deleted:
+                    if not onDeleted.isNil:
+                      onDeleted.doActionList,
+                l.copy)
+          echo "watch started."
+          waitFor watchDog.watch
       else:
         echo &"{actionType} action not implemented."
   else:
@@ -505,7 +573,8 @@ proc newApp(appName: string, appType: string) =
     let fpath = templatesDir.joinPath(appType, jsonNakefile)
     if existsFile(fpath):
       let f = fpath.open(FileMode.fmRead)
-      var fcontent = f.readAll().replace("{appName}", appName)
+      #var fcontent = f.readAll().replace("{appName}", appName)
+      var fcontent = f.readAll()
       f.close()
 
       var jnode = fcontent.parseJson()
@@ -515,26 +584,33 @@ proc newApp(appName: string, appType: string) =
         fcontent = $jnode
 
         var varnode = jnode{"initVar"}
+        var initNode = jnode{"init"}
         if not varnode.isNil:
           varnode = varnode.subtituteVar()
           for k, v in varnode:
-            fcontent = fcontent.replace("{" & k & "}", v.getStr())
+            #fcontent = fcontent.replace("{" & k & "}", v.getStr())
+            initNode = ($initNode).replace("{" & k & "}", v.getStr()).parseJson
 
         varnode = jnode{"appInfo"}
         if not varnode.isNil:
           varnode = varnode.subtituteVar()
           for k, v in varnode:
-            fcontent = fcontent.replace("{" & k & "}", v.getStr())
+            #fcontent = fcontent.replace("{" & k & "}", v.getStr())
+            initNode = ($initNode).replace("{" & k & "}", v.getStr()).parseJson
 
         # replace templates and apps dir definition
         # this defined in the base nakefile.json
-        fcontent = fcontent.replace("{templatesDir}", templatesDir)
-        fcontent = fcontent.replace("{appsDir}", appsDir)
+        #fcontent = fcontent.replace("{templatesDir}", templatesDir)
+        #fcontent = fcontent.replace("{appsDir}", appsDir)
+        initNode = ($initNode).replace("{templatesDir}", templatesDir).parseJson
+        initNode = ($initNode).replace("{appsDir}", appsDir).parseJson
+        jnode["init"] = initNode.copy
 
-        jnode = fcontent.parseJson()
-        let initnode = jnode{"init"}
+        #jnode = fcontent.parseJson()
+        initnode = jnode{"init"}
         if not initnode.isNil and initnode.kind == JsonNodeKind.JArray:
-          ($initNode).replace("::", $DirSep).parseJson().doActionList
+          ($initNode).replace("::", $DirSep)
+            .replace("{appName}", appName).parseJson().doActionList
           if appDir.existsDir:
             # remove from node then save nakefile.json to the appdir
             # remove:
@@ -674,7 +750,8 @@ proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
     task name, desc:
       let actionToDo = ($taskList).replace("::", $DirSep)
-        .replace("{currentAppDir}", appName.currentAppDir).parseJson
+        .replace("{currentAppDir}", appName.currentAppDir)
+        .replace("{appName}", appName).parseJson
       actionToDo.doActionList
   else:
     echo &"invalid task list {name} , should be in JArray."

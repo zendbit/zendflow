@@ -152,5 +152,125 @@
         ]
       }
     ]
+  },
+  "watch-debug-run": {
+    "desc": "watch changes in debug mode then run.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "{currentAppDir}::bin::debug::{appName} &",
+            "onPlatform": {
+              "windows": {
+                "exe": "start {currentAppDir}::bin::debug::{appName}.exe"
+              }
+            },
+            "next": [
+              {
+                "action": "watch",
+                "list": [
+                  {
+                    "dir": "{currentAppDir}::src",
+                    "pattern": "[\\w\\W]*\\.nim",
+                    "onModified": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "debug {appName}",
+                        "next": [
+                          {
+                            "action": "cmd",
+                            "exe": "killall {appName}",
+                            "onPlatform": {
+                              "windows": {
+                                "exe": "taskkill /IM \"{appName}.exe\" /F"
+                              }
+                            },
+                            "err": []
+                          },
+                          {
+                            "action": "cmd",
+                            "exe": "{currentAppDir}::bin::debug::{appName} &",
+                            "onPlatform": {
+                              "windows": {
+                                "exe": "start {currentAppDir}::bin::debug::{appName}.exe"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "watch-release-run": {
+    "desc": "watch changes in release mode then run.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "release {appName}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "{currentAppDir}::bin::release::{appName} &",
+            "onPlatform": {
+              "windows": {
+                "exe": "start {currentAppDir}::bin::release::{appName}.exe"
+              }
+            },
+            "next": [
+              {
+                "action": "watch",
+                "list": [
+                  {
+                    "dir": "{currentAppDir}::src",
+                    "pattern": "[\\w\\W]*\\.nim",
+                    "onModified": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "release {appName}",
+                        "next": [
+                          {
+                            "action": "cmd",
+                            "exe": "killall {appName}",
+                            "onPlatform": {
+                              "windows": {
+                                "exe": "taskkill /IM \"{appName}.exe\" /F"
+                              }
+                            },
+                            "err": []
+                          },
+                          {
+                            "action": "cmd",
+                            "exe": "{currentAppDir}::bin::release::{appName} &",
+                            "onPlatform": {
+                              "windows": {
+                                "exe": "start {currentAppDir}::bin::release::{appName}.exe"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

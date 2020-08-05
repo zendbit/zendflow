@@ -120,5 +120,61 @@
         ]
       }
     ]
+  },
+  "watch-debug": {
+    "desc": "watch changes in debug mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dir": "{currentAppDir}::src",
+                "pattern": "[\\w\\W]*\\.nim",
+                "onModified": [
+                  {
+                    "action": "cmd",
+                    "exe": "nake",
+                    "options": "debug {appName}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "watch-release": {
+    "desc": "watch changes in release mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "release {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dir": "{currentAppDir}::src",
+                "pattern": "[\\w\\W]*\\.nim",
+                "onModified": [
+                  {
+                    "action": "cmd",
+                    "exe": "nake",
+                    "options": "release {appName}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }
