@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/irigasi/nakefile.json",
+  "jsonNakefile": "apps/postfix_tools_v2/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }

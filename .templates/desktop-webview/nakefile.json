@@ -74,6 +74,10 @@
                                     },
                                     {
                                       "action": "cmd",
+                                      "exe": "nimble install karax"
+                                    },
+                                    {
+                                      "action": "cmd",
                                       "exe": "karun",
                                       "props": {
                                         "src": "{srcSpaDir}::{appName}_spa.nim"

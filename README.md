@@ -17,10 +17,10 @@ Create nim console apps
 
 Follow this nim language installation and setup [Nim Language Download](https://nim-lang.org/install.html)
 
-## Install nake and nwatchdog from Nimble
+## Install nake, nwatchdog, karax from Nimble
 ```shell
 nimble install nake
-nimble install nake
+nimble install nwatchdog
 ```
 
 ## dont forget to add ~/.nimble/bin in your home dir in to the sytem env
