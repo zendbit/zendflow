@@ -280,10 +280,9 @@ proc doActionList(actionList: JsonNode) =
                 echo errMsg
                 if not err.isNil and err.kind == JsonNodeKind.JArray:
                   err.doActionList
-                else:
-                  QuitFailure.quit
 
-              if not next.isNil and next.kind == JsonNodeKind.JArray:
+              else:
+                if not next.isNil and next.kind == JsonNodeKind.JArray:
                   next.doActionList
 
       of "cmd":
@@ -324,11 +323,10 @@ proc doActionList(actionList: JsonNode) =
         if errCode != 0:
           if not err.isNil and err.kind == JsonNodeKind.JArray:
             err.doActionList
-          else:
-            errCode.quit
 
-        if not next.isNil and next.kind == JsonNodeKind.JArray:
-          next.doActionList
+        else:
+          if not next.isNil and next.kind == JsonNodeKind.JArray:
+            next.doActionList
 
       of "replaceStr":
         let desc = action{"desc"}
@@ -340,6 +338,7 @@ proc doActionList(actionList: JsonNode) =
         let next = action{"next"}
         let err = action{"err"}
         echo &"replace str in file -> {file}"
+        var errMsg = ""
         if not file.isNil and not list.isNil and file.getStr().existsFile:
           try:
             var f = file.getStr().open(FileMode.fmRead)
@@ -358,14 +357,15 @@ proc doActionList(actionList: JsonNode) =
               f = file.getStr().open(FileMode.fmWrite)
               f.write(fstr)
               f.close()
-              if not next.isNil and next.kind == JsonNodeKind.JArray:
-                next.doActionList
           except Exception as ex:
             echo ex.msg
+            errMsg = ex.msg
             if not err.isNil and err.kind == JsonNodeKind.JArray:
               err.doActionList
-            else:
-              QuitFailure.quit
+          
+          if errMsg == "":
+            if not next.isNil and next.kind == JsonNodeKind.JArray:
+              next.doActionList
 
       of "removeFile", "removeDir", "createDir":
         let list = action{"list"}
@@ -409,11 +409,10 @@ proc doActionList(actionList: JsonNode) =
                 echo errMsg
                 if not err.isNil and err.kind == JsonNodeKind.JArray:
                   err.doActionList
-                else:
-                  QuitFailure.quit
               
-              if not next.isNil and next.kind == JsonNodeKind.JArray:
-                next.doActionList
+              else:
+                if not next.isNil and next.kind == JsonNodeKind.JArray:
+                  next.doActionList
 
       of "watch":
         let list = action{"list"}

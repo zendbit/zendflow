@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/postfix_tools_v2/nakefile.json",
+  "jsonNakefile": "apps/freeradius_client/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }
