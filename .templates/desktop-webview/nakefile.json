@@ -474,19 +474,19 @@
                     "onModified": [
                       {
                         "action": "cmd",
+                        "exe": "killall {appName}_srv",
+                        "onPlatform": {
+                          "windows": {
+                            "exe": "taskkill /IM \"{appName}_srv.exe\" /F"
+                          }
+                        },
+                        "err": []
+                      },
+                      {
+                        "action": "cmd",
                         "exe": "nake",
                         "options": "compile-debug-server {appName}",
                         "next": [
-                          {
-                            "action": "cmd",
-                            "exe": "killall {appName}_srv",
-                            "onPlatform": {
-                              "windows": {
-                                "exe": "taskkill /IM \"{appName}_srv.exe\" /F"
-                              }
-                            },
-                            "err": []
-                          },
                           {
                             "action": "cmd",
                             "exe": "{currentAppDir}::bin::debug::{appName}_srv &",
@@ -545,19 +545,19 @@
                     "onModified": [
                       {
                         "action": "cmd",
+                        "exe": "killall {appName}_srv",
+                        "onPlatform": {
+                          "windows": {
+                            "exe": "taskkill /IM \"{appName}_srv.exe\" /F"
+                          }
+                        },
+                        "err": []
+                      },
+                      {
+                        "action": "cmd",
                         "exe": "nake",
                         "options": "compile-release-server {appName}",
                         "next": [
-                          {
-                            "action": "cmd",
-                            "exe": "killall {appName}_srv",
-                            "onPlatform": {
-                              "windows": {
-                                "exe": "taskkill /IM \"{appName}_srv.exe\" /F"
-                              }
-                            },
-                            "err": []
-                          },
                           {
                             "action": "cmd",
                             "exe": "{currentAppDir}::bin::release::{appName}_srv &",
