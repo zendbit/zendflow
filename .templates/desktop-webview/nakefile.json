@@ -60,11 +60,11 @@
                               "list": [
                                 {
                                   "src": "{srcServerDir}::app.nim",
-                                  "dest": "{srcServerDir}::{appName}_srv.nim"
+                                  "dest": "{srcServerDir}::{appName}.nim"
                                 },
                                 {
                                   "src": "{srcSpaDir}::app.nim",
-                                  "dest": "{srcSpaDir}::{appName}_spa.nim",
+                                  "dest": "{srcSpaDir}::{appName}.nim",
                                   "next": [
                                     {
                                       "action": "createDir",
@@ -80,7 +80,7 @@
                                       "action": "cmd",
                                       "exe": "karun",
                                       "props": {
-                                        "src": "{srcSpaDir}::{appName}_spa.nim"
+                                        "src": "{srcSpaDir}::{appName}.nim"
                                       },
                                       "options": "{src}"
                                     },
@@ -88,12 +88,12 @@
                                       "action": "moveFile",
                                       "list": [
                                         {
-                                          "src": "{appName}_spa.html",
+                                          "src": "{appName}.html",
                                           "dest": "{wwwDir}::index.html"
                                         },
                                         {
-                                          "src": "{appName}_spa.js",
-                                          "dest": "{compiledJsDir}::{appName}_spa.js"
+                                          "src": "{appName}.js",
+                                          "dest": "{compiledJsDir}::{appName}.js"
                                         }
                                       ]
                                     },
@@ -102,8 +102,8 @@
                                       "file": "{wwwDir}::index.html",
                                       "list": [
                                         {
-                                          "old": "{appName}_spa.js",
-                                          "new": "/private/js/compiled/{appName}_spa.js"
+                                          "old": "{appName}.js",
+                                          "new": "/private/js/compiled/{appName}.js"
                                         }
                                       ]
                                     }
@@ -111,11 +111,11 @@
                                 },
                                 {
                                   "src": "{srcWebviewDir}::app.nim",
-                                  "dest": "{srcWebviewDir}::{appName}_wv.nim",
+                                  "dest": "{srcWebviewDir}::{appName}.nim",
                                   "next": [
                                     {
                                       "action": "replaceStr",
-                                      "file": "{srcWebviewDir}::{appName}_wv.nim",
+                                      "file": "{srcWebviewDir}::{appName}.nim",
                                       "list": [
                                         {
                                           "old": "appName",
@@ -147,7 +147,7 @@
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::spa::{appName}_spa.nim",
+          "src": "{currentAppDir}::src::spa::{appName}.nim",
           "out": "{currentAppDir}::www::private::js::compiled"
         },
         "options": "js --outdir:{out} {src}"
@@ -203,19 +203,19 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}_srv.nim",
-          "out": "{currentAppDir}::bin::release"
+          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "out": "{currentAppDir}::bin::release::{appName}_srv"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}",
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}",
         "next": [
           {
             "action": "cmd",
             "exe": "nim",
             "props": {
-              "src": "{currentAppDir}::src::webview::{appName}_wv.nim",
-              "out": "{currentAppDir}::bin::release"
+              "src": "{currentAppDir}::src::webview::{appName}.nim",
+              "out": "{currentAppDir}::bin::release::{appName}_wv"
             },
-            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
+            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
           }
         ]
       }
@@ -228,19 +228,19 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}_srv.nim",
-          "out": "{currentAppDir}::bin::debug"
+          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "out": "{currentAppDir}::bin::debug::{appName}_srv"
         },
-        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}",
+        "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --out:{out} {src}",
         "next": [
           {
             "action": "cmd",
             "exe": "nim",
             "props": {
-              "src": "{currentAppDir}::src::webview::{appName}_wv.nim",
-              "out": "{currentAppDir}::bin::debug"
+              "src": "{currentAppDir}::src::webview::{appName}.nim",
+              "out": "{currentAppDir}::bin::debug::{appName}_wv"
             },
-            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
+            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --out:{out} {src}"
           }
         ]
       }

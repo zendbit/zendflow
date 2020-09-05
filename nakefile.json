@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/freeradius_client/nakefile.json",
+  "jsonNakefile": "apps/sinergiaccess/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }

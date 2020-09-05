@@ -40,11 +40,11 @@
                       "list": [
                         {
                           "src": "{srcServerDir}::app.nim",
-                          "dest": "{srcServerDir}::{appName}_srv.nim"
+                          "dest": "{srcServerDir}::{appName}.nim"
                         },
                         {
                           "src": "{srcSpaDir}::app.nim",
-                          "dest": "{srcSpaDir}::{appName}_spa.nim",
+                          "dest": "{srcSpaDir}::{appName}.nim",
                           "next": [
                             {
                               "action": "createDir",
@@ -60,7 +60,7 @@
                               "action": "cmd",
                               "exe": "karun",
                               "props": {
-                                "src": "{srcSpaDir}::{appName}_spa.nim"
+                                "src": "{srcSpaDir}::{appName}.nim"
                               },
                               "options": "{src}",
                               "next": [
@@ -68,7 +68,7 @@
                                   "action": "moveFile",
                                   "list": [
                                     {
-                                      "src": "{appName}_spa.html",
+                                      "src": "{appName}.html",
                                       "dest": "{wwwDir}::index.html",
                                       "next": [
                                         {
@@ -76,16 +76,16 @@
                                           "file": "{wwwDir}::index.html",
                                           "list": [
                                             {
-                                              "old": "{appName}_spa.js",
-                                              "new": "/private/js/compiled/{appName}_spa.js"
+                                              "old": "{appName}.js",
+                                              "new": "/private/js/compiled/{appName}.js"
                                             }
                                           ]
                                         }
                                       ]
                                     },
                                     {
-                                      "src": "{appName}_spa.js",
-                                      "dest": "{compiledJsDir}::{appName}_spa.js"
+                                      "src": "{appName}.js",
+                                      "dest": "{compiledJsDir}::{appName}.js"
                                     }
                                   ]
                                 }
@@ -111,7 +111,7 @@
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::spa::{appName}_spa.nim",
+          "src": "{currentAppDir}::src::spa::{appName}.nim",
           "out": "{currentAppDir}::www::private::js::compiled"
         },
         "options": "js --outdir:{out} {src}"
@@ -167,7 +167,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}_srv.nim",
+          "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
@@ -181,7 +181,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}_srv.nim",
+          "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
@@ -236,10 +236,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::debug::{appName}_srv",
+            "exe": "{currentAppDir}::bin::debug::{appName}",
             "onPlatform": {
               "windows": {
-                "exe": "{currentAppDir}::bin::debug::{appName}_srv.exe"
+                "exe": "{currentAppDir}::bin::debug::{appName}.exe"
               }
             }
           }
@@ -295,10 +295,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::release::{appName}_srv",
+            "exe": "{currentAppDir}::bin::release::{appName}",
             "onPlatform": {
               "windows": {
-                "exe": "{currentAppDir}::bin::debug::{appName}_srv.exe"
+                "exe": "{currentAppDir}::bin::debug::{appName}.exe"
               }
             }
           }
@@ -367,10 +367,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::debug::{appName}_srv &",
+            "exe": "{currentAppDir}::bin::debug::{appName} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {currentAppDir}::bin::debug::{appName}_srv.exe"
+                "exe": "start {currentAppDir}::bin::debug::{appName}.exe"
               }
             },
             "next": [
@@ -405,10 +405,10 @@
                     "onModified": [
                       {
                         "action": "cmd",
-                        "exe": "killall {appName}_srv",
+                        "exe": "killall {appName}",
                         "onPlatform": {
                           "windows": {
-                            "exe": "taskkill /IM \"{appName}_srv.exe\" /F"
+                            "exe": "taskkill /IM \"{appName}.exe\" /F"
                           }
                         }
                       },
@@ -419,10 +419,10 @@
                         "next": [
                           {
                             "action": "cmd",
-                            "exe": "{currentAppDir}::bin::debug::{appName}_srv &",
+                            "exe": "{currentAppDir}::bin::debug::{appName} &",
                             "onPlatform": {
                               "windows": {
-                                "exe": "start {currentAppDir}::bin::debug::{appName}_srv.exe"
+                                "exe": "start {currentAppDir}::bin::debug::{appName}.exe"
                               }
                             }
                           }
@@ -448,10 +448,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::release::{appName}_srv &",
+            "exe": "{currentAppDir}::bin::release::{appName} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {currentAppDir}::bin::release::{appName}_srv.exe"
+                "exe": "start {currentAppDir}::bin::release::{appName}.exe"
               }
             },
             "next": [
@@ -475,10 +475,10 @@
                     "onModified": [
                       {
                         "action": "cmd",
-                        "exe": "killall {appName}_srv",
+                        "exe": "killall {appName}",
                         "onPlatform": {
                           "windows": {
-                            "exe": "taskkill /IM \"{appName}_srv.exe\" /F"
+                            "exe": "taskkill /IM \"{appName}.exe\" /F"
                           }
                         }
                       },
@@ -489,10 +489,10 @@
                         "next": [
                           {
                             "action": "cmd",
-                            "exe": "{currentAppDir}::bin::release::{appName}_srv &",
+                            "exe": "{currentAppDir}::bin::release::{appName} &",
                             "onPlatform": {
                               "windows": {
-                                "exe": "start {currentAppDir}::bin::release::{appName}_srv.exe"
+                                "exe": "start {currentAppDir}::bin::release::{appName}.exe"
                               }
                             }
                           }
