@@ -429,6 +429,21 @@
                         ]
                       }
                     ]
+                  },
+                  {
+                    "dir": "{currentAppDir}::www",
+                    "pattern": "[\\w\\W]+$",
+                    "onModified": [
+                      {
+                        "action": "copyDir",
+                        "list": [
+                          {
+                            "src": "{currentAppDir}::www",
+                            "dest": "{currentAppDir}::bin::debug::www"
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               }
@@ -495,6 +510,21 @@
                                 "exe": "start {currentAppDir}::bin::release::{appName}.exe"
                               }
                             }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dir": "{currentAppDir}::www",
+                    "pattern": "[\\w\\W]+$",
+                    "onModified": [
+                      {
+                        "action": "copyDir",
+                        "list": [
+                          {
+                            "src": "{currentAppDir}::www",
+                            "dest": "{currentAppDir}::bin::release::www"
                           }
                         ]
                       }
