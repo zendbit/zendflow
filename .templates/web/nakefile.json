@@ -5,13 +5,14 @@
     "appDesc": "create web app with zfcore."
   },
   "nimble": [
-    "install zip",
-    "develop https://github.com/zendbit/nim.uri3",
-    "develop https://github.com/zendbit/nim.zfblast",
-    "develop https://github.com/zendbit/nim.zfcore",
-    "develop https://github.com/zendbit/nim.zfplugs",
-    "develop https://github.com/zendbit/nim.stdext",
-    "install karax"
+    "install zip@#head",
+    "install uri3@#head",
+    "install zfblast@#head",
+    "install zfcore@#head",
+    "install zfplugs@#head",
+    "install stdext@#head",
+    "install karax@#head",
+    "install moustachu@#head"
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
