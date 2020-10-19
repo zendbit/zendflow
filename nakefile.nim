@@ -13,7 +13,7 @@ for clp in cmdLineParams:
 
 var appsDir = ""
 var templatesDir = ""
-let watchDog = NWatchDog[JsonNode](interval: 1000)
+let watchDog = NWatchDog[JsonNode](interval: 10)
 
 const
   jsonNakefile = "nakefile.json"
