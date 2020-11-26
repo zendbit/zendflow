@@ -88,11 +88,11 @@
                                       "action": "moveFile",
                                       "list": [
                                         {
-                                          "src": "{appName}.html",
+                                          "src": "app.html",
                                           "dest": "{wwwDir}::index.html"
                                         },
                                         {
-                                          "src": "{appName}.js",
+                                          "src": "app.js",
                                           "dest": "{compiledJsDir}::{appName}.js"
                                         }
                                       ]
@@ -215,7 +215,18 @@
               "src": "{currentAppDir}::src::webview::{appName}.nim",
               "out": "{currentAppDir}::bin::release::{appName}_wv"
             },
-            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
+            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "nim",
+                "props": {
+                  "src": "{currentAppDir}::src::{appName}.nim",
+                  "out": "{currentAppDir}::bin::release::{appName}"
+                },
+                "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
+              }
+            ]
           }
         ]
       }
@@ -240,7 +251,18 @@
               "src": "{currentAppDir}::src::webview::{appName}.nim",
               "out": "{currentAppDir}::bin::debug::{appName}_wv"
             },
-            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --out:{out} {src}"
+            "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --out:{out} {src}",
+            "next": [
+              {
+                "action": "cmd",
+                "exe": "nim",
+                "props": {
+                  "src": "{currentAppDir}::src::{appName}.nim",
+                  "out": "{currentAppDir}::bin::debug::{appName}"
+                },
+                "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --out:{out} {src}"
+              }
+            ]
           }
         ]
       }
