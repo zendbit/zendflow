@@ -424,7 +424,7 @@ proc doActionList(actionList: JsonNode) =
               watchDog.add(
                 dir.getStr,
                 pattern.getStr,
-                proc (file: string, event: NWatchEvent, param: JsonNode) =
+                proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
                   let onModified = param{"onModified"}
                   let onCreated = param{"onCreated"}
                   let onDeleted = param{"onDeleted"}

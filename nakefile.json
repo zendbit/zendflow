@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/autoprint/nakefile.json",
+  "jsonNakefile": "apps/zcms/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }
