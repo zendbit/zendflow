@@ -26,44 +26,6 @@ if jsonNakefile.existsFile:
   appsDir = jnode{"appsDir"}.getStr().replace("::", $DirSep)
   templatesDir = jnode{"templatesDir"}.getStr().replace("::", $DirSep)
 
-proc copyDir(src, dest: string, newer: bool = true) =
-  #[
-    copy dir and file if newer only
-    default newer params is true
-    if it newer false just user the os.copyDir
-  ]#
-  if not newer:
-    os.copyDir(src, dest)
-  else:
-    if src.existsDir:
-      if not dest.existsDir:
-        dest.createDir
-      for f in src.walkDirRec:
-        let destPath = dest.joinPath(f.replace(src, ""))
-        if f.existsDir:
-          if not destPath.existsDir:
-            destPath.createDir
-        if f.existsFile:
-          if destPath.existsFile:
-            if f.getLastModificationTime() < destPath.getLastModificationTime():
-              continue
-          let destDir = destPath.splitPath.head
-          if not destDir.existsFile:
-            destDir.createDir
-        f.copyFile(destPath)
-
-proc copyFile(src, dest: string, newer: bool = true) =
-  #[
-    copy file if newer only
-    default newer params is true
-    if it newer false just user the os.copyDir
-  ]#
-  if src.existsFile and dest.existsFile and newer:
-    if src.getLastModificationTime() < dest.getLastModificationTime():
-      return
-
-  os.copyFile(src, dest)
-
 proc isInPlatform(platform: string): bool =
   #
   # define on platform specific
