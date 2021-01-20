@@ -5,5 +5,5 @@
 /nakefile
 /tmp
 /nakefile.json
-/*.watch
-/*.watch.cmp
+/.watch
+/.watch.cmp
