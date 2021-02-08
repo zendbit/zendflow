@@ -69,7 +69,7 @@
                                   "action": "moveFile",
                                   "list": [
                                     {
-                                      "src": "{appName}.html",
+                                      "src": "app.html",
                                       "dest": "{wwwDir}::index.html",
                                       "next": [
                                         {
@@ -77,15 +77,15 @@
                                           "file": "{wwwDir}::index.html",
                                           "list": [
                                             {
-                                              "old": "{appName}.js",
-                                              "new": "/private/js/compiled/{appName}.js"
+                                              "old": "app.js",
+                                              "new": "private/js/compiled/{appName}.js"
                                             }
                                           ]
                                         }
                                       ]
                                     },
                                     {
-                                      "src": "{appName}.js",
+                                      "src": "app.js",
                                       "dest": "{compiledJsDir}::{appName}.js"
                                     }
                                   ]
