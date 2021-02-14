@@ -108,6 +108,10 @@ else:
   ]#
 
   routes:
+    # render / to display default page for /
+    get "/":
+      respRedirect("/index.html")
+
     # websocket example :-)
     get "/ws":
       #

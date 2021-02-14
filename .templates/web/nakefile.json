@@ -50,7 +50,7 @@
                             },
                             {
                               "action": "cmd",
-                              "exe": "nimble install karax"
+                              "exe": "nimble -y install karax@#head"
                             },
                             {
                               "action": "cmd",
