@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/zcms/nakefile.json",
+  "jsonNakefile": "apps/sinacc/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }

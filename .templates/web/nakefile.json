@@ -16,8 +16,7 @@
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
-    "srcServerDir": "{appDir}::src::server",
-    "srcSpaDir": "{appDir}::src::client",
+    "srcDir": "{appDir}::src",
     "wwwDir": "{appDir}::www",
     "compiledJsDir": "{wwwDir}::private::js::compiled"
   },
@@ -40,12 +39,8 @@
                       "action": "moveFile",
                       "list": [
                         {
-                          "src": "{srcServerDir}::app.nim",
-                          "dest": "{srcServerDir}::{appName}.nim"
-                        },
-                        {
-                          "src": "{srcSpaDir}::app.nim",
-                          "dest": "{srcSpaDir}::{appName}.nim",
+                          "src": "{srcDir}::app.nim",
+                          "dest": "{srcDir}::{appName}.nim",
                           "next": [
                             {
                               "action": "createDir",
@@ -61,7 +56,7 @@
                               "action": "cmd",
                               "exe": "karun",
                               "props": {
-                                "src": "{srcSpaDir}::{appName}.nim"
+                                "src": "{srcDir}::{appName}.nim"
                               },
                               "options": "{src}",
                               "next": [
@@ -112,7 +107,7 @@
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::client::{appName}.nim",
+          "src": "{currentAppDir}::src::{appName}.nim",
           "out": "{currentAppDir}::www::private::js::compiled"
         },
         "options": "js --outdir:{out} {src}"
@@ -168,7 +163,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "src": "{currentAppDir}::src::{appName}.nim",
           "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
@@ -182,7 +177,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "src": "{currentAppDir}::src::{appName}.nim",
           "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
@@ -379,7 +374,7 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src::client",
+                    "dir": "{currentAppDir}::src",
                     "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
@@ -401,7 +396,7 @@
                     ]
                   },
                   {
-                    "dir": "{currentAppDir}::src::server",
+                    "dir": "{currentAppDir}::src",
                     "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
@@ -412,6 +407,11 @@
                             "exe": "taskkill /IM \"{appName}.exe\" /F"
                           }
                         }
+                      },
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-debug-client {appName}"
                       },
                       {
                         "action": "cmd",
@@ -475,18 +475,7 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src::client",
-                    "pattern": "[\\w\\W]*\\.nim",
-                    "onModified": [
-                      {
-                        "action": "cmd",
-                        "exe": "nake",
-                        "options": "compile-release-client {appName}"
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::src::server",
+                    "dir": "{currentAppDir}::src",
                     "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
@@ -497,6 +486,11 @@
                             "exe": "taskkill /IM \"{appName}.exe\" /F"
                           }
                         }
+                      },
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-release-client {appName}"
                       },
                       {
                         "action": "cmd",
