@@ -379,28 +379,6 @@
                     "onModified": [
                       {
                         "action": "cmd",
-                        "exe": "nake",
-                        "options": "compile-debug-client {appName}",
-                        "next": [
-                          {
-                            "action": "copyDir",
-                            "list": [
-                              {
-                                "src": "{currentAppDir}::www",
-                                "dest": "{currentAppDir}::bin::debug::www"
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "[\\w\\W]*\\.nim",
-                    "onModified": [
-                      {
-                        "action": "cmd",
                         "exe": "killall {appName}",
                         "onPlatform": {
                           "windows": {

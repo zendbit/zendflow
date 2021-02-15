@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/craftix/nakefile.json",
+  "jsonNakefile": "apps/zendcraft/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }
