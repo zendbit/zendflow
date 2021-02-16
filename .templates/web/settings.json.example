@@ -12,8 +12,8 @@
       "reuseAddress": true,
       "reusePort": false,
       "secure": {
-        "cert": "ssl/certificate.pem",
-        "key": "ssl/key.pem",
+        "cert": "ssl/devel-selfsigned.pem",
+        "key": "ssl/devel-selfsigned-key.pem",
         "verify": true,
         "port": 8443
       }

@@ -203,6 +203,10 @@
                   {
                     "src": "{currentAppDir}::www",
                     "dest": "{currentAppDir}::bin::debug::www"
+                  },
+                  {
+                    "src": "{currentAppDir}::ssl",
+                    "dest": "{currentAppDir}::bin::debug::ssl"
                   }
                 ]
               },
@@ -262,6 +266,10 @@
                   {
                     "src": "{currentAppDir}::www",
                     "dest": "{currentAppDir}::bin::release::www"
+                  },
+                  {
+                    "src": "{currentAppDir}::ssl",
+                    "dest": "{currentAppDir}::bin::release::ssl"
                   }
                 ]
               },
@@ -423,6 +431,21 @@
                         ]
                       }
                     ]
+                  },
+                  {
+                    "dir": "{currentAppDir}::ssl",
+                    "pattern": "[\\w\\W]+$",
+                    "onModified": [
+                      {
+                        "action": "copyDir",
+                        "list": [
+                          {
+                            "src": "{currentAppDir}::ssl",
+                            "dest": "{currentAppDir}::bin::debug::ssl"
+                          }
+                        ]
+                      }
+                    ]
                   }
                 ]
               }
@@ -498,6 +521,21 @@
                           {
                             "src": "{currentAppDir}::www",
                             "dest": "{currentAppDir}::bin::release::www"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dir": "{currentAppDir}::ssl",
+                    "pattern": "[\\w\\W]+$",
+                    "onModified": [
+                      {
+                        "action": "copyDir",
+                        "list": [
+                          {
+                            "src": "{currentAppDir}::ssl",
+                            "dest": "{currentAppDir}::bin::release::ssl"
                           }
                         ]
                       }
