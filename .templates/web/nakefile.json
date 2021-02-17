@@ -49,41 +49,12 @@
                               ]
                             },
                             {
-                              "action": "cmd",
-                              "exe": "nimble -y install karax@#head"
-                            },
-                            {
-                              "action": "cmd",
-                              "exe": "karun",
-                              "props": {
-                                "src": "{srcDir}::{appName}.nim"
-                              },
-                              "options": "{src}",
-                              "next": [
+                              "action": "replaceStr",
+                              "file": "{srcDir}::index.nim",
+                              "list": [
                                 {
-                                  "action": "moveFile",
-                                  "list": [
-                                    {
-                                      "src": "app.html",
-                                      "dest": "{wwwDir}::index.html",
-                                      "next": [
-                                        {
-                                          "action": "replaceStr",
-                                          "file": "{wwwDir}::index.html",
-                                          "list": [
-                                            {
-                                              "old": "app.js",
-                                              "new": "private/js/compiled/{appName}.js"
-                                            }
-                                          ]
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "src": "app.js",
-                                      "dest": "{compiledJsDir}::{appName}.js"
-                                    }
-                                  ]
+                                  "old": "[appName]",
+                                  "new": "{appName}"
                                 }
                               ]
                             }
