@@ -99,7 +99,7 @@ import example
 routes:
   # render / to display default page for /
   get "/":
-    Http200.respHtml(layout.indexLayout)
+    Http200.respHtml(layout.defaultLayout)
 
   # websocket example :-)
   get "/ws":
