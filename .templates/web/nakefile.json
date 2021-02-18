@@ -17,6 +17,8 @@
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "srcDir": "{appDir}::src",
+    "clientSrcDir": "{srcDir}::client",
+    "serverSrcDir": "{srcDir}::server",
     "wwwDir": "{appDir}::www",
     "compiledJsDir": "{wwwDir}::private::js::compiled"
   },
@@ -39,18 +41,24 @@
                       "action": "moveFile",
                       "list": [
                         {
-                          "src": "{srcDir}::app.nim",
-                          "dest": "{srcDir}::{appName}.nim",
+                          "src": "{clientSrcDir}::app.nim",
+                          "dest": "{clientSrcDir}::{appName}.nim",
                           "next": [
                             {
                               "action": "createDir",
                               "list": [
                                 {"name": "{compiledJsDir}"}
                               ]
-                            },
+                            }
+                          ]
+                        },
+                        {
+                          "src": "{serverSrcDir}::app.nim",
+                          "dest": "{serverSrcDir}::{appName}.nim",
+                          "next": [
                             {
                               "action": "replaceStr",
-                              "file": "{srcDir}::index.nim",
+                              "file": "{serverSrcDir}::layout.nim",
                               "list": [
                                 {
                                   "old": "[appName]",
@@ -78,7 +86,7 @@
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
+          "src": "{currentAppDir}::src::client::{appName}.nim",
           "out": "{currentAppDir}::www::private::js::compiled"
         },
         "options": "js --outdir:{out} {src}"
@@ -134,7 +142,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
+          "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
@@ -148,7 +156,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
+          "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
