@@ -16,8 +16,8 @@
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "srcDir": "{appDir}::src",
-    "clientSrcDir": "{srcDir}::client",
-    "serverSrcDir": "{srcDir}::server",
+    "csrSrcDir": "{srcDir}::csr",
+    "ssrSrcDir": "{srcDir}::ssr",
     "wwwDir": "{appDir}::www",
     "compiledJsDir": "{wwwDir}::private::js::compiled"
   },
@@ -40,8 +40,8 @@
                       "action": "moveFile",
                       "list": [
                         {
-                          "src": "{clientSrcDir}::app.nim",
-                          "dest": "{clientSrcDir}::{appName}.nim",
+                          "src": "{csrSrcDir}::app.nim",
+                          "dest": "{csrSrcDir}::{appName}.nim",
                           "next": [
                             {
                               "action": "createDir",
@@ -52,12 +52,12 @@
                           ]
                         },
                         {
-                          "src": "{serverSrcDir}::app.nim",
-                          "dest": "{serverSrcDir}::{appName}.nim",
+                          "src": "{ssrSrcDir}::app.nim",
+                          "dest": "{ssrSrcDir}::{appName}.nim",
                           "next": [
                             {
                               "action": "replaceStr",
-                              "file": "{serverSrcDir}::layout.nim",
+                              "file": "{ssrSrcDir}::layout.nim",
                               "list": [
                                 {
                                   "old": "[appName]",
@@ -78,27 +78,27 @@
       ]
     }
   ],
-  "compile-client": {
-    "desc": "compile client app only.",
+  "compile-csr": {
+    "desc": "compile csr app only.",
     "tasks": [
       {
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::client::{appName}.nim",
+          "src": "{currentAppDir}::src::csr::{appName}.nim",
           "out": "{currentAppDir}::www::private::js::compiled"
         },
         "options": "js --outdir:{out} {src}"
       }
     ]
   },
-  "compile-debug-client": {
-    "desc": "compile debug client app only.",
+  "compile-debug-csr": {
+    "desc": "compile debug csr app only.",
     "tasks": [
       {
         "action": "cmd",
         "exe" : "nake",
-        "options": "compile-client {appName}",
+        "options": "compile-csr {appName}",
         "next": [
           {
             "action": "copyDir",
@@ -113,13 +113,13 @@
       }
     ]
   },
-  "compile-release-client": {
-    "desc": "compile release client app only.",
+  "compile-release-csr": {
+    "desc": "compile release csr app only.",
     "tasks": [
       {
         "action": "cmd",
         "exe" : "nake",
-        "options": "compile-client {appName}",
+        "options": "compile-csr {appName}",
         "next": [
           {
             "action": "copyDir",
@@ -134,28 +134,28 @@
       }
     ]
   },
-  "compile-release-server": {
-    "desc": "compile release server app only",
+  "compile-release-ssr": {
+    "desc": "compile release ssr app only",
     "tasks": [
       {
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "src": "{currentAppDir}::src::ssr::{appName}.nim",
           "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
       }
     ]
   },
-  "compile-debug-server": {
-    "desc": "compile debug server app only",
+  "compile-debug-ssr": {
+    "desc": "compile debug ssr app only",
     "tasks": [
       {
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::server::{appName}.nim",
+          "src": "{currentAppDir}::src::ssr::{appName}.nim",
           "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
@@ -168,12 +168,12 @@
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "compile-debug-server {appName}",
+        "options": "compile-debug-ssr {appName}",
         "next": [
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-client {appName}",
+            "options": "compile-csr {appName}",
             "next": [
               {
                 "action": "copyDir",
@@ -231,12 +231,12 @@
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "compile-release-server {appName}",
+        "options": "compile-release-ssr {appName}",
         "next": [
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-release-client {appName}",
+            "options": "compile-release-csr {appName}",
             "next": [
               {
                 "action": "copyDir",
@@ -375,12 +375,12 @@
                       {
                         "action": "cmd",
                         "exe": "nake",
-                        "options": "compile-debug-client {appName}"
+                        "options": "compile-debug-csr {appName}"
                       },
                       {
                         "action": "cmd",
                         "exe": "nake",
-                        "options": "compile-debug-server {appName}",
+                        "options": "compile-debug-ssr {appName}",
                         "next": [
                           {
                             "action": "cmd",
@@ -469,12 +469,12 @@
                       {
                         "action": "cmd",
                         "exe": "nake",
-                        "options": "compile-release-client {appName}"
+                        "options": "compile-release-csr {appName}"
                       },
                       {
                         "action": "cmd",
                         "exe": "nake",
-                        "options": "compile-release-server {appName}",
+                        "options": "compile-release-ssr {appName}",
                         "next": [
                           {
                             "action": "cmd",
