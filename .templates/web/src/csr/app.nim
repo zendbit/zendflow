@@ -1,3 +1,3 @@
 include prelude
 
-select("body").innerHTML = "Hello World!"
+select("""div[id="ROOT"]""").innerHTML = "Hello World!"
