@@ -2,7 +2,7 @@ import dom, jsffi, jscore, jsconsole, asyncjs, strformat, strutils, sequtils
 export dom, jsffi, jscore, jsconsole, asyncjs, strformat, strutils, sequtils
 import uri3
 
-proc xhr*(): JsObject {.importcpp: "new XMLHttpRequest()".}
+proc newXMLHttpRequest*(): JsObject {.importcpp: "new XMLHttpRequest()".}
 
 proc createHtmlNode*(html: cstring): Node =
   let parent = document.createElement("div")
