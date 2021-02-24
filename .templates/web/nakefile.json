@@ -19,7 +19,7 @@
     "csrSrcDir": "{srcDir}::csr",
     "ssrSrcDir": "{srcDir}::ssr",
     "wwwDir": "{appDir}::www",
-    "compiledJsDir": "{wwwDir}::private::js::compiled"
+    "compiledJsDir": "{wwwDir}::private::js"
   },
   "init": [
     {
@@ -86,7 +86,7 @@
         "exe" : "nim",
         "props": {
           "src": "{currentAppDir}::src::csr::{appName}.nim",
-          "out": "{currentAppDir}::www::private::js::compiled"
+          "out": "{currentAppDir}::www::private::js"
         },
         "options": "js --outdir:{out} {src}"
       }
@@ -104,8 +104,8 @@
             "action": "copyDir",
             "list": [
               {
-                "src": "{currentAppDir}::www::private::js::compiled",
-                "dest": "{currentAppDir}::bin::debug::www::private::js::compiled"
+                "src": "{currentAppDir}::www::private::js",
+                "dest": "{currentAppDir}::bin::debug::www::private::js"
               }
             ]
           }
@@ -125,8 +125,8 @@
             "action": "copyDir",
             "list": [
               {
-                "src": "{currentAppDir}::www::private::js::compiled",
-                "dest": "{currentAppDir}::bin::release::www::private::js::compiled"
+                "src": "{currentAppDir}::www::private::js",
+                "dest": "{currentAppDir}::bin::release::www::private::js"
               }
             ]
           }

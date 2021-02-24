@@ -10,7 +10,7 @@ const defaultLayout* =
     </head>
     <body id="body" class="site">
       <div id="ROOT" />
-      <script type="text/javascript" src="private/js/compiled/[appName].js"></script>
+      <script type="text/javascript" src="private/js/[appName].js"></script>
     </body>
   </html>
   """
