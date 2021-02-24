@@ -15,10 +15,16 @@ proc select*(selector: cstring): Element =
 proc select*(elm: Element, selector: cstring): Element =
   result = elm.querySelector(selector)
 
+proc select*(node: Node, selector: cstring): Element =
+  result = node.querySelector(selector)
+
 proc selectAll*(selector: cstring): seq[Element] =
   result = document.querySelectorAll(selector)
 
 proc selectAll*(elm: Element, selector: cstring): seq[Element] =
+  result = elm.querySelectorAll(selector)
+
+proc selectAll*(node: Node, selector: cstring): seq[Element] =
   result = elm.querySelectorAll(selector)
 
 proc reloadHash*(target: cstring) =
