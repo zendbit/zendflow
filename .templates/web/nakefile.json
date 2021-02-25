@@ -16,8 +16,8 @@
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "srcDir": "{appDir}::src",
-    "csrSrcDir": "{srcDir}::csr",
-    "ssrSrcDir": "{srcDir}::ssr",
+    "frontendSrcDir": "{srcDir}::frontend",
+    "backendSrcDir": "{srcDir}::backend",
     "wwwDir": "{appDir}::www",
     "compiledJsDir": "{wwwDir}::private::js"
   },
@@ -40,8 +40,8 @@
                       "action": "moveFile",
                       "list": [
                         {
-                          "src": "{csrSrcDir}::app.nim",
-                          "dest": "{csrSrcDir}::{appName}.nim",
+                          "src": "{frontendSrcDir}::app.nim",
+                          "dest": "{frontendSrcDir}::{appName}.nim",
                           "next": [
                             {
                               "action": "createDir",
@@ -52,12 +52,12 @@
                           ]
                         },
                         {
-                          "src": "{ssrSrcDir}::app.nim",
-                          "dest": "{ssrSrcDir}::{appName}.nim",
+                          "src": "{backendSrcDir}::app.nim",
+                          "dest": "{backendSrcDir}::{appName}.nim",
                           "next": [
                             {
                               "action": "replaceStr",
-                              "file": "{ssrSrcDir}::layout.nim",
+                              "file": "{backendSrcDir}::layout.nim",
                               "list": [
                                 {
                                   "old": "[appName]",
@@ -78,27 +78,27 @@
       ]
     }
   ],
-  "compile-csr": {
-    "desc": "compile csr app only.",
+  "compile-frontend": {
+    "desc": "compile frontend app only.",
     "tasks": [
       {
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::csr::{appName}.nim",
+          "src": "{currentAppDir}::src::frontend::{appName}.nim",
           "out": "{currentAppDir}::www::private::js"
         },
         "options": "js --outdir:{out} {src}"
       }
     ]
   },
-  "compile-debug-csr": {
-    "desc": "compile debug csr app only.",
+  "compile-debug-frontend": {
+    "desc": "compile debug frontend app only.",
     "tasks": [
       {
         "action": "cmd",
         "exe" : "nake",
-        "options": "compile-csr {appName}",
+        "options": "compile-frontend {appName}",
         "next": [
           {
             "action": "copyDir",
@@ -113,13 +113,13 @@
       }
     ]
   },
-  "compile-release-csr": {
-    "desc": "compile release csr app only.",
+  "compile-release-frontend": {
+    "desc": "compile release frontend app only.",
     "tasks": [
       {
         "action": "cmd",
         "exe" : "nake",
-        "options": "compile-csr {appName}",
+        "options": "compile-frontend {appName}",
         "next": [
           {
             "action": "copyDir",
@@ -134,28 +134,28 @@
       }
     ]
   },
-  "compile-release-ssr": {
-    "desc": "compile release ssr app only",
+  "compile-release-backend": {
+    "desc": "compile release backend app only",
     "tasks": [
       {
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::ssr::{appName}.nim",
+          "src": "{currentAppDir}::src::backend::{appName}.nim",
           "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
       }
     ]
   },
-  "compile-debug-ssr": {
-    "desc": "compile debug ssr app only",
+  "compile-debug-backend": {
+    "desc": "compile debug backend app only",
     "tasks": [
       {
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::ssr::{appName}.nim",
+          "src": "{currentAppDir}::src::backend::{appName}.nim",
           "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
@@ -168,12 +168,12 @@
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "compile-debug-ssr {appName}",
+        "options": "compile-debug-backend {appName}",
         "next": [
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-csr {appName}",
+            "options": "compile-frontend {appName}",
             "next": [
               {
                 "action": "copyDir",
@@ -231,12 +231,12 @@
       {
         "action": "cmd",
         "exe": "nake",
-        "options": "compile-release-ssr {appName}",
+        "options": "compile-release-backend {appName}",
         "next": [
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-release-csr {appName}",
+            "options": "compile-release-frontend {appName}",
             "next": [
               {
                 "action": "copyDir",
@@ -375,12 +375,12 @@
                       {
                         "action": "cmd",
                         "exe": "nake",
-                        "options": "compile-debug-csr {appName}"
+                        "options": "compile-debug-frontend {appName}"
                       },
                       {
                         "action": "cmd",
                         "exe": "nake",
-                        "options": "compile-debug-ssr {appName}",
+                        "options": "compile-debug-backend {appName}",
                         "next": [
                           {
                             "action": "cmd",
@@ -469,12 +469,12 @@
                       {
                         "action": "cmd",
                         "exe": "nake",
-                        "options": "compile-release-csr {appName}"
+                        "options": "compile-release-frontend {appName}"
                       },
                       {
                         "action": "cmd",
                         "exe": "nake",
-                        "options": "compile-release-ssr {appName}",
+                        "options": "compile-release-backend {appName}",
                         "next": [
                           {
                             "action": "cmd",
