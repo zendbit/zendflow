@@ -360,7 +360,7 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src",
+                    "dir": "{currentAppDir}::src::backend",
                     "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
@@ -371,11 +371,6 @@
                             "exe": "taskkill /IM \"{appName}.exe\" /F"
                           }
                         }
-                      },
-                      {
-                        "action": "cmd",
-                        "exe": "nake",
-                        "options": "compile-debug-frontend {appName}"
                       },
                       {
                         "action": "cmd",
@@ -392,6 +387,17 @@
                             }
                           }
                         ]
+                      }
+                    ]
+                  },
+                  {
+                    "dir": "{currentAppDir}::src::frontend",
+                    "pattern": "[\\w\\W]*\\.nim",
+                    "onModified": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-debug-frontend {appName}"
                       }
                     ]
                   },
@@ -454,7 +460,7 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src",
+                    "dir": "{currentAppDir}::src::backend",
                     "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
@@ -465,11 +471,6 @@
                             "exe": "taskkill /IM \"{appName}.exe\" /F"
                           }
                         }
-                      },
-                      {
-                        "action": "cmd",
-                        "exe": "nake",
-                        "options": "compile-release-frontend {appName}"
                       },
                       {
                         "action": "cmd",
@@ -486,6 +487,17 @@
                             }
                           }
                         ]
+                      }
+                    ]
+                  },
+                  {
+                    "dir": "{currentAppDir}::src::frontend",
+                    "pattern": "[\\w\\W]*\\.nim",
+                    "onModified": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-release-frontend {appName}"
                       }
                     ]
                   },
