@@ -118,7 +118,7 @@ proc cleanDoubleColon(str: string): string =
     if result.endsWith("::"):
       result = result.subStr(0, high(result) - 2)
 
-proc moveDirContents(src: string, dest: string, includes: JsonNode, excludes: JsonNode = nil, mode = "copy", fileOnly = false) =
+proc moveDirContents(src: string, dest: string, includes: JsonNode, excludes: JsonNode = nil, mode: string = "copy", fileOnly: bool = false, filter: string = "") =
   #
   # for move dir contents of dir
   # with filtering options
@@ -128,6 +128,10 @@ proc moveDirContents(src: string, dest: string, includes: JsonNode, excludes: Js
     let filename = path.extractFilename
     let pathSrc = src.joinPath(filename)
     let pathDest = dest.joinPath(filename)
+    # if filter not empty string
+    # and pathSrc not match with filter continue
+    if filter != "" and pathSrc.findAll(re filter).len == 0:
+      continue
     if not excludes.isNil and %filename in excludes:
       continue
     if fileOnly and (kind == pcDir or kind == pcLinkToDir): continue
@@ -145,7 +149,7 @@ proc moveDirContents(src: string, dest: string, includes: JsonNode, excludes: Js
         of "move":
           pathSrc.moveDir(pathDest)
 
-proc removeDirContents(src: string, includes: JsonNode, excludes: JsonNode = nil, fileOnly = false) =
+proc removeDirContents(src: string, includes: JsonNode, excludes: JsonNode = nil, fileOnly: bool = false, filter: string = "") =
   #
   # for remove contents of dir
   # with filtering options
@@ -154,6 +158,10 @@ proc removeDirContents(src: string, includes: JsonNode, excludes: JsonNode = nil
   for (kind, path) in src.walkDir:
     let filename = path.extractFilename
     let pathSrc = src.joinPath(filename)
+    # if filter not empty string
+    # and pathSrc not match with filter continue
+    if filter != "" and pathSrc.findAll(re filter).len == 0:
+      continue
     if not excludes.isNil and %filename in excludes:
       continue
     if fileOnly and (kind == pcDir or kind == pcLinkToDir): continue
@@ -192,8 +200,13 @@ proc doActionList(actionList: JsonNode) =
           for l in list:
             let src = l{"src"}
             let dest = l{"dest"}
-            let includes = l{"includes"}
-            let excludes = l{"excludes"}
+            var includes = l{"includes"}
+            if includes.isNil:
+              includes = %[]
+            var excludes = l{"excludes"}
+            if excludes.isNil:
+              excludes = %[]
+            let filter = l{"filter"}.getStr
             if not src.isNil and not dest.isNil:
               let src = src.getStr().cleanDoubleColon
               let dest = dest.getStr().cleanDoubleColon
@@ -206,29 +219,29 @@ proc doActionList(actionList: JsonNode) =
               try:
                 case actionType
                 of "copyDir":
-                  if includes.isNil:
+                  if includes.len == 0 and excludes.len == 0 and filter == "":
                     echo &"copy {src} -> {dest}"
                     src.copyDir(dest)
                   else:
-                    src.moveDirContents(dest, includes, excludes, "copy")
+                    src.moveDirContents(dest, includes, excludes, "copy", false, filter)
                 of "copyFile":
-                  if includes.isNil:
+                  if includes.len == 0 and excludes.len == 0 and filter == "":
                     echo &"copy {src} -> {dest}"
                     src.copyFile(dest)
                   else:
-                    src.moveDirContents(dest, includes, excludes, "copy", true)
+                    src.moveDirContents(dest, includes, excludes, "copy", true, filter)
                 of "moveFile":
-                  if includes.isNil:
+                  if includes.len == 0 and excludes.len == 0 and filter == "":
                     echo &"move {src} -> {dest}"
                     src.moveFile(dest)
                   else:
-                    src.moveDirContents(dest, includes, excludes, "move", true)
+                    src.moveDirContents(dest, includes, excludes, "move", true, filter)
                 of "moveDir":
-                  if includes.isNil:
+                  if includes.len == 0 and excludes.len == 0 and filter == "":
                     echo &"move {src} -> {dest}"
                     src.moveDir(dest)
                   else:
-                    src.moveDirContents(dest, includes, excludes, "move")
+                    src.moveDirContents(dest, includes, excludes, "move", false, filter)
                 of "createSymlink":
                   echo &"symlink {src} -> {dest}"
                   src.createSymlink(dest)
@@ -338,8 +351,13 @@ proc doActionList(actionList: JsonNode) =
               let desc = l{"desc"}
               let next = l{"next"}
               let err = l{"err"}
-              let includes = l{"includes"}
-              let excludes = l{"excludes"}
+              var includes = l{"includes"}
+              if includes.isNil:
+                includes = %[]
+              var excludes = l{"excludes"}
+              if excludes.isNil:
+                excludes = %[]
+              let filter = l{"filter"}.getStr
               var errMsg = ""
 
               if not desc.isNil:
@@ -350,17 +368,17 @@ proc doActionList(actionList: JsonNode) =
                 try:
                   case actionType
                   of "removeFile":
-                    if includes.isNil:
+                    if includes.len == 0 and excludes.len == 0 and filter == "":
                       echo &"remove -> {name}"
                       name.removeFile()
                     else:
-                      name.removeDirContents(includes, excludes, true)
+                      name.removeDirContents(includes, excludes, true, filter)
                   of "removeDir":
-                    if includes.isNil:
+                    if includes.len == 0 and excludes.len == 0 and filter == "":
                       echo &"remove -> {name}"
                       name.removeDir()
                     else:
-                      name.removeDirContents(includes, excludes)
+                      name.removeDirContents(includes, excludes, false, filter)
                   of "createDir":
                     echo &"create -> {name}"
                     name.createDir()
@@ -387,19 +405,39 @@ proc doActionList(actionList: JsonNode) =
                 dir.getStr,
                 pattern.getStr,
                 proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
+                  let pattern = param{"pattern"}.getStr
                   let onModified = param{"onModified"}
                   let onCreated = param{"onCreated"}
                   let onDeleted = param{"onDeleted"}
+                  let (dir, name, ext) = file.splitFile
                   case event
                   of Modified:
                     if not onModified.isNil:
-                      onModified.doActionList
+                      if file.findAll(re pattern).len != 0:
+                        ($onModified)
+                          .replace("{modifiedFilePath}", file)
+                          .replace("{modifiedFileDir}", dir)
+                          .replace("{modifiedFileName}", name & ext)
+                          .parseJson
+                          .doActionList
                   of Created:
                     if not onCreated.isNil:
-                      onCreated.doActionList
+                      if file.findAll(re pattern).len != 0:
+                        ($onCreated)
+                          .replace("{createdFilePath}", file)
+                          .replace("{createdFileDir}", dir)
+                          .replace("{createdFileName}", name & ext)
+                          .parseJson
+                          .doActionList
                   of Deleted:
                     if not onDeleted.isNil:
-                      onDeleted.doActionList,
+                      if file.findAll(re pattern).len != 0:
+                        ($onDeleted)
+                          .replace("{deletedFilePath}", file)
+                          .replace("{deletedFileDir}", dir)
+                          .replace("{deletedFileName}", name & ext)
+                          .parseJson
+                          .doActionList,
                 l.copy)
           echo "watch started."
           waitFor watchDog.watch

@@ -1,0 +1,37 @@
+{
+  "core": {
+    "keepAlive": false,
+    "maxBodyLength": 268435456,
+    "readBodyBuffer": 51200,
+    "responseRangeBuffer": 51200,
+    "maxResponseBodyLength": 52428800,
+    "trace": false,
+    "http": {
+      "port": 8080,
+      "address": "0.0.0.0",
+      "reuseAddress": true,
+      "reusePort": false,
+      "secure": {
+        "cert": "ssl/devel-selfsigned.pem",
+        "key": "ssl/devel-selfsigned-key.pem",
+        "verify": true,
+        "port": 8443
+      }
+    }
+  },
+  "database": {
+    "pgsql": {
+      "host": "127.0.0.1",
+      "port": 5432,
+      "username": "admin",
+      "password": "secret",
+      "database": "mydb"
+    }
+  },
+  "auth": {
+    "basicAuth": {
+      "username": "foo",
+      "password": "bar"
+    }
+  }
+}

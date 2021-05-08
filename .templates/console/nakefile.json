@@ -175,7 +175,7 @@
                 "list": [
                   {
                     "dir": "{currentAppDir}::src",
-                    "pattern": "[\\w\\W]*\\.nim",
+                    "pattern": "(?=.*\\.nim).+$",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -235,7 +235,7 @@
                 "list": [
                   {
                     "dir": "{currentAppDir}::src",
-                    "pattern": "[\\w\\W]*\\.nim",
+                    "pattern": "(?=.*\\.nim).+$",
                     "onModified": [
                       {
                         "action": "cmd",

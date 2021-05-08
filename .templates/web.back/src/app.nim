@@ -1,105 +1,119 @@
-#[
-  zfcore web framework for nim language
-  This framework if free to use and to modify
-  License: BSD
-  Author: Amru Rosyada
-  Email: amru.rosyada@gmail.com
-  Git: https://github.com/zendbit
-]#
+##
+##  zfcore web framework for nim language
+##  This framework if free to use and to modify
+##  License: BSD
+##  Author: Amru Rosyada
+##  Email: amru.rosyada@gmail.com
+##  Git: https://github.com/zendbit
+##
+##
+##
+##  This module auto export from zendFlow module
+##  export
+##    HttpContext, -> zfcore module
+##    router, -> zfcore module
+##    Router, -> zfcore module
+##    route, -> zfcore module
+##    Route, -> zfcore module
+##    asyncdispatch, -> stdlib module
+##    zfblast, -> zf blast implementation of async http server with openssl
+##    tables, -> stdlib module
+##    formdata, -> zfcore module
+##    strtabs, -> stdlib module
+##    uri3, -> nimble package
+##    strutils, -> stdlib module
+##    times, -> stdlib module
+##    os, -> stdlib module
+##    Settings, -> zfcore module
+##    settings, -> zfcore module
+##    AsyncSocket, -> stdlib module
+##    asyncnet -> stdlib module
+##    zfplugs -> zfcore plugins
+##    stdext -> nim extended standard library
+##    zfmacros -> zfcore macros helper
+##
 
-#[
-  This module auto export from zendFlow module
-  export
-    HttpContext, -> zfcore module
-    router, -> zfcore module
-    Router, -> zfcore module
-    route, -> zfcore module
-    Route, -> zfcore module
-    asyncdispatch, -> stdlib module
-    zfblast, -> zf blast implementation of async http server with openssl
-    tables, -> stdlib module
-    formdata, -> zfcore module
-    strtabs, -> stdlib module
-    uri3, -> nimble package
-    strutils, -> stdlib module
-    times, -> stdlib module
-    os, -> stdlib module
-    Settings, -> zfcore module
-    settings, -> zfcore module
-    AsyncSocket, -> stdlib module
-    asyncnet -> stdlib module
-    zfplugs -> zfcore plugins
-    stdext -> nim extended standard library
-    zfmacros -> zfcore macros helper
-]#
-
-include prelude
-# layout example
-import layout
-# test example with route
+##
+##  test example with route
+##  this will automatic expose the route from the example.nim
+##  import zfcore
+##
+##  type
+##    HelloWorld* = ref object
+##
+##  proc printHelloWorld*(self: HelloWorld): string =
+##    return "Hello, World!"
+##
+##  routes:
+##    # accept request with /example/123456
+##    # id will capture the value 12345
+##    get "/example/<id>":
+##      echo params["id"]
+##      Http200.respHtml(HelloWorld().printHelloWorld)
+##
 import example
 
-#[
- configuration:
- copy settings.json.example as settings.json
+##
+##  configuration:
+##  copy settings.json.example as settings.json
 
- this is the new fashion of the zendflow framework syntax, make it easy
- and reduce defining multiple time of callback procedures
- this new syntax not break the old fashion, we only add macros and modify the syntax
- on compile time
-
-
- Some Important note
- inside routes
- routes:
-   get "/hello":
-     # in here we can call HttpContext
-     # HttpContext is unique object that heandle client request and response
-     # HttpContext containts:
-     # ws (WebSocket):
-     #   ws is ctx.webSocket shorthand
-     # req (Request):
-     #   req is ctx.request shorthand
-     # res (Response):
-     #   res is ctx.response shorthand
-     # params (table[string, string]):
-     #   params is ctx.params shorthand
-     #   this will contains data request parameter from client
-     #   - key value of query string
-     #   - key value of form url encoded
-     # reParams (table[string, @[string]]):
-     #   reParams is ctx.reParams shorthand
-     #   this will contains pattern matching on the url segments
-     # formData (FormData):
-     #   formData is ctx.formData shorthand
-     #   this will handle form data multipart including uploaded data
-     # json (JsonNode):
-     #   json is ctx.json shorthand
-     #   this will handle application/json request from client
-     
-
-     # you can response to client with following type response:
-     # HttpCode.resp("body response", httpheaders)
-     # HttpCode is HttpCode value from the nim httpcore standard library
-     # for example we want to reponse with Http200
-     # Http200.resp("Hello World")
-     # 
-     # the default response type is text/plain
-     # for html response use
-     # Http200.respHtml("This is html content")
-     #
-     # for json response you only need to pas JsonNode object to the resp
-     # Http200.resp(%*{"Hello": "World"})
-     #
-     # for send redirection web can use respRedirect
-     # Http200.respRedirect("https://google.com")
-     #
-]#
+##  this is the new fashion of the zendflow framework syntax, make it easy
+##  and reduce defining multiple time of callback procedures
+##  this new syntax not break the old fashion, we only add macros and modify the syntax
+##  on compile time
+##
+##
+##  Some Important note
+##  inside routes
+##  routes:
+##    get "/hello":
+##      # in here we can call HttpContext
+##      # HttpContext is unique object that heandle client request and response
+##      # HttpContext containts:
+##      # ws (WebSocket):
+##      #   ws is ctx.webSocket shorthand
+##      # req (Request):
+##      #   req is ctx.request shorthand
+##      # res (Response):
+##      #   res is ctx.response shorthand
+##      # params (table[string, string]):
+##      #   params is ctx.params shorthand
+##      #   this will contains data request parameter from client
+##      #   - key value of query string
+##      #   - key value of form url encoded
+##      # reParams (table[string, @[string]]):
+##      #   reParams is ctx.reParams shorthand
+##      #   this will contains pattern matching on the url segments
+##      # formData (FormData):
+##      #   formData is ctx.formData shorthand
+##      #   this will handle form data multipart including uploaded data
+##      # json (JsonNode):
+##      #   json is ctx.json shorthand
+##      #   this will handle application/json request from client
+##     
+##
+##      # you can response to client with following type response:
+##      # HttpCode.resp("body response", httpheaders)
+##      # HttpCode is HttpCode value from the nim httpcore standard library
+##      # for example we want to reponse with Http200
+##      # Http200.resp("Hello World")
+##      # 
+##      # the default response type is text/plain
+##      # for html response use
+##      # Http200.respHtml("This is html content")
+##      #
+##      # for json response you only need to pas JsonNode object to the resp
+##      # Http200.resp(%*{"Hello": "World"})
+##      #
+##      # for send redirection web can use respRedirect
+##      # Http200.respRedirect("https://google.com")
+##      #
+##
 
 routes:
   # render / to display default page for /
   get "/":
-    Http200.respHtml(layout.defaultLayout)
+    Http200.respHtml(layout.default())
 
   # websocket example :-)
   get "/ws":

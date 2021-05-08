@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/zendcraft/nakefile.json",
+  "jsonNakefile": "apps/consoletest/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }

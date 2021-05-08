@@ -11,11 +11,14 @@
     "install zfcore@#head",
     "install zfplugs@#head",
     "install stdext@#head",
+    "install karax@#head",
     "install moustachu@#head"
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "srcDir": "{appDir}::src",
+    "clientSrcDir": "{srcDir}::client",
+    "serverSrcDir": "{srcDir}::server",
     "wwwDir": "{appDir}::www",
     "compiledJsDir": "{wwwDir}::private::js"
   },
@@ -38,8 +41,8 @@
                       "action": "moveFile",
                       "list": [
                         {
-                          "src": "{srcDir}::app_js.nim",
-                          "dest": "{srcDir}::{appName}_js.nim",
+                          "src": "{clientSrcDir}::app.nim",
+                          "dest": "{clientSrcDir}::{appName}.nim",
                           "next": [
                             {
                               "action": "createDir",
@@ -50,8 +53,20 @@
                           ]
                         },
                         {
-                          "src": "{srcDir}::app.nim",
-                          "dest": "{srcDir}::{appName}.nim"
+                          "src": "{serverSrcDir}::app.nim",
+                          "dest": "{serverSrcDir}::{appName}.nim",
+                          "next": [
+                            {
+                              "action": "replaceStr",
+                              "file": "{serverSrcDir}::layout.nim",
+                              "list": [
+                                {
+                                  "old": "[appName]",
+                                  "new": "{appName}"
+                                }
+                              ]
+                            }
+                          ]
                         }
                       ]
                     }
@@ -71,10 +86,10 @@
         "action": "cmd",
         "exe" : "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}_js.nim",
-          "out": "{currentAppDir}::www::private::js::{appName}.js"
+          "src": "{currentAppDir}::src::client::{appName}.nim",
+          "out": "{currentAppDir}::www::private::js"
         },
-        "options": "js --out:{out} {src}"
+        "options": "js --outdir:{out} {src}"
       }
     ]
   },
@@ -127,7 +142,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
+          "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::release"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
@@ -141,7 +156,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
+          "src": "{currentAppDir}::src::server::{appName}.nim",
           "out": "{currentAppDir}::bin::debug"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
@@ -171,11 +186,6 @@
                   {
                     "src": "{currentAppDir}::ssl",
                     "dest": "{currentAppDir}::bin::debug::ssl"
-                  },
-                  {
-                    "src": "{currentAppDir}::src",
-                    "dest": "{currentAppDir}::bin::debug",
-                    "filter": "(?=.*\\.html).+$"
                   }
                 ]
               },
@@ -351,8 +361,8 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "^(?!.*_js).+\\.nim",
+                    "dir": "{currentAppDir}::src::server",
+                    "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -382,49 +392,13 @@
                     ]
                   },
                   {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "(?=.*_js).+\\.nim",
+                    "dir": "{currentAppDir}::src::client",
+                    "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
                         "exe": "nake",
                         "options": "compile-debug-client {appName}"
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "(?=.*\\.html).+$",
-                    "onModified": [
-                      {
-                        "action": "copyFile",
-                        "list": [
-                          {
-                            "src": "{modifiedFilePath}",
-                            "dest": "{currentAppDir}::bin::debug::{modifiedFileName}"
-                          }
-                        ]
-                      }
-                    ],
-                    "onCreated": [
-                      {
-                        "action": "copyFile",
-                        "list": [
-                          {
-                            "src": "{createdFilePath}",
-                            "dest": "{currentAppDir}::bin::debug::{createdFileName}"
-                          }
-                        ]
-                      }
-                    ],
-                    "onDeleted": [
-                      {
-                        "action": "removeFile",
-                        "list": [
-                          {
-                            "name": "{currentAppDir}::bin::debug::{deletedFileName}"
-                          }
-                        ]
                       }
                     ]
                   },
@@ -487,8 +461,8 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "^(?!.*_js).+\\.nim",
+                    "dir": "{currentAppDir}::src::server",
+                    "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -518,49 +492,13 @@
                     ]
                   },
                   {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "(?=.*_js).+\\.nim",
+                    "dir": "{currentAppDir}::src::client",
+                    "pattern": "[\\w\\W]*\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
                         "exe": "nake",
                         "options": "compile-release-client {appName}"
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "(?=.*\\.html).+$",
-                    "onModified": [
-                      {
-                        "action": "copyFile",
-                        "list": [
-                          {
-                            "src": "{modifiedFilePath}",
-                            "dest": "{currentAppDir}::bin::release::{modifiedFileName}"
-                          }
-                        ]
-                      }
-                    ],
-                    "onCreated": [
-                      {
-                        "action": "copyFile",
-                        "list": [
-                          {
-                            "src": "{createdFilePath}",
-                            "dest": "{currentAppDir}::bin::release::{createdFileName}"
-                          }
-                        ]
-                      }
-                    ],
-                    "onDeleted": [
-                      {
-                        "action": "removeFile",
-                        "list": [
-                          {
-                            "name": "{currentAppDir}::bin::release::{deletedFileName}"
-                          }
-                        ]
                       }
                     ]
                   },
