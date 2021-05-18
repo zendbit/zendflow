@@ -21,7 +21,7 @@ const
 
 # init appsDir and templatesDir
 # depend on the top level of the nakefile.json
-if jsonNakefile.existsFile:
+if jsonNakefile.fileExists:
   let jnode = jsonNakefile.parseFile()
   appsDir = jnode{"appsDir"}.getStr().replace("::", $DirSep)
   templatesDir = jnode{"templatesDir"}.getStr().replace("::", $DirSep)
@@ -54,9 +54,9 @@ proc loadJsonNakefile(appName: string = ""): JsonNode =
   #
   result = %*{}
   try:
-    if appsDir.joinPath(appName, jsonNakefile).existsFile:
+    if appsDir.joinPath(appName, jsonNakefile).fileExists:
       result = appsDir.joinPath(appName, jsonNakefile).parseFile()
-    elif jsonNakefile.existsFile:
+    elif jsonNakefile.fileExists:
       result = jsonNakefile.parseFile()
   except Exception:
     discard
@@ -67,7 +67,7 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
   # the umbrella mode is in the top of zendflow dir
   # non umbrella mode is in the application dir
   #
-  if not templatesDir.existsDir:
+  if not templatesDir.dirExists:
     if showMsg:
       echo ""
       echo "Not in umbrella mode."
@@ -77,7 +77,7 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
   else:
     # check if apps folder exist, if not create the dir
     discard appsDir.existsOrCreateDir()
-    if not jsonNakefile.existsFile:
+    if not jsonNakefile.fileExists:
       let f = jsonNakefile.open(FileMode.fmWrite)
       f.write((%*{
         "jsonNakefile": "",
@@ -123,18 +123,27 @@ proc moveDirContents(src: string, dest: string, includes: JsonNode, excludes: Js
   # for move dir contents of dir
   # with filtering options
   #
-  echo &"{mode} {src}{$DirSep}{includes} -> {dest}{$DirSep}{includes}"
+  if includes.len != 0:
+    echo &"{mode} {src}{$DirSep}{includes} -> {dest}{$DirSep}{includes}"
+  else:
+    echo &"{mode} {src} -> {dest}"
+  if filter != "":
+    echo &"  -> with filter {filter}"
   for (kind, path) in src.walkDir:
     let filename = path.extractFilename
     let pathSrc = src.joinPath(filename)
     let pathDest = dest.joinPath(filename)
+    if fileOnly and (kind == pcDir or kind == pcLinkToDir):
+      continue
     # if filter not empty string
     # and pathSrc not match with filter continue
-    if filter != "" and pathSrc.findAll(re filter).len == 0:
-      continue
+    if filter != "":
+      if pathSrc.findAll(re filter).len == 0:
+        continue
+      else:
+        includes.add(%filename)
     if not excludes.isNil and %filename in excludes:
       continue
-    if fileOnly and (kind == pcDir or kind == pcLinkToDir): continue
     if %filename in includes or %"*" in includes:
       if kind == pcFile or kind == pcLinkToFile:
         case mode
@@ -154,17 +163,26 @@ proc removeDirContents(src: string, includes: JsonNode, excludes: JsonNode = nil
   # for remove contents of dir
   # with filtering options
   #
-  echo &"remove {src}{$DirSep}{includes}"
+  if includes.len != 0:
+    echo &"remove {src}{$DirSep}{includes}"
+  else:
+    echo &"remove {src}"
+  if filter != "":
+    echo &"  -> with filter {filter}"
   for (kind, path) in src.walkDir:
     let filename = path.extractFilename
     let pathSrc = src.joinPath(filename)
+    if fileOnly and (kind == pcDir or kind == pcLinkToDir):
+      continue
     # if filter not empty string
     # and pathSrc not match with filter continue
-    if filter != "" and pathSrc.findAll(re filter).len == 0:
-      continue
+    if filter != "":
+      if pathSrc.findAll(re filter).len == 0:
+        continue
+      else:
+        includes.add(%filename)
     if not excludes.isNil and %filename in excludes:
       continue
-    if fileOnly and (kind == pcDir or kind == pcLinkToDir): continue
     if %filename in includes or %"*" in includes:
       if kind == pcFile or kind == pcLinkToFile:
         pathSrc.removeFile
@@ -314,7 +332,7 @@ proc doActionList(actionList: JsonNode) =
         let err = action{"err"}
         echo &"replace str in file -> {file}"
         var errMsg = ""
-        if not file.isNil and not list.isNil and file.getStr().existsFile:
+        if not file.isNil and not list.isNil and file.getStr().fileExists:
           try:
             var f = file.getStr().open(FileMode.fmRead)
             var fstr = f.readAll()
@@ -457,7 +475,7 @@ proc defaultApp(): tuple[appName: string, appType: string] =
   let jsonNake = loadJsonNakefile()
   if not isNil(jsonNake{"jsonNakefile"}):
     let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
-    if forwardJsonNakefile != "" and forwardJsonNakefile.existsFile:
+    if forwardJsonNakefile != "" and forwardJsonNakefile.fileExists:
       let jsonNake = forwardJsonNakefile.parseFile()
       appName = jsonNake{"appInfo"}{"appName"}.getStr()
       appType = jsonNake{"appInfo"}{"appType"}.getStr()
@@ -493,8 +511,8 @@ proc isAppExists(appName: string): bool =
   #
   # check if application name folder exists
   #
-  result = appsDir.joinPath(appName).existsDir and
-    appsDir.joinPath(appName, jsonNakefile).existsFile
+  result = appsDir.joinPath(appName).dirExists and
+    appsDir.joinPath(appName, jsonNakefile).fileExists
 
   # check if the jsonNakefile contains appInfo -> appName
   # this mean directly run from the app dir
@@ -525,7 +543,7 @@ proc installDeps(appName: string) =
           if errMsg != "" and errMsg.toLower().contains("'"):
             var depDir: array[1, string]
             if errMsg.match(re"[\w\W]+\'([\w\W]+)\'[\w\W]+$", depDir):
-              if depDir[0].existsDir:
+              if depDir[0].dirExists:
                 @["cd", depDir[0], "&&", "git", "pull"].join(" ").shell
 
       else:
@@ -545,12 +563,12 @@ proc showTemplateList() =
   #
   # show available template list
   #
-  if templatesDir.existsDir:
+  if templatesDir.dirExists:
     echo ""
     for kind, path in templatesDir.walkDir:
       if kind == PathComponent.pcDir:
         let f = path.joinPath(jsonNakefile)
-        if f.existsFile:
+        if f.fileExists:
           let appInfo = f.parseFile(){"appInfo"}
           if not appInfo.isNil and appInfo.hasKey("appType") and
             appInfo.hasKey("appDesc"):
@@ -570,7 +588,7 @@ proc newApp(appName: string, appType: string) =
   if appType.existsTemplates():
     # load json from templates
     let fpath = templatesDir.joinPath(appType, jsonNakefile)
-    if existsFile(fpath):
+    if fileExists(fpath):
       let f = fpath.open(FileMode.fmRead)
       #var fcontent = f.readAll().replace("{appName}", appName)
       var fcontent = f.readAll()
@@ -610,7 +628,7 @@ proc newApp(appName: string, appType: string) =
         if not initnode.isNil and initnode.kind == JsonNodeKind.JArray:
           ($initNode).replace("::", $DirSep)
             .replace("{appName}", appName).parseJson().doActionList
-          if appDir.existsDir:
+          if appDir.dirExists:
             # remove from node then save nakefile.json to the appdir
             # remove:
             # init section
@@ -679,10 +697,10 @@ task "list-apps", "show available app. Ex: nake list-app":
   if not true.isUmbrellaMode():
     return
 
-  if appsDir.existsDir:
+  if appsDir.dirExists:
     echo ""
     for dir in joinPath(appsDir, "*").walkDirs:
-      if dir.joinPath(jsonNakefile).existsFile:
+      if dir.joinPath(jsonNakefile).fileExists:
         echo "-> " & dir.extractFilename()
     echo ""
 
@@ -693,9 +711,9 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
   if cmdParams.len > 1:
     for i in 1..cmdParams.high():
       let appDir = appsDir.joinPath(cmdParams[i])
-      if appDir.existsDir:
+      if appDir.dirExists:
         appDir.removeDir
-        if not appDir.existsDir:
+        if not appDir.dirExists:
           echo ""
           echo &"{appDir} deleted."
           echo ""
@@ -717,7 +735,7 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
 
 task "install-deps", "install nimble app depedencies. Ex: nake install-deps [appName].":
   let defApp = defaultApp()
-  if not nimdepsDir.existsDir:
+  if not nimdepsDir.dirExists:
     nimdepsDir.createDir()
 
   if cmdParams.len > 1:

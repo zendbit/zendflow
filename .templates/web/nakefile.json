@@ -175,7 +175,7 @@
                   {
                     "src": "{currentAppDir}::src",
                     "dest": "{currentAppDir}::bin::debug",
-                    "filter": "(?=.*\\.html).+$"
+                    "filter": "(?=.*).+\\.html"
                   }
                 ]
               },
@@ -239,6 +239,11 @@
                   {
                     "src": "{currentAppDir}::ssl",
                     "dest": "{currentAppDir}::bin::release::ssl"
+                  },
+                  {
+                    "src": "{currentAppDir}::src",
+                    "dest": "{currentAppDir}::bin::release",
+                    "filter": "(?=.*).+\\.html"
                   }
                 ]
               },
@@ -441,6 +446,17 @@
                           }
                         ]
                       }
+                    ],
+                    "onCreated": [
+                      {
+                        "action": "copyDir",
+                        "list": [
+                          {
+                            "src": "{currentAppDir}::www",
+                            "dest": "{currentAppDir}::bin::debug::www"
+                          }
+                        ]
+                      }
                     ]
                   },
                   {
@@ -568,6 +584,17 @@
                     "dir": "{currentAppDir}::www",
                     "pattern": "[\\w\\W]+$",
                     "onModified": [
+                      {
+                        "action": "copyDir",
+                        "list": [
+                          {
+                            "src": "{currentAppDir}::www",
+                            "dest": "{currentAppDir}::bin::release::www"
+                          }
+                        ]
+                      }
+                    ],
+                    "onCreated": [
                       {
                         "action": "copyDir",
                         "list": [
