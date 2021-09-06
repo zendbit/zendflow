@@ -119,12 +119,12 @@ the nimble package tool support install/develop directly from the git repo like 
 see: https://github.com/nim-lang/nimble
 ```javascript
 "nimble": [
-    "develop https://github.com/zendbit/nim.uri3",
-    "develop https://github.com/zendbit/nim.zfblast",
-    "develop https://github.com/zendbit/nim.zfcore",
-    "develop https://github.com/zendbit/nim.zfplugs",
-    "develop https://github.com/zendbit/nim.stdext",
-    "install karax"
+    "install uri3@#head",
+    "install zfblast@#head",
+    "install zfcore@#head",
+    "install zfplugs@#head",
+    "install stdext@#head",
+    "install karax@#head"
   ]
 ```
 
