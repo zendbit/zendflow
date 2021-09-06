@@ -26,6 +26,59 @@ if jsonNakefile.fileExists:
   appsDir = jnode{"appsDir"}.getStr().replace("::", $DirSep)
   templatesDir = jnode{"templatesDir"}.getStr().replace("::", $DirSep)
 
+type
+  FileOperationMode = enum
+    COPY_MODE
+    MOVE_MODE
+
+proc copyFileToDir(
+  src: string,
+  dest: string,
+  filter: string = "",
+  recursive: bool = true,
+  verbose: bool = false,
+  mode: FileOperationMode = COPY_MODE) =
+  ##
+  ##  copyFileToDir(
+  ##    src,  // source folder
+  ##    dest, // destination folder
+  ##    filter, // filter in regex string (optional)
+  ##    recursive, // recursive copy (optional), default true
+  ##    verbose,
+  ##    mode) // copy mode, default COPY_MODE
+  ##
+  if not src.dirExists: return
+  if not dest.dirExists:
+    dest.createDir
+
+  for (kind, path) in src.walkDir:
+
+    case kind
+    of pcFile, pcLinkToFile:
+      let fileInfo = path.splitPath
+      let destDir = fileInfo.head.replace(src, dest)
+      let destFile = destDir.joinPath(fileInfo.tail)
+    
+      if filter != "" and
+        fileInfo.tail.findAll(re filter).len == 0:
+        continue
+
+      if not destDir.dirExists:
+        destDir.createDir
+
+      if verbose:
+        echo path & " -> " & destFile
+
+      case mode
+      of COPY_MODE:
+        path.copyFile(destFile)
+      of MOVE_MODE:
+        path.moveFile(destFile)
+
+    of pcDir, pcLinkToDir:
+      if recursive:
+        path.copyFileToDir(path.replace(src, dest), filter, recursive, verbose, mode)
+
 proc isInPlatform(platform: string): bool =
   #
   # define on platform specific
@@ -118,76 +171,51 @@ proc cleanDoubleColon(str: string): string =
     if result.endsWith("::"):
       result = result.subStr(0, high(result) - 2)
 
-proc moveDirContents(src: string, dest: string, includes: JsonNode, excludes: JsonNode = nil, mode: string = "copy", fileOnly: bool = false, filter: string = "") =
-  #
-  # for move dir contents of dir
-  # with filtering options
-  #
-  if includes.len != 0:
-    echo &"{mode} {src}{$DirSep}{includes} -> {dest}{$DirSep}{includes}"
-  else:
-    echo &"{mode} {src} -> {dest}"
+proc moveDirContents(src: string, dest: string, mode: FileOperationMode = COPY_MODE, fileOnly: bool = false, filter: string = "") =
+  ##
+  ##  for move dir contents of dir
+  ##  with filtering options
+  ##
+  echo &"{mode} {src} -> {dest}"
   if filter != "":
     echo &"  -> with filter {filter}"
-  for (kind, path) in src.walkDir:
-    let filename = path.extractFilename
-    let pathSrc = src.joinPath(filename)
-    let pathDest = dest.joinPath(filename)
-    if fileOnly and (kind == pcDir or kind == pcLinkToDir):
-      continue
-    # if filter not empty string
-    # and pathSrc not match with filter continue
-    if filter != "":
-      if pathSrc.findAll(re filter).len == 0:
-        continue
-      else:
-        includes.add(%filename)
-    if not excludes.isNil and %filename in excludes:
-      continue
-    if %filename in includes or %"*" in includes:
-      if kind == pcFile or kind == pcLinkToFile:
-        case mode
-        of "copy":
-          pathSrc.copyFile(pathDest)
-        of "move":
-          pathSrc.moveFile(pathDest)
-      else:
-        case mode
-        of "copy":
-          pathSrc.copyDir(pathDest)
-        of "move":
-          pathSrc.moveDir(pathDest)
+  
+  if fileOnly:
+    src.copyFileToDir(dest, filter = filter, mode = mode)
 
-proc removeDirContents(src: string, includes: JsonNode, excludes: JsonNode = nil, fileOnly: bool = false, filter: string = "") =
+  else:
+    case mode
+    of COPY_MODE:
+      src.copyDir(dest)
+    of MOVE_MODE:
+      src.moveDir(dest)
+
+proc removeDirContents(src: string, fileOnly: bool = false, filter: string = "") =
   #
   # for remove contents of dir
   # with filtering options
   #
-  if includes.len != 0:
-    echo &"remove {src}{$DirSep}{includes}"
-  else:
-    echo &"remove {src}"
+  echo &"remove {src}"
   if filter != "":
     echo &"  -> with filter {filter}"
+  
   for (kind, path) in src.walkDir:
     let filename = path.extractFilename
     let pathSrc = src.joinPath(filename)
     if fileOnly and (kind == pcDir or kind == pcLinkToDir):
       continue
+    
     # if filter not empty string
     # and pathSrc not match with filter continue
     if filter != "":
       if pathSrc.findAll(re filter).len == 0:
         continue
-      else:
-        includes.add(%filename)
-    if not excludes.isNil and %filename in excludes:
-      continue
-    if %filename in includes or %"*" in includes:
-      if kind == pcFile or kind == pcLinkToFile:
-        pathSrc.removeFile
-      else:
-        pathSrc.removeDir
+    
+    if kind == pcFile or kind == pcLinkToFile:
+      pathSrc.removeFile
+
+    else:
+      pathSrc.removeDir
 
 proc doActionList(actionList: JsonNode) =
   #
@@ -218,12 +246,6 @@ proc doActionList(actionList: JsonNode) =
           for l in list:
             let src = l{"src"}
             let dest = l{"dest"}
-            var includes = l{"includes"}
-            if includes.isNil:
-              includes = %[]
-            var excludes = l{"excludes"}
-            if excludes.isNil:
-              excludes = %[]
             let filter = l{"filter"}.getStr
             if not src.isNil and not dest.isNil:
               let src = src.getStr().cleanDoubleColon
@@ -237,29 +259,29 @@ proc doActionList(actionList: JsonNode) =
               try:
                 case actionType
                 of "copyDir":
-                  if includes.len == 0 and excludes.len == 0 and filter == "":
+                  if filter == "":
                     echo &"copy {src} -> {dest}"
                     src.copyDir(dest)
                   else:
-                    src.moveDirContents(dest, includes, excludes, "copy", false, filter)
+                    src.moveDirContents(dest, COPY_MODE, false, filter)
                 of "copyFile":
-                  if includes.len == 0 and excludes.len == 0 and filter == "":
+                  if filter == "":
                     echo &"copy {src} -> {dest}"
                     src.copyFile(dest)
                   else:
-                    src.moveDirContents(dest, includes, excludes, "copy", true, filter)
+                    src.moveDirContents(dest, COPY_MODE, true, filter)
                 of "moveFile":
-                  if includes.len == 0 and excludes.len == 0 and filter == "":
+                  if filter == "":
                     echo &"move {src} -> {dest}"
                     src.moveFile(dest)
                   else:
-                    src.moveDirContents(dest, includes, excludes, "move", true, filter)
+                    src.moveDirContents(dest, MOVE_MODE, true, filter)
                 of "moveDir":
-                  if includes.len == 0 and excludes.len == 0 and filter == "":
+                  if filter == "":
                     echo &"move {src} -> {dest}"
                     src.moveDir(dest)
                   else:
-                    src.moveDirContents(dest, includes, excludes, "move", false, filter)
+                    src.moveDirContents(dest, MOVE_MODE, false, filter)
                 of "createSymlink":
                   echo &"symlink {src} -> {dest}"
                   src.createSymlink(dest)
@@ -369,12 +391,6 @@ proc doActionList(actionList: JsonNode) =
               let desc = l{"desc"}
               let next = l{"next"}
               let err = l{"err"}
-              var includes = l{"includes"}
-              if includes.isNil:
-                includes = %[]
-              var excludes = l{"excludes"}
-              if excludes.isNil:
-                excludes = %[]
               let filter = l{"filter"}.getStr
               var errMsg = ""
 
@@ -386,17 +402,17 @@ proc doActionList(actionList: JsonNode) =
                 try:
                   case actionType
                   of "removeFile":
-                    if includes.len == 0 and excludes.len == 0 and filter == "":
+                    if filter == "":
                       echo &"remove -> {name}"
                       name.removeFile()
                     else:
-                      name.removeDirContents(includes, excludes, true, filter)
+                      name.removeDirContents(true, filter)
                   of "removeDir":
-                    if includes.len == 0 and excludes.len == 0 and filter == "":
+                    if filter == "":
                       echo &"remove -> {name}"
                       name.removeDir()
                     else:
-                      name.removeDirContents(includes, excludes, false, filter)
+                      name.removeDirContents(false, filter)
                   of "createDir":
                     echo &"create -> {name}"
                     name.createDir()
