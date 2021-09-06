@@ -20,7 +20,6 @@ Follow this nim language installation and setup [Nim Language Download](https://
 ## Install nake, nwatchdog, karax from Nimble
 ```shell
 nimble install nake
-nimble install karax
 nimble install nwatchdog
 ```
 
