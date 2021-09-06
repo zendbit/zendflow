@@ -7,6 +7,7 @@ proc createDom(): VNode =
       text "Hello World!"
     else:
       text "Hello Universe"
+    text "This example using karax(spa nim framework), see karax repository for more documentations."
     br()
     a(href = "https://github.com/karaxnim/karax"):
       text "https://github.com/karaxnim/karax"
