@@ -780,6 +780,11 @@ if cmdParams.len > 1:
   appName = cmdParams[1]
 
 proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
+  ## if appName.currentAppDir not equal "." or ""
+  ## then set nwatchdog workdir to appName.currentAppDir
+  if appName.currentAppDir notin ["", "."]:
+    watchDog.workdir = appName.currentAppDir
+
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
     task name, desc:
       let actionToDo = ($taskList).replace("::", $DirSep)
