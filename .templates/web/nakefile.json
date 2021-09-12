@@ -39,6 +39,15 @@
           ]
         }
       ]
+    },
+    {
+      "action": "copyFile",
+      "list": [
+        {
+          "src": "nakefile.nim",
+          "dest": "{appDir}::nakefile.nim"
+        }
+      ]
     }
   ],
   "compile-debug-frontend": {

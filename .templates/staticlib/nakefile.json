@@ -15,27 +15,23 @@
       "list": [
         {
           "src": "{templatesDir}::{appType}",
-          "dest": "{appDir}",
-          "next": [
+          "dest": "{appDir}"
+        },
+        {
+          "action": "copyFile",
+          "list": [
             {
-              "action": "copyFile",
-              "list": [
-                {
-                  "src": "nakefile.nim",
-                  "dest": "{appDir}::nakefile.nim",
-                  "next": [
-                    {
-                      "action": "moveFile",
-                      "list": [
-                        {
-                          "src": "{appSrcDir}::app.nim",
-                          "dest": "{appSrcDir}::{appName}.nim"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+              "src": "nakefile.nim",
+              "dest": "{appDir}::nakefile.nim"
+            }
+          ]
+        },
+        {
+          "action": "moveFile",
+          "list": [
+            {
+              "src": "{appSrcDir}::app.nim",
+              "dest": "{appSrcDir}::{appName}.nim"
             }
           ]
         }
