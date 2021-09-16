@@ -479,8 +479,8 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "^(?!.*_js).+\\.nim",
+                    "dir": "{currentAppDir}::src::backend",
+                    "pattern": "^(?!.*).+\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -510,8 +510,8 @@
                     ]
                   },
                   {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "(?=.*_js).+\\.nim",
+                    "dir": "{currentAppDir}::src::frontend",
+                    "pattern": "(?=.*).+\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
