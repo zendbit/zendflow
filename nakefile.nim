@@ -13,7 +13,7 @@ for clp in cmdLineParams:
 
 var appsDir = ""
 var templatesDir = ""
-let watchDog = NWatchDog[JsonNode](interval: 100)
+let watchDog = NWatchDog[JsonNode](interval: 5)
 
 const
   jsonNakefile = "nakefile.json"
@@ -61,6 +61,9 @@ proc copyFileToDir(
     
       if filter != "" and
         fileInfo.tail.findAll(re filter).len == 0:
+        continue
+
+      if path.sameFile(destFile) or path.sameFileContent(destFile):
         continue
 
       if not destDir.dirExists:
@@ -259,29 +262,29 @@ proc doActionList(actionList: JsonNode) =
               try:
                 case actionType
                 of "copyDir":
-                  if filter == "":
-                    echo &"copy {src} -> {dest}"
-                    src.copyDir(dest)
-                  else:
-                    src.moveDirContents(dest, COPY_MODE, false, filter)
+                  #if filter == "":
+                  #  echo &"copy {src} -> {dest}"
+                  #  src.copyDir(dest)
+                  #else:
+                  src.moveDirContents(dest, COPY_MODE, false, filter)
                 of "copyFile":
-                  if filter == "":
-                    echo &"copy {src} -> {dest}"
-                    src.copyFile(dest)
-                  else:
-                    src.moveDirContents(dest, COPY_MODE, true, filter)
+                  #if filter == "":
+                  #  echo &"copy {src} -> {dest}"
+                  #  src.copyFile(dest)
+                  #else:
+                  src.moveDirContents(dest, COPY_MODE, true, filter)
                 of "moveFile":
-                  if filter == "":
-                    echo &"move {src} -> {dest}"
-                    src.moveFile(dest)
-                  else:
-                    src.moveDirContents(dest, MOVE_MODE, true, filter)
+                  #if filter == "":
+                  #  echo &"move {src} -> {dest}"
+                  #  src.moveFile(dest)
+                  #else:
+                  src.moveDirContents(dest, MOVE_MODE, true, filter)
                 of "moveDir":
-                  if filter == "":
-                    echo &"move {src} -> {dest}"
-                    src.moveDir(dest)
-                  else:
-                    src.moveDirContents(dest, MOVE_MODE, false, filter)
+                  #if filter == "":
+                  #  echo &"move {src} -> {dest}"
+                  #  src.moveDir(dest)
+                  #else:
+                  src.moveDirContents(dest, MOVE_MODE, false, filter)
                 of "createSymlink":
                   echo &"symlink {src} -> {dest}"
                   src.createSymlink(dest)
@@ -402,17 +405,17 @@ proc doActionList(actionList: JsonNode) =
                 try:
                   case actionType
                   of "removeFile":
-                    if filter == "":
-                      echo &"remove -> {name}"
-                      name.removeFile()
-                    else:
-                      name.removeDirContents(true, filter)
+                    #if filter == "":
+                    #  echo &"remove -> {name}"
+                    #  name.removeFile()
+                    #else:
+                    name.removeDirContents(true, filter)
                   of "removeDir":
-                    if filter == "":
-                      echo &"remove -> {name}"
-                      name.removeDir()
-                    else:
-                      name.removeDirContents(false, filter)
+                    #if filter == "":
+                    #  echo &"remove -> {name}"
+                    #  name.removeDir()
+                    #else:
+                    name.removeDirContents(false, filter)
                   of "createDir":
                     echo &"create -> {name}"
                     name.createDir()
