@@ -46,7 +46,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}::bin::debug"
+          "out": "{currentAppDir}"
         },
         "options": "c -d:nimDebugDlOpen --outdir:{out} {src}"
       }
@@ -62,7 +62,7 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::debug::{appName}"
+            "exe": "{currentAppDir}::{appName}"
           }
         ]
       }
@@ -76,7 +76,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}::bin::release"
+          "out": "{currentAppDir}"
         },
         "options": "c -d:release --outdir:{out} {src}"
       }
@@ -92,59 +92,8 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::release::{appName}"
+            "exe": "{currentAppDir}::{appName}"
           }
-        ]
-      }
-    ]
-  },
-  "clean-release-run": {
-    "desc": "clean release run the app.",
-    "tasks": [
-      {
-        "action": "removeDir",
-        "list": [
-          {
-            "name": "{currentAppDir}::bin::release",
-            "next": [
-              {
-                "action": "cmd",
-                "exe": "nake",
-                "options": "release-run {appName}"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "clean-debug-run": {
-    "desc": "clean debug run the app.",
-    "tasks": [
-      {
-        "action": "removeDir",
-        "list": [
-          {
-            "name": "{currentAppDir}::bin::debug",
-            "next": [
-              {
-                "action": "cmd",
-                "exe": "nake",
-                "options": "debug-run {appName}"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "clean-all": {
-    "desc": "clean bin dir.",
-    "tasks": [
-      {
-        "action": "removeDir",
-        "list": [
-          {"name": "{currentAppDir}::bin"}
         ]
       }
     ]
@@ -159,10 +108,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::debug::{appName} &",
+            "exe": "{currentAppDir}::{appName} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {currentAppDir}::bin::debug::{appName}.exe"
+                "exe": "start {currentAppDir}::{appName}.exe"
               }
             },
             "next": [
@@ -190,10 +139,10 @@
                           },
                           {
                             "action": "cmd",
-                            "exe": "{currentAppDir}::bin::debug::{appName} &",
+                            "exe": "{currentAppDir}::{appName} &",
                             "onPlatform": {
                               "windows": {
-                                "exe": "start {currentAppDir}::bin::debug::{appName}.exe"
+                                "exe": "start {currentAppDir}::{appName}.exe"
                               }
                             }
                           }
@@ -219,10 +168,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::release::{appName} &",
+            "exe": "{currentAppDir}::{appName} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {currentAppDir}::bin::release::{appName}.exe"
+                "exe": "start {currentAppDir}::{appName}.exe"
               }
             },
             "next": [
@@ -250,10 +199,10 @@
                           },
                           {
                             "action": "cmd",
-                            "exe": "{currentAppDir}::bin::release::{appName} &",
+                            "exe": "{currentAppDir}::{appName} &",
                             "onPlatform": {
                               "windows": {
-                                "exe": "start {currentAppDir}::bin::release::{appName}.exe"
+                                "exe": "start {currentAppDir}::{appName}.exe"
                               }
                             }
                           }

@@ -61,15 +61,6 @@
           "out": "{currentAppDir}::www::private::js::app.js"
         },
         "options": "js --out:{out} {src}"
-      },
-      {
-        "action": "copyDir",
-        "list": [
-          {
-            "src": "{currentAppDir}::www::private::js",
-            "dest": "{currentAppDir}::bin::debug::www::private::js"
-          }
-        ]
       }
     ]
   },
@@ -84,15 +75,6 @@
           "out": "{currentAppDir}::www::private::js::app.js"
         },
         "options": "js -d:release --out:{out} {src}"
-      },
-      {
-        "action": "copyDir",
-        "list": [
-          {
-            "src": "{currentAppDir}::www::private::js",
-            "dest": "{currentAppDir}::bin::release::www::private::js"
-          }
-        ]
       }
     ]
   },
@@ -104,7 +86,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::backend::app.nim",
-          "out": "{currentAppDir}::bin::release"
+          "out": "{currentAppDir}"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
       }
@@ -118,7 +100,7 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::backend::app.nim",
-          "out": "{currentAppDir}::bin::debug"
+          "out": "{currentAppDir}"
         },
         "options": "c -d:nimDebugDlOpen -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
       }
@@ -135,37 +117,7 @@
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-debug-frontend {appName}",
-            "next": [
-              {
-                "action": "copyDir",
-                "list": [
-                  {
-                    "src": "{currentAppDir}::www",
-                    "dest": "{currentAppDir}::bin::debug::www"
-                  },
-                  {
-                    "src": "{currentAppDir}::ssl",
-                    "dest": "{currentAppDir}::bin::debug::ssl"
-                  }
-                ]
-              },
-              {
-                "action": "copyFile",
-                "list": [
-                  {
-                    "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin::debug::settings.json",
-                    "err": []
-                  },
-                  {
-                    "src": "{currentAppDir}::src",
-                    "dest": "{currentAppDir}::bin::debug",
-                    "filter": "(?=.*).+\\.(tpl|mustache)"
-                  }
-                ]
-              }
-            ]
+            "options": "compile-debug-frontend {appName}"
           }
         ]
       }
@@ -181,10 +133,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::debug::app {appName}",
+            "exe": "{currentAppDir}::app {appName}",
             "onPlatform": {
               "windows": {
-                "exe": "{currentAppDir}::bin::debug::app.exe {appName}"
+                "exe": "{currentAppDir}::app.exe {appName}"
               }
             }
           }
@@ -203,37 +155,7 @@
           {
             "action": "cmd",
             "exe" : "nake",
-            "options": "compile-release-frontend {appName}",
-            "next": [
-              {
-                "action": "copyDir",
-                "list": [
-                  {
-                    "src": "{currentAppDir}::www",
-                    "dest": "{currentAppDir}::bin::release::www"
-                  },
-                  {
-                    "src": "{currentAppDir}::ssl",
-                    "dest": "{currentAppDir}::bin::release::ssl"
-                  }
-                ]
-              },
-              {
-                "action": "copyFile",
-                "list": [
-                  {
-                    "src": "{currentAppDir}::settings.json",
-                    "dest": "{currentAppDir}::bin::release::settings.json",
-                    "err": []
-                  },
-                  {
-                    "src": "{currentAppDir}::src",
-                    "dest": "{currentAppDir}::bin::release",
-                    "filter": "(?=.*).+\\.(tpl|mustache)"
-                  }
-                ]
-              }
-            ]
+            "options": "compile-release-frontend {appName}"
           }
         ]
       }
@@ -249,64 +171,13 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::release::app {appName}",
+            "exe": "{currentAppDir}::app {appName}",
             "onPlatform": {
               "windows": {
-                "exe": "{currentAppDir}::bin::debug::app.exe {appName}"
+                "exe": "{currentAppDir}::app.exe {appName}"
               }
             }
           }
-        ]
-      }
-    ]
-  },
-  "clean-release-run": {
-    "desc": "clean release then run the app.",
-    "tasks": [
-      {
-        "action": "removeDir",
-        "list":[
-          {
-            "name": "{currentAppDir}::bin::release",
-            "next": [
-              {
-                "action": "cmd",
-                "exe": "nake",
-                "options": "release-run {appName}"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "clean-debug-run": {
-    "desc": "clean debug then run the app.",
-    "tasks": [
-      {
-        "action": "removeDir",
-        "list":[
-          {
-            "name": "{currentAppDir}::bin::debug",
-            "next": [
-              {
-                "action": "cmd",
-                "exe": "nake",
-                "options": "debug-run {appName}"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "clean-all": {
-    "desc": "clean bin dir.",
-    "tasks": [
-      {
-        "action": "removeDir",
-        "list": [
-          {"name": "{currentAppDir}::bin"}
         ]
       }
     ]
@@ -321,10 +192,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::debug::app {appName} &",
+            "exe": "{currentAppDir}::app {appName} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {currentAppDir}::bin::debug::app.exe {appName}"
+                "exe": "start {currentAppDir}::app.exe {appName}"
               }
             },
             "next": [
@@ -332,8 +203,8 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "^(?!.*_js).+\\.nim",
+                    "dir": "{currentAppDir}::src::backend",
+                    "pattern": "(?=.*).+\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -351,10 +222,10 @@
                         "next": [
                           {
                             "action": "cmd",
-                            "exe": "{currentAppDir}::bin::debug::app {appName} &",
+                            "exe": "{currentAppDir}::app {appName} &",
                             "onPlatform": {
                               "windows": {
-                                "exe": "start {currentAppDir}::bin::debug::app.exe {appName}"
+                                "exe": "start {currentAppDir}::app.exe {appName}"
                               }
                             }
                           }
@@ -363,90 +234,13 @@
                     ]
                   },
                   {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "(?=.*_js).+\\.nim",
+                    "dir": "{currentAppDir}::src::frontend",
+                    "pattern": "(?=.*).+\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
                         "exe": "nake",
                         "options": "compile-debug-frontend {appName}"
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "(?=.*\\.(tpl|mustache)).+$",
-                    "onModified": [
-                      {
-                        "action": "copyFile",
-                        "list": [
-                          {
-                            "src": "{modifiedFilePath}",
-                            "dest": "{currentAppDir}::bin::debug::{modifiedFileName}"
-                          }
-                        ]
-                      }
-                    ],
-                    "onCreated": [
-                      {
-                        "action": "copyFile",
-                        "list": [
-                          {
-                            "src": "{createdFilePath}",
-                            "dest": "{currentAppDir}::bin::debug::{createdFileName}"
-                          }
-                        ]
-                      }
-                    ],
-                    "onDeleted": [
-                      {
-                        "action": "removeFile",
-                        "list": [
-                          {
-                            "name": "{currentAppDir}::bin::debug::{deletedFileName}"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::www",
-                    "pattern": "[\\w\\W]+$",
-                    "onModified": [
-                      {
-                        "action": "copyDir",
-                        "list": [
-                          {
-                            "src": "{currentAppDir}::www",
-                            "dest": "{currentAppDir}::bin::debug::www"
-                          }
-                        ]
-                      }
-                    ],
-                    "onCreated": [
-                      {
-                        "action": "copyDir",
-                        "list": [
-                          {
-                            "src": "{currentAppDir}::www",
-                            "dest": "{currentAppDir}::bin::debug::www"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::ssl",
-                    "pattern": "[\\w\\W]+$",
-                    "onModified": [
-                      {
-                        "action": "copyDir",
-                        "list": [
-                          {
-                            "src": "{currentAppDir}::ssl",
-                            "dest": "{currentAppDir}::bin::debug::ssl"
-                          }
-                        ]
                       }
                     ]
                   }
@@ -468,10 +262,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::bin::release::app {appName} &",
+            "exe": "{currentAppDir}::app {appName} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {currentAppDir}::bin::release::app.exe {appName}"
+                "exe": "start {currentAppDir}::app.exe {appName}"
               }
             },
             "next": [
@@ -480,7 +274,7 @@
                 "list": [
                   {
                     "dir": "{currentAppDir}::src::backend",
-                    "pattern": "^(?!.*).+\\.nim",
+                    "pattern": "(?=.*).+\\.nim",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -498,10 +292,10 @@
                         "next": [
                           {
                             "action": "cmd",
-                            "exe": "{currentAppDir}::bin::release::app {appName} &",
+                            "exe": "{currentAppDir}::app {appName} &",
                             "onPlatform": {
                               "windows": {
-                                "exe": "start {currentAppDir}::bin::release::app.exe {appName}"
+                                "exe": "start {currentAppDir}::app.exe {appName}"
                               }
                             }
                           }
@@ -517,83 +311,6 @@
                         "action": "cmd",
                         "exe": "nake",
                         "options": "compile-release-frontend {appName}"
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::src",
-                    "pattern": "(?=.*\\.(tpl|mustache)).+$",
-                    "onModified": [
-                      {
-                        "action": "copyFile",
-                        "list": [
-                          {
-                            "src": "{modifiedFilePath}",
-                            "dest": "{currentAppDir}::bin::release::{modifiedFileName}"
-                          }
-                        ]
-                      }
-                    ],
-                    "onCreated": [
-                      {
-                        "action": "copyFile",
-                        "list": [
-                          {
-                            "src": "{createdFilePath}",
-                            "dest": "{currentAppDir}::bin::release::{createdFileName}"
-                          }
-                        ]
-                      }
-                    ],
-                    "onDeleted": [
-                      {
-                        "action": "removeFile",
-                        "list": [
-                          {
-                            "name": "{currentAppDir}::bin::release::{deletedFileName}"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::www",
-                    "pattern": "[\\w\\W]+$",
-                    "onModified": [
-                      {
-                        "action": "copyDir",
-                        "list": [
-                          {
-                            "src": "{currentAppDir}::www",
-                            "dest": "{currentAppDir}::bin::release::www"
-                          }
-                        ]
-                      }
-                    ],
-                    "onCreated": [
-                      {
-                        "action": "copyDir",
-                        "list": [
-                          {
-                            "src": "{currentAppDir}::www",
-                            "dest": "{currentAppDir}::bin::release::www"
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "dir": "{currentAppDir}::ssl",
-                    "pattern": "[\\w\\W]+$",
-                    "onModified": [
-                      {
-                        "action": "copyDir",
-                        "list": [
-                          {
-                            "src": "{currentAppDir}::ssl",
-                            "dest": "{currentAppDir}::bin::release::ssl"
-                          }
-                        ]
                       }
                     ]
                   }
