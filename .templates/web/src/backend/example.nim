@@ -1,5 +1,5 @@
 {.used.}
-import zfcore
+import zfcore/server
 
 type
   HelloWorld* = ref object
