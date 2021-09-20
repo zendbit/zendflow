@@ -34,7 +34,7 @@
 ##
 
 ## import zfcore
-import zfcore
+import zfcore/server
 
 ##
 ##  test example with route
