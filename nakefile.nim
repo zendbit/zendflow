@@ -262,29 +262,29 @@ proc doActionList(actionList: JsonNode) =
               try:
                 case actionType
                 of "copyDir":
-                  #if filter == "":
-                  #  echo &"copy {src} -> {dest}"
-                  #  src.copyDir(dest)
-                  #else:
-                  src.moveDirContents(dest, COPY_MODE, false, filter)
+                  if filter == "":
+                    echo &"copy {src} -> {dest}"
+                    src.copyDir(dest)
+                  else:
+                    src.moveDirContents(dest, COPY_MODE, false, filter)
                 of "copyFile":
-                  #if filter == "":
-                  #  echo &"copy {src} -> {dest}"
-                  #  src.copyFile(dest)
-                  #else:
-                  src.moveDirContents(dest, COPY_MODE, true, filter)
+                  if filter == "":
+                    echo &"copy {src} -> {dest}"
+                    src.copyFile(dest)
+                  else:
+                    src.moveDirContents(dest, COPY_MODE, true, filter)
                 of "moveFile":
-                  #if filter == "":
-                  #  echo &"move {src} -> {dest}"
-                  #  src.moveFile(dest)
-                  #else:
-                  src.moveDirContents(dest, MOVE_MODE, true, filter)
+                  if filter == "":
+                    echo &"move {src} -> {dest}"
+                    src.moveFile(dest)
+                  else:
+                    src.moveDirContents(dest, MOVE_MODE, true, filter)
                 of "moveDir":
-                  #if filter == "":
-                  #  echo &"move {src} -> {dest}"
-                  #  src.moveDir(dest)
-                  #else:
-                  src.moveDirContents(dest, MOVE_MODE, false, filter)
+                  if filter == "":
+                    echo &"move {src} -> {dest}"
+                    src.moveDir(dest)
+                  else:
+                    src.moveDirContents(dest, MOVE_MODE, false, filter)
                 of "createSymlink":
                   echo &"symlink {src} -> {dest}"
                   src.createSymlink(dest)
@@ -405,17 +405,17 @@ proc doActionList(actionList: JsonNode) =
                 try:
                   case actionType
                   of "removeFile":
-                    #if filter == "":
-                    #  echo &"remove -> {name}"
-                    #  name.removeFile()
-                    #else:
-                    name.removeDirContents(true, filter)
+                    if filter == "":
+                      echo &"remove -> {name}"
+                      name.removeFile()
+                    else:
+                      name.removeDirContents(true, filter)
                   of "removeDir":
-                    #if filter == "":
-                    #  echo &"remove -> {name}"
-                    #  name.removeDir()
-                    #else:
-                    name.removeDirContents(false, filter)
+                    if filter == "":
+                      echo &"remove -> {name}"
+                      name.removeDir()
+                    else:
+                      name.removeDirContents(false, filter)
                   of "createDir":
                     echo &"create -> {name}"
                     name.createDir()
@@ -435,47 +435,48 @@ proc doActionList(actionList: JsonNode) =
         let list = action{"list"}
         if not list.isNil and list.kind == JsonNodeKind.JArray:
           for l in list:
-            let dir = l{"dir"}
+            let dirs = l{"dirs"}
             let pattern = l{"pattern"}
-            if not dir.isNil and not pattern.isNil:
-              watchDog.add(
-                dir.getStr,
-                pattern.getStr,
-                proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
-                  let pattern = param{"pattern"}.getStr
-                  let onModified = param{"onModified"}
-                  let onCreated = param{"onCreated"}
-                  let onDeleted = param{"onDeleted"}
-                  let (dir, name, ext) = file.splitFile
-                  case event
-                  of Modified:
-                    if not onModified.isNil:
-                      if file.findAll(re pattern).len != 0:
-                        ($onModified)
-                          .replace("{modifiedFilePath}", file)
-                          .replace("{modifiedFileDir}", dir)
-                          .replace("{modifiedFileName}", name & ext)
-                          .parseJson
-                          .doActionList
-                  of Created:
-                    if not onCreated.isNil:
-                      if file.findAll(re pattern).len != 0:
-                        ($onCreated)
-                          .replace("{createdFilePath}", file)
-                          .replace("{createdFileDir}", dir)
-                          .replace("{createdFileName}", name & ext)
-                          .parseJson
-                          .doActionList
-                  of Deleted:
-                    if not onDeleted.isNil:
-                      if file.findAll(re pattern).len != 0:
-                        ($onDeleted)
-                          .replace("{deletedFilePath}", file)
-                          .replace("{deletedFileDir}", dir)
-                          .replace("{deletedFileName}", name & ext)
-                          .parseJson
-                          .doActionList,
-                l.copy)
+            if not dirs.isNil and dirs.kind == JArray and not pattern.isNil:
+              for dir in dirs:
+                watchDog.add(
+                  dir.getStr,
+                  pattern.getStr,
+                  proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
+                    let pattern = param{"pattern"}.getStr
+                    let onModified = param{"onModified"}
+                    let onCreated = param{"onCreated"}
+                    let onDeleted = param{"onDeleted"}
+                    let (dir, name, ext) = file.splitFile
+                    case event
+                    of Modified:
+                      if not onModified.isNil:
+                        if file.findAll(re pattern).len != 0:
+                          ($onModified)
+                            .replace("{modifiedFilePath}", file)
+                            .replace("{modifiedFileDir}", dir)
+                            .replace("{modifiedFileName}", name & ext)
+                            .parseJson
+                            .doActionList
+                    of Created:
+                      if not onCreated.isNil:
+                        if file.findAll(re pattern).len != 0:
+                          ($onCreated)
+                            .replace("{createdFilePath}", file)
+                            .replace("{createdFileDir}", dir)
+                            .replace("{createdFileName}", name & ext)
+                            .parseJson
+                            .doActionList
+                    of Deleted:
+                      if not onDeleted.isNil:
+                        if file.findAll(re pattern).len != 0:
+                          ($onDeleted)
+                            .replace("{deletedFilePath}", file)
+                            .replace("{deletedFileDir}", dir)
+                            .replace("{deletedFileName}", name & ext)
+                            .parseJson
+                            .doActionList,
+                  l.copy)
           echo "watch started."
           waitFor watchDog.watch
       else:
@@ -785,14 +786,21 @@ if cmdParams.len > 1:
 proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
   ## if appName.currentAppDir not equal "." or ""
   ## then set nwatchdog workdir to appName.currentAppDir
+  var appCollectionsDir = "apps"
   if appName.currentAppDir notin ["", "."]:
     watchDog.workdir = appName.currentAppDir
+  else:
+    if appName.currentAppDir == ".":
+      appCollectionsDir = "../"
+    elif appName.currentAppDir == "":
+      appCollectionsDir = "..\\"
 
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
     task name, desc:
       let actionToDo = ($taskList).replace("::", $DirSep)
         .replace("{currentAppDir}", appName.currentAppDir)
-        .replace("{appName}", appName).parseJson
+        .replace("{appName}", appName)
+        .replace("{appCollectionsDir}", appCollectionsDir).parseJson
       actionToDo.doActionList
   else:
     echo &"invalid task list {name} , should be in JArray."

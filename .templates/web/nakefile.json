@@ -203,7 +203,7 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src::backend",
+                    "dirs": ["{currentAppDir}::src::backend"],
                     "pattern": "(?=.*).+\\.nim",
                     "onModified": [
                       {
@@ -234,7 +234,7 @@
                     ]
                   },
                   {
-                    "dir": "{currentAppDir}::src::frontend",
+                    "dirs": ["{currentAppDir}::src::frontend"],
                     "pattern": "(?=.*).+\\.nim",
                     "onModified": [
                       {
@@ -273,7 +273,7 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dir": "{currentAppDir}::src::backend",
+                    "dirs": ["{currentAppDir}::src::backend"],
                     "pattern": "(?=.*).+\\.nim",
                     "onModified": [
                       {
@@ -304,7 +304,7 @@
                     ]
                   },
                   {
-                    "dir": "{currentAppDir}::src::frontend",
+                    "dirs": ["{currentAppDir}::src::frontend"],
                     "pattern": "(?=.*).+\\.nim",
                     "onModified": [
                       {
