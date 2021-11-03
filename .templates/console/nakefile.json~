@@ -46,10 +46,9 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "out": "{currentAppDir}"
         },
-        "options": "c -d:nimDebugDlOpen --NimblePath:{nimblePath} --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --outdir:{out} {src}"
       }
     ]
   },
@@ -77,10 +76,9 @@
         "exe": "nim",
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "out": "{currentAppDir}"
         },
-        "options": "c -d:release --NimblePath:{nimblePath} --outdir:{out} {src}"
+        "options": "c -d:release --outdir:{out} {src}"
       }
     ]
   },

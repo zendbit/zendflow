@@ -58,10 +58,9 @@
         "exe" : "nim",
         "props": {
           "src": "{currentAppDir}::src::frontend::app.nim",
-          "out": "{currentAppDir}::www::private::js::app.js",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "out": "{currentAppDir}::www::private::js::app.js"
         },
-        "options": "js --NimblePath:{nimblePath} --out:{out} {src}"
+        "options": "js --out:{out} {src}"
       }
     ]
   },
@@ -73,10 +72,9 @@
         "exe" : "nim",
         "props": {
           "src": "{currentAppDir}::src::frontend::app.nim",
-          "out": "{currentAppDir}::www::private::js::app.js",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "out": "{currentAppDir}::www::private::js::app.js"
         },
-        "options": "js --NimblePath:{nimblePath} -d:release --out:{out} {src}"
+        "options": "js -d:release --out:{out} {src}"
       }
     ]
   },
