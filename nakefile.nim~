@@ -17,7 +17,6 @@ let watchDog = NWatchDog[JsonNode](interval: 100)
 
 const
   jsonNakefile = "nakefile.json"
-  nimdepsDir = "nimbledeps"
 
 # init appsDir and templatesDir
 # depend on the top level of the nakefile.json
@@ -448,6 +447,7 @@ proc doActionList(actionList: JsonNode) =
                     let onCreated = param{"onCreated"}
                     let onDeleted = param{"onDeleted"}
                     let (dir, name, ext) = file.splitFile
+                    echo file
                     case event
                     of Modified:
                       if not onModified.isNil:
@@ -759,8 +759,6 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
 
 task "install-deps", "install nimble app depedencies. Ex: nake install-deps [appName].":
   let defApp = defaultApp()
-  #if not nimdepsDir.dirExists:
-  #  nimdepsDir.createDir()
 
   if cmdParams.len > 1:
     let appName = cmdParams[1]

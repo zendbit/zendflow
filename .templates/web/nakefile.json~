@@ -11,8 +11,7 @@
     "install zfcore@#head",
     "install zfplugs@#head",
     "install stdext@#head",
-    "install moustachu@#head",
-    "install karax@#head"
+    "install moustachu@#head"
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",

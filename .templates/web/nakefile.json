@@ -207,7 +207,7 @@
                 "list": [
                   {
                     "dirs": ["{currentAppDir}::src::backend"],
-                    "pattern": "(?=.*).+\\.nim",
+                    "pattern": "(?=.*).+\\.nim$",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -238,7 +238,7 @@
                   },
                   {
                     "dirs": ["{currentAppDir}::src::frontend"],
-                    "pattern": "(?=.*).+\\.nim",
+                    "pattern": "(?=.*).+\\.nim$",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -277,7 +277,7 @@
                 "list": [
                   {
                     "dirs": ["{currentAppDir}::src::backend"],
-                    "pattern": "(?=.*).+\\.nim",
+                    "pattern": "(?=.*).+\\.nim$",
                     "onModified": [
                       {
                         "action": "cmd",
@@ -308,7 +308,7 @@
                   },
                   {
                     "dirs": ["{currentAppDir}::src::frontend"],
-                    "pattern": "(?=.*).+\\.nim",
+                    "pattern": "(?=.*).+\\.nim$",
                     "onModified": [
                       {
                         "action": "cmd",
