@@ -200,8 +200,8 @@ routes:
   #   in this case we use <name>
   # - <name> will capture segment value in there as name,
   #   we can access param value and query string in HttpCtx.params["name"] or other param name
-  get "/req/<ids:re[([0-9]+)_([0-9]+)]>/<name>":
-    echo "Welcome req"
+  get "/home/<ids:re[([0-9]+)_([0-9]+)]>/<name>":
+    echo "Welcome home"
     # capture regex result from the url
     echo reParams["ids"]
     # capture <name> value parameter from the url
@@ -211,32 +211,32 @@ routes:
     res.headers.add("Content-Type", "text/plain")
     Http200.respHtml("Hello World get request")
 
-  #get "/req/<id>/<name>":
+  #get "/home/<id>/<name>":
   #  echo ctx.params["name"]
   #  echo ctx.params["id"]
   #  resp(Http200, "Ok")
 
-  get "/req/<id>":
+  get "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World patch request")
 
-  patch "/req/<id>":
+  patch "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World patch request")
 
-  delete "/req/<id>":
+  delete "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World delete request")
 
-  put "/req/<id>":
+  put "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World put request")
 
-  head "/req/<id>":
+  head "/home/<id>":
     # capture the <id> from the path
     echo params["id"]
     Http200.resp("Hello World head request")

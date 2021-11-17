@@ -11,8 +11,7 @@
     "install zfcore@#head",
     "install zfplugs@#head",
     "install stdext@#head",
-    "install moustachu@#head",
-    "install karax@#head"
+    "install moustachu@#head"
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
@@ -59,9 +58,9 @@
         "props": {
           "src": "{currentAppDir}::src::frontend::app.nim",
           "out": "{currentAppDir}::www::private::js::app.js",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "js --NimblePath:{nimblePath} --out:{out} {src}"
+        "options": "js --nimblePath:{nimblePath} --out:{out} {src}"
       }
     ]
   },
@@ -74,9 +73,9 @@
         "props": {
           "src": "{currentAppDir}::src::frontend::app.nim",
           "out": "{currentAppDir}::www::private::js::app.js",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "js --NimblePath:{nimblePath} -d:release --out:{out} {src}"
+        "options": "js --nimblePath:{nimblePath} -d:release --out:{out} {src}"
       }
     ]
   },
@@ -89,9 +88,9 @@
         "props": {
           "src": "{currentAppDir}::src::backend::app.nim",
           "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "c -d:nimDebugDlOpen --NimblePath:{nimblePath} -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimblePath} -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
       }
     ]
   },
@@ -104,9 +103,9 @@
         "props": {
           "src": "{currentAppDir}::src::backend::app.nim",
           "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "c -d:nimDebugDlOpen --NimblePath:{nimblePath} -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimblePath} -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
       }
     ]
   },

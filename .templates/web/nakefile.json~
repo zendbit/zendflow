@@ -58,9 +58,10 @@
         "exe" : "nim",
         "props": {
           "src": "{currentAppDir}::src::frontend::app.nim",
-          "out": "{currentAppDir}::www::private::js::app.js"
+          "out": "{currentAppDir}::www::private::js::app.js",
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "js --out:{out} {src}"
+        "options": "js --nimblePath:{nimblePath} --out:{out} {src}"
       }
     ]
   },
@@ -72,9 +73,10 @@
         "exe" : "nim",
         "props": {
           "src": "{currentAppDir}::src::frontend::app.nim",
-          "out": "{currentAppDir}::www::private::js::app.js"
+          "out": "{currentAppDir}::www::private::js::app.js",
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "js -d:release --out:{out} {src}"
+        "options": "js --nimblePath:{nimblePath} -d:release --out:{out} {src}"
       }
     ]
   },
@@ -87,9 +89,9 @@
         "props": {
           "src": "{currentAppDir}::src::backend::app.nim",
           "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "c -d:nimDebugDlOpen --NimblePath:{nimblePath} -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimblePath} -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
       }
     ]
   },
@@ -102,9 +104,9 @@
         "props": {
           "src": "{currentAppDir}::src::backend::app.nim",
           "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "c -d:nimDebugDlOpen --NimblePath:{nimblePath} -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimblePath} -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
       }
     ]
   },
