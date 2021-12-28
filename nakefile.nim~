@@ -479,15 +479,9 @@ proc doActionList(actionList: JsonNode) =
                         let action = evt{"action"}.to(seq[string])
                         if &"on{event}" in action:
                           ($(evt{"list"}))
-                            .replace("{modifiedFilePath}", file)
-                            .replace("{modifiedFileDir}", dir)
-                            .replace("{modifiedFileName}", name & ext)
-                            .replace("{createdFilePath}", file)
-                            .replace("{createdFileDir}", dir)
-                            .replace("{createdFileName}", name & ext)
-                            .replace("{deletedFilePath}", file)
-                            .replace("{deletedFileDir}", dir)
-                            .replace("{deletedFileName}", name & ext)
+                            .replace("{eventFilePath}", file)
+                            .replace("{eventFileDir}", dir)
+                            .replace("{eventFileName}", name & ext)
                             .parseJson
                             .doActionList
 
