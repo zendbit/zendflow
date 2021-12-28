@@ -36,6 +36,7 @@ proc copyFileToDir(
   filter: string = "",
   recursive: bool = true,
   verbose: bool = false,
+  withStructure: bool = true,
   mode: FileOperationMode = COPY_MODE) =
   ##
   ##  copyFileToDir(
@@ -43,26 +44,31 @@ proc copyFileToDir(
   ##    dest, // destination folder
   ##    filter, // filter in regex string (optional)
   ##    recursive, // recursive copy (optional), default true
-  ##    verbose,
+  ##    verbose, // default true
+  ##    withStructure, // default true if false will not create same structure just flat file structure in the destination folder
   ##    mode) // copy mode, default COPY_MODE
   ##
   if not src.dirExists: return
-  if not dest.dirExists:
-    dest.createDir
 
   for (kind, path) in src.walkDir:
+
+    var destDir = dest
 
     case kind
     of pcFile, pcLinkToFile:
       let fileInfo = path.splitPath
-      let destDir = fileInfo.head.replace(src, dest)
+
+      if withStructure:
+        destDir = fileInfo.head.replace(src, dest)
+
       let destFile = destDir.joinPath(fileInfo.tail)
     
       if filter != "" and
         fileInfo.tail.findAll(re filter).len == 0:
         continue
 
-      if path.sameFile(destFile) or path.sameFileContent(destFile):
+      if (path.fileExists and destFile.fileExists) and
+        (path.sameFile(destFile) or path.sameFileContent(destFile)):
         continue
 
       if not destDir.dirExists:
@@ -74,12 +80,17 @@ proc copyFileToDir(
       case mode
       of COPY_MODE:
         path.copyFile(destFile)
+
       of MOVE_MODE:
         path.moveFile(destFile)
 
     of pcDir, pcLinkToDir:
       if recursive:
-        path.copyFileToDir(path.replace(src, dest), filter, recursive, verbose, mode)
+        if withStructure:
+          destDir = path.replace(src, dest)
+
+        path.copyFileToDir(destDir, filter, recursive,
+          verbose, withStructure, mode)
 
 proc isInPlatform(platform: string): bool =
   #
@@ -173,7 +184,7 @@ proc cleanDoubleColon(str: string): string =
     if result.endsWith("::"):
       result = result.subStr(0, high(result) - 2)
 
-proc moveDirContents(src: string, dest: string, mode: FileOperationMode = COPY_MODE, fileOnly: bool = false, filter: string = "") =
+proc moveDirContents(src: string, dest: string, mode: FileOperationMode = COPY_MODE, fileOnly: bool = false, filter: string = "", withStructure: bool = true, recursive: bool = true) =
   ##
   ##  for move dir contents of dir
   ##  with filtering options
@@ -183,7 +194,7 @@ proc moveDirContents(src: string, dest: string, mode: FileOperationMode = COPY_M
     echo &"  -> with filter {filter}"
   
   if fileOnly:
-    src.copyFileToDir(dest, filter = filter, mode = mode)
+    src.copyFileToDir(dest, filter = filter, recursive = recursive, withStructure = withStructure, mode = mode)
 
   else:
     case mode
@@ -249,14 +260,25 @@ proc doActionList(actionList: JsonNode) =
             let src = l{"src"}
             let dest = l{"dest"}
             let filter = l{"filter"}.getStr
+
+            var withStructure = true
+            if not l{"withStructure"}.isNil:
+              withStructure = l{"withStructure"}.getBool
+              
+            var recursive = true
+            if not l{"recursive"}.isNil:
+              recursive = l{"recursive"}.getBool
+
             if not src.isNil and not dest.isNil:
               let src = src.getStr().cleanDoubleColon
               let dest = dest.getStr().cleanDoubleColon
               let next = l{"next"}
               let err = l{"err"}
+
               let desc = l{"desc"}
               if not desc.isNil:
                 echo desc.getStr()
+
               var errMsg = ""
               try:
                 case actionType
@@ -265,25 +287,25 @@ proc doActionList(actionList: JsonNode) =
                     echo &"copy {src} -> {dest}"
                     src.copyDir(dest)
                   else:
-                    src.moveDirContents(dest, COPY_MODE, false, filter)
+                    src.moveDirContents(dest, COPY_MODE, false, filter, withStructure, recursive)
                 of "copyFile":
                   if filter == "":
                     echo &"copy {src} -> {dest}"
                     src.copyFile(dest)
                   else:
-                    src.moveDirContents(dest, COPY_MODE, true, filter)
+                    src.moveDirContents(dest, COPY_MODE, true, filter, withStructure, recursive)
                 of "moveFile":
                   if filter == "":
                     echo &"move {src} -> {dest}"
                     src.moveFile(dest)
                   else:
-                    src.moveDirContents(dest, MOVE_MODE, true, filter)
+                    src.moveDirContents(dest, MOVE_MODE, true, filter, withStructure, recursive)
                 of "moveDir":
                   if filter == "":
                     echo &"move {src} -> {dest}"
                     src.moveDir(dest)
                   else:
-                    src.moveDirContents(dest, MOVE_MODE, false, filter)
+                    src.moveDirContents(dest, MOVE_MODE, false, filter, withStructure, recursive)
                 of "createSymlink":
                   echo &"symlink {src} -> {dest}"
                   src.createSymlink(dest)
@@ -446,7 +468,30 @@ proc doActionList(actionList: JsonNode) =
                     let onModified = param{"onModified"}
                     let onCreated = param{"onCreated"}
                     let onDeleted = param{"onDeleted"}
+                    let eventsList =  param{"events"}
                     let (dir, name, ext) = file.splitFile
+
+                    ##  export multiple events combination
+                    var events: seq[JsonNode]
+                    if not eventsList.isNil:
+                      events = param{"events"}.to(seq[JsonNode])
+                      for evt in events:
+                        let action = evt{"action"}.to(seq[string])
+                        if &"on{event}" in action:
+                          ($(evt{"list"}))
+                            .replace("{modifiedFilePath}", file)
+                            .replace("{modifiedFileDir}", dir)
+                            .replace("{modifiedFileName}", name & ext)
+                            .replace("{createdFilePath}", file)
+                            .replace("{createdFileDir}", dir)
+                            .replace("{createdFileName}", name & ext)
+                            .replace("{deletedFilePath}", file)
+                            .replace("{deletedFileDir}", dir)
+                            .replace("{deletedFileName}", name & ext)
+                            .parseJson
+                            .doActionList
+
+                    ## for single event
                     case event
                     of Modified:
                       if not onModified.isNil:
