@@ -48,8 +48,19 @@ proc copyFileToDir(
   ##    withStructure, // default true if false will not create same structure just flat file structure in the destination folder
   ##    mode) // copy mode, default COPY_MODE
   ##
-  if not src.dirExists: return
 
+  ## if src is file
+  if src.fileExists:
+    let fileInfo = src.splitPath
+    if filter != "" and
+      fileInfo.tail.findAll(re filter).len == 0:
+      return
+    if dest.dirExists:
+      src.copyFileToDir(dest)
+    else:
+      src.copyFile(dest)
+
+  if not src.dirExists: return
   for (kind, path) in src.walkDir:
 
     var destDir = dest
@@ -62,7 +73,6 @@ proc copyFileToDir(
         destDir = fileInfo.head.replace(src, dest)
 
       let destFile = destDir.joinPath(fileInfo.tail)
-    
       if filter != "" and
         fileInfo.tail.findAll(re filter).len == 0:
         continue
