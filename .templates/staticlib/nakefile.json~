@@ -2,7 +2,8 @@
   "appInfo": {
     "appName": "",
     "appType": "staticlib",
-    "appDesc": "create native static lib."
+    "appDesc": "create native static lib.",
+    "appID": ""
   },
   "nimble": [],
   "initVar": {
@@ -38,6 +39,13 @@
       ]
     }
   ],
+  "var": {
+    "srcDir": "{currentAppDir}::src",
+    "binDir": "{currentAppDir}::bin",
+    "debugBinDir": "{binDir}::debug",
+    "releaseBinDir": "{binDir}::release",
+    "nimbledepsDir": "{currentAppDir}::nimbledeps::pkgs"
+  },
   "debug": {
     "desc": "debug the app.",
     "tasks": [
@@ -45,11 +53,10 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "src": "{srcDir}::{appName}.nim",
+          "out": "{debugBinDir}"
         },
-        "options": "c -d:nimDebugDlOpen --NimblePath:{nimblePath} --app:staticlib --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} --app:staticlib --outdir:{out} {src}"
       }
     ]
   },
@@ -60,11 +67,10 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::{appName}.nim",
-          "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "src": "{srcDir}::{appName}.nim",
+          "out": "{releaseBinDir}"
         },
-        "options": "c -d:release --NimblePath:{nimblePath} --app:staticlib --outdir:{out} {src}"
+        "options": "c -d:release --nimblePath:{nimbledepsDir} --app:staticlib --outdir:{out} {src}"
       }
     ]
   },
@@ -80,13 +86,23 @@
             "action": "watch",
             "list": [
               {
-                "dir": "{currentAppDir}::src",
-                "pattern": "(?=.*\\.nim).+$",
-                "onModified": [
+                "dirs": [
+                  "{srcDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
                   {
-                    "action": "cmd",
-                    "exe": "nake",
-                    "options": "debug {appName}"
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "debug {appName}"
+                      }
+                    ]
                   }
                 ]
               }
@@ -108,13 +124,23 @@
             "action": "watch",
             "list": [
               {
-                "dir": "{currentAppDir}::src",
-                "pattern": "(?=.*\\.nim).+$",
-                "onModified": [
+                "dirs": [
+                  "{srcDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
                   {
-                    "action": "cmd",
-                    "exe": "nake",
-                    "options": "release {appName}"
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "release {appName}"
+                      }
+                    ]
                   }
                 ]
               }

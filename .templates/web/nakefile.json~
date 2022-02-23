@@ -2,7 +2,8 @@
   "appInfo": {
     "appName": "",
     "appType": "web",
-    "appDesc": "create web app with zfcore."
+    "appDesc": "create web app with zfcore.",
+    "appID": ""
   },
   "nimble": [
     "install zip@#head",
@@ -16,8 +17,6 @@
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "srcDir": "{appDir}::src",
-    "srcFrontendDir": "{appDir}::srcDir::frontend",
-    "srcbackendDir": "{appDir}::srcDir::backend",
     "wwwDir": "{appDir}::www",
     "compiledJsDir": "{wwwDir}::private::js"
   },
@@ -49,18 +48,29 @@
       ]
     }
   ],
+  "var": {
+    "srcDir": "{currentAppDir}::src",
+    "srcFrontendDir": "{srcDir}::frontend",
+    "srcBackendDir": "{srcDir}::backend",
+    "wwwDir": "{currentAppDir}::www",
+    "binDir": "{currentAppDir}::bin",
+    "debugBinDir": "{binDir}::debug",
+    "releaseBinDir": "{binDir}::release",
+    "debugWwwDir": "{binDir}::debug::www",
+    "releaseWwwDir": "{binDir}::release::www",
+    "nimbledepsDir": "{currentAppDir}::nimbledeps::pkgs"
+  },
   "compile-debug-frontend": {
     "desc": "compile debug frontend app only.",
     "tasks": [
       {
         "action": "cmd",
-        "exe" : "nim",
+        "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::frontend::app.nim",
-          "out": "{currentAppDir}::www::private::js::app.js",
-          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
+          "src": "{srcFrontendDir}::app.nim",
+          "out": "{wwwDir}::private::js::app.js"
         },
-        "options": "js --nimblePath:{nimblePath} --out:{out} {src}"
+        "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
     ]
   },
@@ -69,13 +79,12 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe" : "nim",
+        "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::frontend::app.nim",
-          "out": "{currentAppDir}::www::private::js::app.js",
-          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
+          "src": "{srcFrontendDir}::app.nim",
+          "out": "{wwwDir}::private::js::app.js"
         },
-        "options": "js --nimblePath:{nimblePath} -d:release --out:{out} {src}"
+        "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       }
     ]
   },
@@ -86,11 +95,10 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::backend::app.nim",
-          "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
+          "src": "{srcBackendDir}::app.nim",
+          "out": "{releaseBinDir}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimblePath} -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib -d:release --threads:on --outdir:{out} {src}"
       }
     ]
   },
@@ -101,11 +109,10 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{currentAppDir}::src::backend::app.nim",
-          "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
+          "src": "{srcBackendDir}::app.nim",
+          "out": "{debugBinDir}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimblePath} -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib --threads:on --outdir:{out} {src}"
       }
     ]
   },
@@ -119,8 +126,30 @@
         "next": [
           {
             "action": "cmd",
-            "exe" : "nake",
+            "exe": "nake",
             "options": "compile-debug-frontend {appName}"
+          }
+        ]
+      },
+      {
+        "action": "copyFile",
+        "list": [
+          {
+            "src": "{srcBackendDir}",
+            "dest": "{debugBinDir}",
+            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+            "withStructure": true
+          }
+        ]
+      },
+      {
+        "action": "copyFile",
+        "list": [
+          {
+            "src": "{wwwDir}",
+            "dest": "{debugWwwDir}",
+            "filter": ".+$",
+            "withStructure": true
           }
         ]
       }
@@ -136,10 +165,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::app {appName}",
+            "exe": "{debugBinDir}::app {appName} {appID}",
             "onPlatform": {
               "windows": {
-                "exe": "{currentAppDir}::app.exe {appName}"
+                "exe": "{debugBinDir}::app.exe {appName} {appID}"
               }
             }
           }
@@ -157,8 +186,30 @@
         "next": [
           {
             "action": "cmd",
-            "exe" : "nake",
+            "exe": "nake",
             "options": "compile-release-frontend {appName}"
+          }
+        ]
+      },
+      {
+        "action": "copyFile",
+        "list": [
+          {
+            "src": "{srcBackendDir}",
+            "dest": "{releaseBinDir}",
+            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+            "withStructure": true
+          }
+        ]
+      },
+      {
+        "action": "copyFile",
+        "list": [
+          {
+            "src": "{wwwDir}",
+            "dest": "{releaseWwwDir}",
+            "filter": ".+$",
+            "withStructure": true
           }
         ]
       }
@@ -174,10 +225,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::app {appName}",
+            "exe": "{releaseBinDir}::app {appName} {appID}",
             "onPlatform": {
               "windows": {
-                "exe": "{currentAppDir}::app.exe {appName}"
+                "exe": "{releaseBinDir}::app.exe {appName} {appID}"
               }
             }
           }
@@ -195,10 +246,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::app {appName} &",
+            "exe": "{debugBinDir}::app {appName} {appID} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {currentAppDir}::app.exe {appName}"
+                "exe": "start {debugBinDir}::app.exe {appName} {appID}"
               }
             },
             "next": [
@@ -206,44 +257,106 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dirs": ["{currentAppDir}::src::backend"],
-                    "pattern": "(?=.*).+\\.nim",
-                    "onModified": [
+                    "dirs": [
+                      "{srcBackendDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.nim$",
+                    "events": [
                       {
-                        "action": "cmd",
-                        "exe": "killall app {appName}",
-                        "onPlatform": {
-                          "windows": {
-                            "exe": "taskkill /IM \"app.exe {appName}\" /F"
-                          }
-                        }
-                      },
-                      {
-                        "action": "cmd",
-                        "exe": "nake",
-                        "options": "compile-debug-backend {appName}",
-                        "next": [
+                        "action": ["onModified", "onCreated"],
+                        "list": [
                           {
                             "action": "cmd",
-                            "exe": "{currentAppDir}::app {appName} &",
+                            "exe": "killall app {appName} {appID}",
                             "onPlatform": {
                               "windows": {
-                                "exe": "start {currentAppDir}::app.exe {appName}"
+                                "exe": "taskkill /IM \"app.exe {appName} {appID}\" /F"
                               }
                             }
+                          },
+                          {
+                            "action": "cmd",
+                            "exe": "nake",
+                            "options": "compile-debug-backend {appName}",
+                            "next": [
+                              {
+                                "action": "cmd",
+                                "exe": "{debugBinDir}::app {appName} {appID} &",
+                                "onPlatform": {
+                                  "windows": {
+                                    "exe": "start {debugBinDir}::app.exe {appName} {appID}"
+                                  }
+                                }
+                              }
+                            ]
                           }
                         ]
                       }
                     ]
                   },
                   {
-                    "dirs": ["{currentAppDir}::src::frontend"],
-                    "pattern": "(?=.*).+\\.nim",
-                    "onModified": [
+                    "dirs": [
+                      "{srcFrontendDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.nim$",
+                    "events": [
                       {
-                        "action": "cmd",
-                        "exe": "nake",
-                        "options": "compile-debug-frontend {appName}"
+                        "action": ["onModified", "onCreated"],
+                        "list": [
+                          {
+                            "action": "cmd",
+                            "exe": "nake",
+                            "options": "compile-debug-frontend {appName}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dirs": [
+                      "{srcBackendDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "events": [
+                      {
+                        "action": ["onModified", "onCreated"],
+                        "list": [
+                          {
+                            "action": "copyFile",
+                            "list": [
+                              {
+                                "src": "{srcBackendDir}",
+                                "dest": "{debugBinDir}",
+                                "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+                                "withStructure": true
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dirs": [
+                      "{wwwDir}"
+                    ],
+                    "pattern": ".+$",
+                    "events": [
+                      {
+                        "action": ["onModified", "onCreated"],
+                        "list": [
+                          {
+                            "action": "copyFile",
+                            "list": [
+                              {
+                                "src": "{wwwDir}",
+                                "dest": "{debugWwwDir}",
+                                "filter": ".+$",
+                                "withStructure": true
+                              }
+                            ]
+                          }
+                        ]
                       }
                     ]
                   }
@@ -265,10 +378,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{currentAppDir}::app {appName} &",
+            "exe": "{releaseBinDir}::app {appName} {appID} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {currentAppDir}::app.exe {appName}"
+                "exe": "start {releaseBinDir}::app.exe {appName} {appID}"
               }
             },
             "next": [
@@ -276,44 +389,106 @@
                 "action": "watch",
                 "list": [
                   {
-                    "dirs": ["{currentAppDir}::src::backend"],
-                    "pattern": "(?=.*).+\\.nim",
-                    "onModified": [
+                    "dirs": [
+                      "{srcBackendDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.nim$",
+                    "events": [
                       {
-                        "action": "cmd",
-                        "exe": "killall app {appName}",
-                        "onPlatform": {
-                          "windows": {
-                            "exe": "taskkill /IM \"app.exe {appName}\" /F"
-                          }
-                        }
-                      },
-                      {
-                        "action": "cmd",
-                        "exe": "nake",
-                        "options": "compile-release-backend {appName}",
-                        "next": [
+                        "action": ["onModified", "onCreated"],
+                        "list": [
                           {
                             "action": "cmd",
-                            "exe": "{currentAppDir}::app {appName} &",
+                            "exe": "killall app {appName} {appID}",
                             "onPlatform": {
                               "windows": {
-                                "exe": "start {currentAppDir}::app.exe {appName}"
+                                "exe": "taskkill /IM \"app.exe {appName} {appID}\" /F"
                               }
                             }
+                          },
+                          {
+                            "action": "cmd",
+                            "exe": "nake",
+                            "options": "compile-release-backend {appName}",
+                            "next": [
+                              {
+                                "action": "cmd",
+                                "exe": "{releaseBinDir}::app {appName} {appID} &",
+                                "onPlatform": {
+                                  "windows": {
+                                    "exe": "start {releaseBinDir}::app.exe {appName} {appID}"
+                                  }
+                                }
+                              }
+                            ]
                           }
                         ]
                       }
                     ]
                   },
                   {
-                    "dirs": ["{currentAppDir}::src::frontend"],
-                    "pattern": "(?=.*).+\\.nim",
-                    "onModified": [
+                    "dirs": [
+                      "{srcFrontendDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.nim$",
+                    "events": [
                       {
-                        "action": "cmd",
-                        "exe": "nake",
-                        "options": "compile-release-frontend {appName}"
+                        "action": ["onModified", "onCreated"],
+                        "list": [
+                          {
+                            "action": "cmd",
+                            "exe": "nake",
+                            "options": "compile-release-frontend {appName}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dirs": [
+                      "{srcBackendDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "events": [
+                      {
+                        "action": ["onModified", "onCreated"],
+                        "list": [
+                          {
+                            "action": "copyFile",
+                            "list": [
+                              {
+                                "src": "{srcBackendDir}",
+                                "dest": "{releaseBinDir}",
+                                "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+                                "withStructure": true
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dirs": [
+                      "{wwwDir}"
+                    ],
+                    "pattern": ".+$",
+                    "events": [
+                      {
+                        "action": ["onModified", "onCreated"],
+                        "list": [
+                          {
+                            "action": "copyFile",
+                            "list": [
+                              {
+                                "src": "{wwwDir}",
+                                "dest": "{releaseWwwDir}",
+                                "filter": ".+$",
+                                "withStructure": true
+                              }
+                            ]
+                          }
+                        ]
                       }
                     ]
                   }

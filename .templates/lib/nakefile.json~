@@ -2,7 +2,8 @@
   "appInfo": {
     "appName": "",
     "appType": "lib",
-    "appDesc": "create native dynamic lib."
+    "appDesc": "create native dynamic lib.",
+    "appID": ""
   },
   "nimble": [],
   "initVar": {
@@ -47,9 +48,9 @@
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
           "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "c -d:nimDebugDlOpen --NimblePath:{nimblePath} --app:lib --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimblePath} --app:lib --outdir:{out} {src}"
       }
     ]
   },
@@ -62,9 +63,9 @@
         "props": {
           "src": "{currentAppDir}::src::{appName}.nim",
           "out": "{currentAppDir}",
-          "nimblePath": "{currentAppDir}::nimbledeps"
+          "nimblePath": "{currentAppDir}::nimbledeps::pkgs"
         },
-        "options": "c -d:release --NimblePath:{nimblePath} --app:lib --outdir:{out} {src}"
+        "options": "c -d:release --nimblePath:{nimblePath} --app:lib --outdir:{out} {src}"
       }
     ]
   },

@@ -1,6 +1,17 @@
-import nake, nakelib, os, strutils, strformat,
-  json, osproc, re, distros, times
-import nwatchdog
+import
+  nake,
+  nakelib,
+  os,
+  strutils,
+  strformat,
+  json,
+  osproc,
+  re,
+  distros,
+  times,
+  std/sha1
+
+import NWatchdog
 
 let cmdLineParams = commandLineParams()
 var cmdParams: seq[string]
@@ -22,22 +33,26 @@ const
 # depend on the top level of the nakefile.json
 if jsonNakefile.fileExists:
   let jnode = jsonNakefile.parseFile()
-  appsDir = jnode{"appsDir"}.getStr().replace("::", $DirSep)
-  templatesDir = jnode{"templatesDir"}.getStr().replace("::", $DirSep)
+  appsDir = jnode{"appsDir"}
+    .getStr()
+    .replace("::", $DirSep)
+  templatesDir = jnode{"templatesDir"}
+    .getStr()
+    .replace("::", $DirSep)
 
 type
   FileOperationMode = enum
     COPY_MODE
     MOVE_MODE
 
-proc copyFileToDir(
-  src: string,
+proc copyFileToDir(src: string,
   dest: string,
   filter: string = "",
   recursive: bool = true,
   verbose: bool = false,
   withStructure: bool = true,
   mode: FileOperationMode = COPY_MODE) =
+
   ##
   ##  copyFileToDir(
   ##    src,  // source folder
@@ -194,7 +209,14 @@ proc cleanDoubleColon(str: string): string =
     if result.endsWith("::"):
       result = result.subStr(0, high(result) - 2)
 
-proc moveDirContents(src: string, dest: string, mode: FileOperationMode = COPY_MODE, fileOnly: bool = false, filter: string = "", withStructure: bool = true, recursive: bool = true) =
+proc moveDirContents(src: string,
+  dest: string,
+  mode: FileOperationMode = COPY_MODE,
+  fileOnly: bool = false,
+  filter: string = "",
+  withStructure: bool = true,
+  recursive: bool = true) =
+
   ##
   ##  for move dir contents of dir
   ##  with filtering options
@@ -213,7 +235,10 @@ proc moveDirContents(src: string, dest: string, mode: FileOperationMode = COPY_M
     of MOVE_MODE:
       src.moveDir(dest)
 
-proc removeDirContents(src: string, fileOnly: bool = false, filter: string = "") =
+proc removeDirContents(src: string,
+  fileOnly: bool = false,
+  filter: string = "") =
+
   #
   # for remove contents of dir
   # with filtering options
@@ -297,25 +322,45 @@ proc doActionList(actionList: JsonNode) =
                     echo &"copy {src} -> {dest}"
                     src.copyDir(dest)
                   else:
-                    src.moveDirContents(dest, COPY_MODE, false, filter, withStructure, recursive)
+                    src.moveDirContents(dest,
+                      COPY_MODE,
+                      false,
+                      filter,
+                      withStructure,
+                      recursive)
                 of "copyFile":
                   if filter == "":
                     echo &"copy {src} -> {dest}"
                     src.copyFile(dest)
                   else:
-                    src.moveDirContents(dest, COPY_MODE, true, filter, withStructure, recursive)
+                    src.moveDirContents(dest,
+                      COPY_MODE,
+                      true,
+                      filter,
+                      withStructure,
+                      recursive)
                 of "moveFile":
                   if filter == "":
                     echo &"move {src} -> {dest}"
                     src.moveFile(dest)
                   else:
-                    src.moveDirContents(dest, MOVE_MODE, true, filter, withStructure, recursive)
+                    src.moveDirContents(dest,
+                      MOVE_MODE,
+                      true,
+                      filter,
+                      withStructure,
+                      recursive)
                 of "moveDir":
                   if filter == "":
                     echo &"move {src} -> {dest}"
                     src.moveDir(dest)
                   else:
-                    src.moveDirContents(dest, MOVE_MODE, false, filter, withStructure, recursive)
+                    src.moveDirContents(dest,
+                      MOVE_MODE,
+                      false,
+                      filter,
+                      withStructure,
+                      recursive)
                 of "createSymlink":
                   echo &"symlink {src} -> {dest}"
                   src.createSymlink(dest)
@@ -341,17 +386,22 @@ proc doActionList(actionList: JsonNode) =
 
         var exe = ""
         if not action{"exe"}.isNil:
-          exe = action{"exe"}.getStr().cleanDoubleColon()
+          exe = action{"exe"}
+            .getStr()
+            .cleanDoubleColon()
 
         var props = action{"props"}
         var options = ""
         if not action{"options"}.isNil:
-          options = action{"options"}.getStr().cleanDoubleColon()
+          options = action{"options"}
+            .getStr()
+            .cleanDoubleColon()
 
         if not props.isNil:
           props = props.subtituteVar()
           for k, v in props:
-            let vstr = v.getStr().cleanDoubleColon()
+            let vstr = v.getStr()
+              .cleanDoubleColon()
             if exe != "":
               exe = exe.replace("{" & k & "}", vstr)
 
@@ -386,26 +436,39 @@ proc doActionList(actionList: JsonNode) =
         let list = action{"list"}
         let next = action{"next"}
         let err = action{"err"}
-        echo &"replace str in file -> {file}"
         var errMsg = ""
-        if not file.isNil and not list.isNil and file.getStr().fileExists:
+        
+        echo &"replace str in file -> {file}"
+
+        if not file.isNil and
+          not list.isNil and
+          file.getStr().fileExists:
+
           try:
-            var f = file.getStr().open(FileMode.fmRead)
+            var f = file.getStr()
+              .open(FileMode.fmRead)
             var fstr = f.readAll()
             f.close()
-            if not list.isNil and list.kind == JsonNodeKind.JArray:
+
+            if not list.isNil and
+              list.kind == JsonNodeKind.JArray:
+
               for l in list:
                 let oldstr = l{"old"}
                 let newstr = l{"new"}
                 if not oldstr.isNil and not newstr.isNil:
                   echo &" {oldstr} -> {newstr}"
                   fstr = fstr.replace(
-                    oldstr.getStr().cleanDoubleColon(),
-                    newstr.getStr().cleanDoubleColon())
+                    oldstr.getStr()
+                      .cleanDoubleColon(),
+                    newstr.getStr()
+                      .cleanDoubleColon())
                   
-              f = file.getStr().open(FileMode.fmWrite)
+              f = file.getStr()
+                .open(FileMode.fmWrite)
               f.write(fstr)
               f.close()
+
           except Exception as ex:
             echo ex.msg
             errMsg = ex.msg
@@ -432,7 +495,8 @@ proc doActionList(actionList: JsonNode) =
                 echo desc.getStr()
 
               if not name.isNil:
-                let name = name.getStr().cleanDoubleColon()
+                let name = name.getStr()
+                  .cleanDoubleColon()
                 try:
                   case actionType
                   of "removeFile":
@@ -532,27 +596,46 @@ proc doActionList(actionList: JsonNode) =
   else:
     echo "not valid action list, action list should be in json array."
 
-proc defaultApp(): tuple[appName: string, appType: string] =
+proc appInfo(name: string = ""): tuple[
+  appName: string,
+  appID: string,
+  appType: string] =
+
   #
-  # get default app
+  # get app info
   # return tupple with appName and appType
   #
-  var appName = ""
+  var appName = name
   var appType = ""
+  var appID = ""
 
-  let jsonNake = loadJsonNakefile()
+  let jsonNake = loadJsonNakefile(appName)
   if not isNil(jsonNake{"jsonNakefile"}):
     let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
     if forwardJsonNakefile != "" and forwardJsonNakefile.fileExists:
       let jsonNake = forwardJsonNakefile.parseFile()
       appName = jsonNake{"appInfo"}{"appName"}.getStr()
       appType = jsonNake{"appInfo"}{"appType"}.getStr()
+      appID = jsonNake{"appInfo"}{"appID"}.getStr()
   
   else:
     appName = jsonNake{"appInfo"}{"appName"}.getStr()
     appType = jsonNake{"appInfo"}{"appType"}.getStr()
+    appID = jsonNake{"appInfo"}{"appID"}.getStr()
 
-  return (appName, appType)
+  return (appName, appID, appType)
+
+proc defaultApp(): tuple[
+  appName: string,
+  appID: string,
+  appType: string] =
+
+  #
+  # get default app
+  # return tupple with appName and appType
+  #
+  
+  result = appInfo()
 
 proc setDefaultApp(appName: string): bool =
   #
@@ -650,7 +733,10 @@ proc showTemplateList() =
 # this will read from templates nakefile.json
 # .templates/appType/nakefile.json
 # and will process init section
-proc newApp(appName: string, appType: string) =
+proc newApp(
+  appName: string,
+  appType: string) =
+
   let appDir = appsDir.joinPath(appName)
 
   if appName.isAppExists():
@@ -669,6 +755,8 @@ proc newApp(appName: string, appType: string) =
       var jnode = fcontent.parseJson()
       if not isNil(jnode):
         jnode["appInfo"]["appName"] = %appName
+        jnode["appInfo"]["appID"] = % $(&"{getTime().toUnix}{appName}")
+          .secureHash
         jnode["appInfo"]["appType"] = %appType
         fcontent = $jnode
 
@@ -836,6 +924,7 @@ if cmdParams.len > 1:
 proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
   ## if appName.currentAppDir not equal "." or ""
   ## then set nwatchdog workdir to appName.currentAppDir
+
   var appCollectionsDir = "apps"
   if appName.currentAppDir notin ["", "."]:
     watchDog.workdir = appName.currentAppDir
@@ -844,12 +933,13 @@ proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
       appCollectionsDir = "../"
     elif appName.currentAppDir == "":
       appCollectionsDir = "..\\"
-
+ 
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
     task name, desc:
       let actionToDo = ($taskList).replace("::", $DirSep)
         .replace("{currentAppDir}", appName.currentAppDir)
         .replace("{appName}", appName)
+        .replace("{appID}", appInfo(appName).appID)
         .replace("{appCollectionsDir}", appCollectionsDir).parseJson
       actionToDo.doActionList
   else:
@@ -857,9 +947,19 @@ proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
 
 if appName.isAppExists():
   var jnode = appName.loadJsonNakefile()
-  if not jnode.hasKey("init") and not jnode.hasKey("initVar"):
-    for k, v in jnode:
-      if k in ["appInfo", "nimble"]:
+  if not jnode.hasKey("init") and
+    not jnode.hasKey("initVar"):
+    
+    ##  get var section and replace as subtitution
+    var vars = jnode{"var"}
+    var jnodeStr = $jnode
+    if not vars.isNil:
+      vars = vars.subtituteVar
+      for k, v in vars:
+        jnodeStr = jnodeStr.replace("{" & k & "}", v.getStr)
+
+    for k, v in jnodeStr.parseJson:
+      if k in ["appInfo", "nimble", "var"]:
         continue
       var desc = v{"desc"}.getStr
       if desc == "": desc = k
