@@ -12,7 +12,7 @@
     "install zfcore@#head",
     "install zfplugs@#head",
     "install stdext@#head",
-    "install moustachu@#head"
+    "install mustache@#head"
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
@@ -52,6 +52,7 @@
     "srcDir": "{currentAppDir}::src",
     "srcFrontendDir": "{srcDir}::frontend",
     "srcBackendDir": "{srcDir}::backend",
+    "srcTemplateDir": "{srcDir}::template",
     "wwwDir": "{currentAppDir}::www",
     "binDir": "{currentAppDir}::bin",
     "debugBinDir": "{binDir}::debug",
@@ -136,7 +137,7 @@
         "action": "copyFile",
         "list": [
           {
-            "src": "{srcBackendDir}",
+            "src": "{srcTemplateDir}",
             "dest": "{debugBinDir}",
             "filter": "(?=.*).+\\.(mustache|html|tpl)$",
             "withStructure": false
@@ -202,7 +203,7 @@
         "action": "copyFile",
         "list": [
           {
-            "src": "{srcBackendDir}",
+            "src": "{srcTemplateDir}",
             "dest": "{releaseBinDir}",
             "filter": "(?=.*).+\\.(mustache|html|tpl)$",
             "withStructure": false
@@ -344,7 +345,7 @@
                   },
                   {
                     "dirs": [
-                      "{srcBackendDir}"
+                      "{srcTemplateDir}"
                     ],
                     "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
                     "events": [
@@ -511,7 +512,7 @@
                   },
                   {
                     "dirs": [
-                      "{srcBackendDir}"
+                      "{srcTemplateDir}"
                     ],
                     "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
                     "events": [

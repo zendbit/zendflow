@@ -1,0 +1,9 @@
+<html>
+  <head>
+    <tittle>Template using mustache</title>
+  </head>
+  <body>
+    This is render using mustache templating system for nim.<br />
+    <a href="https://github.com/soasme/nim-mustache">https://github.com/soasme/nim-mustache</a>
+  </body>
+</html>

@@ -12,7 +12,7 @@
     "install zfcore@#head",
     "install zfplugs@#head",
     "install stdext@#head",
-    "install moustachu@#head"
+    "install mustache@#head"
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
@@ -52,13 +52,15 @@
     "srcDir": "{currentAppDir}::src",
     "srcFrontendDir": "{srcDir}::frontend",
     "srcBackendDir": "{srcDir}::backend",
+    "srcTemplateDir": "{srcDir}::template",
     "wwwDir": "{currentAppDir}::www",
     "binDir": "{currentAppDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
     "debugWwwDir": "{binDir}::debug::www",
     "releaseWwwDir": "{binDir}::release::www",
-    "nimbledepsDir": "{currentAppDir}::nimbledeps::pkgs"
+    "nimbledepsDir": "{currentAppDir}::nimbledeps::pkgs",
+    "configDir": "{currentAppDir}::config"
   },
   "compile-debug-frontend": {
     "desc": "compile debug frontend app only.",
@@ -138,6 +140,18 @@
             "src": "{srcBackendDir}",
             "dest": "{debugBinDir}",
             "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+            "withStructure": false
+          },
+          {
+            "src": "{configDir}",
+            "dest": "{debugBinDir}",
+            "filter": ".+$",
+            "withStructure": false
+          },
+          {
+            "src": "{wwwDir}",
+            "dest": "{debugWwwDir}",
+            "filter": ".+$",
             "withStructure": true
           }
         ]
@@ -145,12 +159,6 @@
       {
         "action": "copyFile",
         "list": [
-          {
-            "src": "{wwwDir}",
-            "dest": "{debugWwwDir}",
-            "filter": ".+$",
-            "withStructure": true
-          }
         ]
       }
     ]
@@ -198,13 +206,14 @@
             "src": "{srcBackendDir}",
             "dest": "{releaseBinDir}",
             "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": true
-          }
-        ]
-      },
-      {
-        "action": "copyFile",
-        "list": [
+            "withStructure": false
+          },
+          {
+            "src": "{configDir}",
+            "dest": "{releaseBinDir}",
+            "filter": ".+$",
+            "withStructure": false
+          },
           {
             "src": "{wwwDir}",
             "dest": "{releaseWwwDir}",
@@ -231,6 +240,22 @@
                 "exe": "{releaseBinDir}::app.exe {appName} {appID}"
               }
             }
+          }
+        ]
+      }
+    ]
+  },
+  "clean": {
+    "desc": "clean bin folder..",
+    "tasks": [
+      {
+        "action": "removeDir",
+        "list": [
+          {
+            "name": "{releaseBinDir}"
+          },
+          {
+            "name": "{debugBinDir}"
           }
         ]
       }
@@ -263,7 +288,10 @@
                     "pattern": "(?=.*).+\\.nim$",
                     "events": [
                       {
-                        "action": ["onModified", "onCreated"],
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
                         "list": [
                           {
                             "action": "cmd",
@@ -301,7 +329,10 @@
                     "pattern": "(?=.*).+\\.nim$",
                     "events": [
                       {
-                        "action": ["onModified", "onCreated"],
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
                         "list": [
                           {
                             "action": "cmd",
@@ -319,16 +350,42 @@
                     "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
                     "events": [
                       {
-                        "action": ["onModified", "onCreated"],
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
                         "list": [
                           {
                             "action": "copyFile",
                             "list": [
                               {
-                                "src": "{srcBackendDir}",
-                                "dest": "{debugBinDir}",
-                                "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-                                "withStructure": true
+                                "src": "{eventFilePath}",
+                                "dest": "{debugBinDir}::{eventFileName}"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dirs": [
+                      "{configDir}"
+                    ],
+                    "pattern": ".+$",
+                    "events": [
+                      {
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
+                        "list": [
+                          {
+                            "action": "copyFile",
+                            "list": [
+                              {
+                                "src": "{eventFilePath}",
+                                "dest": "{debugBinDir}::{eventFileName}"
                               }
                             ]
                           }
@@ -343,7 +400,10 @@
                     "pattern": ".+$",
                     "events": [
                       {
-                        "action": ["onModified", "onCreated"],
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
                         "list": [
                           {
                             "action": "copyFile",
@@ -395,7 +455,10 @@
                     "pattern": "(?=.*).+\\.nim$",
                     "events": [
                       {
-                        "action": ["onModified", "onCreated"],
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
                         "list": [
                           {
                             "action": "cmd",
@@ -433,7 +496,10 @@
                     "pattern": "(?=.*).+\\.nim$",
                     "events": [
                       {
-                        "action": ["onModified", "onCreated"],
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
                         "list": [
                           {
                             "action": "cmd",
@@ -451,16 +517,42 @@
                     "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
                     "events": [
                       {
-                        "action": ["onModified", "onCreated"],
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
                         "list": [
                           {
                             "action": "copyFile",
                             "list": [
                               {
-                                "src": "{srcBackendDir}",
-                                "dest": "{releaseBinDir}",
-                                "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-                                "withStructure": true
+                                "src": "{eventFilePath}",
+                                "dest": "{releaseBinDir}::{eventFileName}"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dirs": [
+                      "{configDir}"
+                    ],
+                    "pattern": ".+$",
+                    "events": [
+                      {
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
+                        "list": [
+                          {
+                            "action": "copyFile",
+                            "list": [
+                              {
+                                "src": "{eventFilePath}",
+                                "dest": "{releaseBinDir}::{eventFileName}"
                               }
                             ]
                           }
@@ -475,7 +567,10 @@
                     "pattern": ".+$",
                     "events": [
                       {
-                        "action": ["onModified", "onCreated"],
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
                         "list": [
                           {
                             "action": "copyFile",

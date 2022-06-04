@@ -1,15 +1,17 @@
 {.used.}
 import zfcore/server
+import zfplugs/layout
 
 type
-  HelloWorld* = ref object
+  Home* = ref object
 
-proc printHelloWorld*(self: HelloWorld): string =
-  return "Hello, World!"
+proc index*(self: Home, user: string): string =
+  let lyt = newLayoutFromFile("templates".joinPath("home.mustache"))
+  lyt.c["user"] = user
+  result = lyt.render
 
 routes:
   # accept request with /example/123456
   # id will capture the value 12345
   get "/home/<id>":
-    echo params["id"]
-    Http200.respHtml(HelloWorld().printHelloWorld)
+    Http200.respHtml(Home().index(params.getOrDefault("id")))
