@@ -35,7 +35,7 @@
     "binDir": "{currentAppDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
-    "nimbledepsDir": "{currentAppDir}::nimbledeps::pkgs"
+    "nimbledepsDir": "{currentAppDir}::packages::nimble::pkgs"
   },
   "debug": {
     "desc": "debug the app.",

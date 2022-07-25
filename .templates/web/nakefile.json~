@@ -12,7 +12,8 @@
     "install zfcore@#head",
     "install zfplugs@#head",
     "install stdext@#head",
-    "install mustache@#head"
+    "install mustache@#head",
+    "install karax@#head"
   ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
@@ -137,7 +138,7 @@
         "action": "copyFile",
         "list": [
           {
-            "src": "{srcBackendDir}",
+            "src": "{srcTemplateDir}",
             "dest": "{debugBinDir}",
             "filter": "(?=.*).+\\.(mustache|html|tpl)$",
             "withStructure": false
@@ -203,7 +204,7 @@
         "action": "copyFile",
         "list": [
           {
-            "src": "{srcBackendDir}",
+            "src": "{srcTemplateDir}",
             "dest": "{releaseBinDir}",
             "filter": "(?=.*).+\\.(mustache|html|tpl)$",
             "withStructure": false
@@ -345,7 +346,7 @@
                   },
                   {
                     "dirs": [
-                      "{srcBackendDir}"
+                      "{srcTemplateDir}"
                     ],
                     "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
                     "events": [
@@ -512,7 +513,7 @@
                   },
                   {
                     "dirs": [
-                      "{srcBackendDir}"
+                      "{srcTemplateDir}"
                     ],
                     "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
                     "events": [

@@ -37,7 +37,7 @@
     "releaseBinDir": "{binDir}::release",
     "nimbledepsDir": "{currentAppDir}::nimbledeps::pkgs"
   },
-  "compile-debug": {
+  "debug": {
     "desc": "debug the app.",
     "tasks": [
       {
@@ -72,7 +72,7 @@
       }
     ]
   },
-  "compile-release": {
+  "release": {
     "desc": "release the app.",
     "tasks": [
       {
@@ -151,7 +151,7 @@
                           {
                             "action": "cmd",
                             "exe": "nake",
-                            "options": "compile-debug {appName}",
+                            "options": "debug {appName}",
                             "next": [
                               {
                                 "action": "cmd",
@@ -220,7 +220,7 @@
                           {
                             "action": "cmd",
                             "exe": "nake",
-                            "options": "compile-release {appName}",
+                            "options": "release {appName}",
                             "next": [
                               {
                                 "action": "cmd",

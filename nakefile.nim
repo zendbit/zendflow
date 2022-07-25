@@ -679,30 +679,38 @@ proc installDeps(appName: string) =
   #
   let nimble = appName.loadJsonNakefile(){"nimble"}
   "nimble update".shell
-  for pkg in nimble:
-    let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "")
-    echo "trying get latest " & pkgName
-    let pkgCmd = pkg.getStr().strip
-    if pkgCmd.startsWith("install"):
-      @["cd", currentAppDir(appName),
-        "&&", "nimble", "--localdeps", "-y", pkgCmd].join(" ").shell
-   
-    elif pkgCmd.startsWith("develop"):
-      let (output, errorCode) =
-        @["cd", currentAppDir(appName),
-          "&&", "nimble", "--localdeps", "-y", pkgCmd].join(" ").execCmdEx
+  let workDir = currentAppDir(appName)
+  let packagesDir = workDir.joinPath("packages")
+  let nimbleDir = packagesDir.joinPath("nimble")
+  
+  if not packagesDir.dirExists:
+    packagesDir.createDir
+  
+  if not nimbleDir.dirExists:
+    nimbleDir.createDir
 
-      if errorCode != 0:
-        for err in output.split("\n"):
-          let errMsg = err.strip
-          if errMsg != "" and errMsg.toLower().contains("'"):
-            var depDir: array[1, string]
-            if errMsg.match(re"[\w\W]+\'([\w\W]+)\'[\w\W]+$", depDir):
-              if depDir[0].dirExists:
-                @["cd", depDir[0], "&&", "git", "pull"].join(" ").shell
+  if packagesDir.dirExists and nimbleDir.dirExists:
+    for pkg in nimble:
+      let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "")
+      echo "trying get latest " & pkgName
+      let pkgCmd = pkg.getStr().strip
+      if pkgCmd.startsWith("install"):
+        let cmd = @["cd", packagesDir,
+          "&&", "nimble", &"--nimbleDir:nimble", "--localdeps", "-y", "--verbose", pkgCmd].join(" ")
+        echo cmd
+        cmd.shell
+     
+      elif pkgCmd.startsWith("develop"):
+        let cmd = @["cd", packagesDir,
+          "&&", "nimble", &"--nimbleDir:nimble", "--localdeps", "-y", "--verbose", pkgCmd].join(" ")
+        echo cmd
+        cmd.shell
 
-      else:
-        echo output
+      100.sleep
+
+  else:
+    echo &"directory {packagesDir} not exist."
+    echo &"directory {nimbleDir} not exist."
 
 proc existsTemplates(templateName: string): bool =
   #
