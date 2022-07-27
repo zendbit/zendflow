@@ -679,15 +679,19 @@ proc installDeps(appName: string) =
   #
   let nimble = appName.loadJsonNakefile(){"nimble"}
   "nimble update".shell
-  let workDir = currentAppDir(appName)
+  let workDir = getCurrentDir().joinPath(currentAppDir(appName))
   let packagesDir = workDir.joinPath("packages")
   let nimbleDir = packagesDir.joinPath("nimble")
+  let devpkgsDir = nimbleDir.joinPath("devpkgs")
   
   if not packagesDir.dirExists:
     packagesDir.createDir
   
   if not nimbleDir.dirExists:
     nimbleDir.createDir
+  
+  if not devpkgsDir.dirExists:
+    devpkgsDir.createDir
 
   if packagesDir.dirExists and nimbleDir.dirExists:
     for pkg in nimble:
@@ -696,13 +700,13 @@ proc installDeps(appName: string) =
       let pkgCmd = pkg.getStr().strip
       if pkgCmd.startsWith("install"):
         let cmd = @["cd", packagesDir,
-          "&&", "nimble", &"--nimbleDir:nimble", "--localdeps", "-y", "--verbose", pkgCmd].join(" ")
+          "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", "--verbose", pkgCmd].join(" ")
         echo cmd
         cmd.shell
      
       elif pkgCmd.startsWith("develop"):
-        let cmd = @["cd", packagesDir,
-          "&&", "nimble", &"--nimbleDir:nimble", "--localdeps", "-y", "--verbose", pkgCmd].join(" ")
+        let cmd = @["cd", devpkgsDir,
+          "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", "--verbose", pkgCmd].join(" ")
         echo cmd
         cmd.shell
 

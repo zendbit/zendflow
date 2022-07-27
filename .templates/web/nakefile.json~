@@ -60,7 +60,7 @@
     "releaseBinDir": "{binDir}::release",
     "debugWwwDir": "{binDir}::debug::www",
     "releaseWwwDir": "{binDir}::release::www",
-    "nimbledepsDir": "{currentAppDir}::nimbledeps::pkgs",
+    "nimbledepsDir": "{currentAppDir}::packages::nimble::pkgs",
     "configDir": "{currentAppDir}::config"
   },
   "compile-debug-frontend": {

@@ -678,38 +678,22 @@ proc installDeps(appName: string) =
   # nakefile.json
   #
   let nimble = appName.loadJsonNakefile(){"nimble"}
-  "nimble update".shell
-  let workDir = currentAppDir(appName)
-  let packagesDir = workDir.joinPath("packages")
-  let nimbleDir = packagesDir.joinPath("nimble")
-  
-  if not packagesDir.dirExists:
-    packagesDir.createDir
+  let workDir = getCurrentDir().joinPath(currentAppDir(appName))
+  let nimbleDir = workDir.joinPath("nimble")
   
   if not nimbleDir.dirExists:
     nimbleDir.createDir
 
-  if packagesDir.dirExists and nimbleDir.dirExists:
+  if nimbleDir.dirExists:
+    "nimble update".shell
     for pkg in nimble:
-      let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "")
-      echo "trying get latest " & pkgName
       let pkgCmd = pkg.getStr().strip
-      if pkgCmd.startsWith("install"):
-        let cmd = @["cd", packagesDir,
-          "&&", "nimble", &"--nimbleDir:nimble", "--localdeps", "-y", "--verbose", pkgCmd].join(" ")
-        echo cmd
-        cmd.shell
-     
-      elif pkgCmd.startsWith("develop"):
-        let cmd = @["cd", packagesDir,
-          "&&", "nimble", &"--nimbleDir:nimble", "--localdeps", "-y", "--verbose", pkgCmd].join(" ")
-        echo cmd
-        cmd.shell
-
-      100.sleep
+      let cmd = @["cd", packagesDir,
+        "&&", "nimble", &"--nimbleDir:{nimbleDir}", "--localdeps", "-y", "--verbose", pkgCmd].join(" ")
+      echo cmd
+      cmd.shell
 
   else:
-    echo &"directory {packagesDir} not exist."
     echo &"directory {nimbleDir} not exist."
 
 proc existsTemplates(templateName: string): bool =
