@@ -156,11 +156,6 @@
             "withStructure": true
           }
         ]
-      },
-      {
-        "action": "copyFile",
-        "list": [
-        ]
       }
     ]
   },

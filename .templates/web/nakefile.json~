@@ -6,12 +6,12 @@
     "appID": ""
   },
   "nimble": [
-    "install zip@#head",
-    "install uri3@#head",
-    "install zfblast@#head",
-    "install zfcore@#head",
-    "install zfplugs@#head",
-    "install stdext@#head",
+    "develop uri3",
+    "develop stdext",
+    "develop zfdbms",
+    "develop zfblast",
+    "develop zfcore",
+    "develop zfplugs",
     "install mustache@#head",
     "install karax@#head"
   ],
