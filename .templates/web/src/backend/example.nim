@@ -188,4 +188,3 @@ routes:
     #
     echo "Hello World"
 
-  emitServer()
