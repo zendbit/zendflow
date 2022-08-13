@@ -6,7 +6,7 @@ type
   Home* = ref object
 
 proc index*(self: Home, user: string): string =
-  let lyt = newLayoutFromFile("templates".joinPath("home.mustache"))
+  let lyt = newLayoutFromFile("hello.mustache")
   lyt.c["user"] = user
   result = lyt.render
 
