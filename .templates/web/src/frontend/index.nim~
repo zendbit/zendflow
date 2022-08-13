@@ -1,0 +1,10 @@
+include karax/prelude
+
+proc createDom(): VNode =
+  result = buildHtml(tdiv):
+    text "This is render using mustache templating system for nim."
+    br()
+    a(href = "https://github.com/soasme/nim-mustache"):
+      text "https://github.com/soasme/nim-mustache"
+
+setRenderer createDom

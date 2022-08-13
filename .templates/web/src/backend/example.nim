@@ -10,14 +10,14 @@
 ## import zfcore
 import zfcore/server
 
-## import home
 import home
+import index
 
 routes:
-  # redirect to home/<user>
+  # redirect to index/<user>
   # user will use World\
   get "/":
-    respRedirect("/home/World")
+    respRedirect("/index/World")
   
   # websocket example :-)
   get "/ws":
