@@ -17,24 +17,6 @@
         "verify": true,
         "port": 8443
       }
-    },
-    "debug":
-    {
-      "keepAlive": true,
-      "http":
-      {
-        "port": 9001,
-        "address": "127.0.0.1",
-      }
-    },
-    "release":
-    {
-      "keepAlive": true,
-      "http":
-      {
-        "port": 9002,
-        "address": "127.0.0.1",
-      }
     }
   },
   "database": {
