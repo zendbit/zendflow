@@ -3,7 +3,8 @@
     "appName": "",
     "appType": "console",
     "appDesc": "create console app.",
-    "appID": ""
+    "appId": "",
+    "appVersion": "0.0.1"
   },
   "nimble": [],
   "initVar": {
@@ -45,9 +46,9 @@
         "exe": "nim",
         "props": {
           "src": "{srcDir}::app.nim",
-          "out": "{debugBinDir}"
+          "out": "{debugBinDir}::{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
     ]
   },
@@ -61,10 +62,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{debugBinDir}::app {appName} {appID}",
+            "exe": "{debugBinDir}::{appName}-{appVersion}-{appId}",
             "onPlatform": {
               "windows": {
-                "exe": "start {debugBinDir}::app.exe {appName} {appID}"
+                "exe": "start {debugBinDir}::{appName}-{appVersion}-{appId}.exe"
               }
             }
           }
@@ -80,9 +81,9 @@
         "exe": "nim",
         "props": {
           "src": "{srcDir}::app.nim",
-          "out": "{releaseBinDir}"
+          "out": "{releaseBinDir}::{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:release --nimblePath:{nimbledepsDir} --outdir:{out} {src}"
+        "options": "c -d:release --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
     ]
   },
@@ -96,10 +97,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{releaseBinDir}::app {appName} {appID}",
+            "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId}",
             "onPlatform": {
               "windows": {
-                "exe": "start {releaseBinDir}::app.exe {appName} {appID}"
+                "exe": "start {releaseBinDir}::{appName}-{appVersion}-{appID}.exe"
               }
             }
           }
@@ -117,10 +118,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{debugBinDir}::app {appName} {appID} &",
+            "exe": "{debugBinDir}::{appName}-{appVersion}-{appId} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {debugBinDir}::app.exe {appName} {appID}"
+                "exe": "start {debugBinDir}::{appName}-{appVersion}-{appId}.exe"
               }
             },
             "next": [
@@ -141,10 +142,10 @@
                         "list": [
                           {
                             "action": "cmd",
-                            "exe": "killall app {appName} {appID}",
+                            "exe": "killall {appName}-{appVersion}-{appId}",
                             "onPlatform": {
                               "windows": {
-                                "exe": "taskkill /IM \"app.exe {appName} {appID}\" /F"
+                                "exe": "taskkill /IM \"{appName}-{appVersion}-{appId}.exe\" /F"
                               }
                             }
                           },
@@ -155,10 +156,10 @@
                             "next": [
                               {
                                 "action": "cmd",
-                                "exe": "{debugBinDir}::app {appName} {appID} &",
+                                "exe": "{debugBinDir}::{appName}-{appVersion}-{appId} &",
                                 "onPlatform": {
                                   "windows": {
-                                    "exe": "start {debugBinDir}::app.exe {appName} {appID}"
+                                    "exe": "start {debugBinDir}::{appName}-{appVersion}-{appId}.exe"
                                   }
                                 }
                               }
@@ -186,10 +187,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{releaseBinDir}::app {appName} {appID} &",
+            "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {releaseBinDir}::app.exe {appName} {appID}"
+                "exe": "start {releaseBinDir}::{appName}-{appVersion}-{appId}"
               }
             },
             "next": [
@@ -210,10 +211,10 @@
                         "list": [
                           {
                             "action": "cmd",
-                            "exe": "killall app {appName} {appID}",
+                            "exe": "killall {appName}-{appVersion}-{appId}",
                             "onPlatform": {
                               "windows": {
-                                "exe": "taskkill /IM \"app.exe {appName} {appID}\" /F"
+                                "exe": "taskkill /IM \"{appName}-{appVersion}-{appId}.exe\" /F"
                               }
                             }
                           },
@@ -224,10 +225,10 @@
                             "next": [
                               {
                                 "action": "cmd",
-                                "exe": "{releaseBinDir}::app {appName} {appID} &",
+                                "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId} &",
                                 "onPlatform": {
                                   "windows": {
-                                    "exe": "start {releaseBinDir}::app.exe {appName} {appID}"
+                                    "exe": "start {releaseBinDir}::{appName}-{appVersion}-{appId}.exe"
                                   }
                                 }
                               }

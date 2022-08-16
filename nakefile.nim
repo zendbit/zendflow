@@ -432,52 +432,51 @@ proc doActionList(actionList: JsonNode) =
         if not desc.isNil:
           echo desc.getStr()
 
-        let file = action{"file"}
+        let files = action{"files"}
         let list = action{"list"}
         let next = action{"next"}
         let err = action{"err"}
         var errMsg = ""
         
-        echo &"replace str in file -> {file}"
+        echo &"replace str in files -> {files}"
 
-        if not file.isNil and
-          not list.isNil and
-          file.getStr().fileExists:
+        if not files.isNil and not list.isNil:
+          for file in files:
+            if file.getStr().fileExists:
+              try:
+                var f = file.getStr()
+                  .open(FileMode.fmRead)
+                var fstr = f.readAll()
+                f.close()
 
-          try:
-            var f = file.getStr()
-              .open(FileMode.fmRead)
-            var fstr = f.readAll()
-            f.close()
+                if not list.isNil and
+                  list.kind == JsonNodeKind.JArray:
 
-            if not list.isNil and
-              list.kind == JsonNodeKind.JArray:
+                  for l in list:
+                    let oldstr = l{"old"}
+                    let newstr = l{"new"}
+                    if not oldstr.isNil and not newstr.isNil:
+                      echo &" {oldstr} -> {newstr}"
+                      fstr = fstr.replace(
+                        oldstr.getStr()
+                          .cleanDoubleColon(),
+                        newstr.getStr()
+                          .cleanDoubleColon())
+                      
+                  f = file.getStr()
+                    .open(FileMode.fmWrite)
+                  f.write(fstr)
+                  f.close()
 
-              for l in list:
-                let oldstr = l{"old"}
-                let newstr = l{"new"}
-                if not oldstr.isNil and not newstr.isNil:
-                  echo &" {oldstr} -> {newstr}"
-                  fstr = fstr.replace(
-                    oldstr.getStr()
-                      .cleanDoubleColon(),
-                    newstr.getStr()
-                      .cleanDoubleColon())
-                  
-              f = file.getStr()
-                .open(FileMode.fmWrite)
-              f.write(fstr)
-              f.close()
-
-          except Exception as ex:
-            echo ex.msg
-            errMsg = ex.msg
-            if not err.isNil and err.kind == JsonNodeKind.JArray:
-              err.doActionList
-          
-          if errMsg == "":
-            if not next.isNil and next.kind == JsonNodeKind.JArray:
-              next.doActionList
+              except Exception as ex:
+                echo ex.msg
+                errMsg = ex.msg
+                if not err.isNil and err.kind == JsonNodeKind.JArray:
+                  err.doActionList
+              
+              if errMsg == "":
+                if not next.isNil and next.kind == JsonNodeKind.JArray:
+                  next.doActionList
 
       of "removeFile", "removeDir", "createDir":
         let list = action{"list"}
@@ -598,8 +597,9 @@ proc doActionList(actionList: JsonNode) =
 
 proc appInfo(name: string = ""): tuple[
   appName: string,
-  appID: string,
-  appType: string] =
+  appId: string,
+  appType: string,
+  appVersion: string] =
 
   #
   # get app info
@@ -607,7 +607,8 @@ proc appInfo(name: string = ""): tuple[
   #
   var appName = name
   var appType = ""
-  var appID = ""
+  var appId = ""
+  var appVersion = ""
 
   let jsonNake = loadJsonNakefile(appName)
   if not isNil(jsonNake{"jsonNakefile"}):
@@ -616,19 +617,22 @@ proc appInfo(name: string = ""): tuple[
       let jsonNake = forwardJsonNakefile.parseFile()
       appName = jsonNake{"appInfo"}{"appName"}.getStr()
       appType = jsonNake{"appInfo"}{"appType"}.getStr()
-      appID = jsonNake{"appInfo"}{"appID"}.getStr()
+      appId = jsonNake{"appInfo"}{"appId"}.getStr()
+      appVersion = jsonNake{"appInfo"}{"appVersion"}.getStr()
   
   else:
     appName = jsonNake{"appInfo"}{"appName"}.getStr()
     appType = jsonNake{"appInfo"}{"appType"}.getStr()
-    appID = jsonNake{"appInfo"}{"appID"}.getStr()
+    appId = jsonNake{"appInfo"}{"appId"}.getStr()
+    appVersion = jsonNake{"appInfo"}{"appVersion"}.getStr()
 
-  return (appName, appID, appType)
+  return (appName, appId, appType, appVersion)
 
 proc defaultApp(): tuple[
   appName: string,
-  appID: string,
-  appType: string] =
+  appId: string,
+  appType: string,
+  appVersion: string] =
 
   #
   # get default app
@@ -767,7 +771,7 @@ proc newApp(
       var jnode = fcontent.parseJson()
       if not isNil(jnode):
         jnode["appInfo"]["appName"] = %appName
-        jnode["appInfo"]["appID"] = % $(&"{getTime().toUnix}{appName}")
+        jnode["appInfo"]["appId"] = % $(&"{getTime().toUnix}{appName}")
           .secureHash
         jnode["appInfo"]["appType"] = %appType
         fcontent = $jnode
@@ -953,7 +957,8 @@ proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
       let actionToDo = ($taskList).replace("::", $DirSep)
         .replace("{currentAppDir}", appName.currentAppDir)
         .replace("{appName}", appName)
-        .replace("{appID}", appInfo(appName).appID)
+        .replace("{appId}", appInfo(appName).appId)
+        .replace("{appVersion}", appInfo(appName).appVersion)
         .replace("{appCollectionsDir}", appCollectionsDir).parseJson
       actionToDo.doActionList
   else:

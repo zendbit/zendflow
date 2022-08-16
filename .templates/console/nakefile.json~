@@ -3,7 +3,8 @@
     "appName": "",
     "appType": "console",
     "appDesc": "create console app.",
-    "appID": ""
+    "appId": "",
+    "appVersion": "0.0.1"
   },
   "nimble": [],
   "initVar": {
@@ -35,7 +36,7 @@
     "binDir": "{currentAppDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
-    "nimbledepsDir": "{currentAppDir}::nimbledeps::pkgs"
+    "nimbledepsDir": "{currentAppDir}::packages::nimble::pkgs"
   },
   "debug": {
     "desc": "debug the app.",

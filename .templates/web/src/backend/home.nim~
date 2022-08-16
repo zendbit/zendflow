@@ -6,7 +6,7 @@ type
   Home* = ref object
 
 proc render*(self: Home, user: string): string =
-  let lyt = newLayoutFromFile("hello.mustache")
+  let lyt = newLayoutFromFile("home.mustache")
   lyt.c["user"] = user
   result = lyt.render
 

@@ -3,7 +3,8 @@
     "appName": "",
     "appType": "staticlib",
     "appDesc": "create native static lib.",
-    "appID": ""
+    "appID": "",
+    "appVersion": "0.0.1"
   },
   "nimble": [],
   "initVar": {
