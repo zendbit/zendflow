@@ -48,18 +48,6 @@
           "dest": "{appDir}::nakefile.nim"
         }
       ]
-    },
-    {
-      "action": "replaceStr",
-      "files": [
-        "{wwwDir}::index.html",
-        "{srcDir}::template::index.mustache"],
-      "list": [
-        {
-          "old": "[[appName]]",
-          "new": "{appName}-{appVersion}-{appId}"
-        }
-      ]
     }
   ],
   "var": {
