@@ -48,18 +48,6 @@
           "dest": "{appDir}::nakefile.nim"
         }
       ]
-    },
-    {
-      "action": "replaceStr",
-      "files": [
-        "{wwwDir}::index.html",
-        "{srcDir}::template::index.mustache"],
-      "list": [
-        {
-          "old": "[[appName]]",
-          "new": "{appName}-{appVersion}-{appId}"
-        }
-      ]
     }
   ],
   "var": {
@@ -84,7 +72,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{wwwDir}::private::js::{appName}-{appVersion}-{appId}.js"
+          "out": "{wwwDir}::private::js::debug-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
@@ -98,7 +86,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{wwwDir}::private::js::{appName}-{appVersion}-{appId}.js"
+          "out": "{wwwDir}::private::js::release-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       }
@@ -112,7 +100,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcBackendDir}::app.nim",
-          "out": "{releaseBinDir}::{appName}-{appVersion}-{appId}"
+          "out": "{releaseBinDir}::release-{appName}-{appVersion}-{appId}"
         },
         "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
       }
@@ -126,7 +114,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcBackendDir}::app.nim",
-          "out": "{debugBinDir}::{appName}-{appVersion}-{appId}"
+          "out": "{debugBinDir}::debug-{appName}-{appVersion}-{appId}"
         },
         "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib --threads:on --out:{out} {src}"
       }
@@ -182,14 +170,42 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{debugBinDir}::{appName}-{appVersion}-{appId}",
+            "exe": "{debugBinDir}::debug-{appName}-{appVersion}-{appId}",
             "onPlatform": {
               "windows": {
-                "exe": "{debugBinDir}::{appName}-{appVersion}-{appId}.exe"
+                "exe": "{debugBinDir}::debug-{appName}-{appVersion}-{appId}.exe"
               }
             }
           }
         ]
+      }
+    ]
+  },
+  "debug-start": {
+    "desc": "run debug in other process.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "{debugBinDir}::debug-{appName}-{appVersion}-{appId} &",
+        "onPlatform": {
+          "windows": {
+            "exe": "start {debugBinDir}::debug-{appName}-{appVersion}-{appId}.exe"
+          }
+        }
+      }
+    ]
+  },
+  "debug-stop": {
+    "desc": "stop debug in other process.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "killall debug-{appName}-{appVersion}-{appId}",
+        "onPlatform": {
+          "windows": {
+            "exe": "taskkill /IM \"debug-{appName}-{appVersion}-{appId}.exe\" /F"
+          }
+        }
       }
     ]
   },
@@ -243,14 +259,42 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId}",
+            "exe": "{releaseBinDir}::release-{appName}-{appVersion}-{appId}",
             "onPlatform": {
               "windows": {
-                "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId}.exe"
+                "exe": "{releaseBinDir}::release-{appName}-{appVersion}-{appId}.exe"
               }
             }
           }
         ]
+      }
+    ]
+  },
+  "release-start": {
+    "desc": "run release in other process.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "{debugBinDir}::release-{appName}-{appVersion}-{appId} &",
+        "onPlatform": {
+          "windows": {
+            "exe": "start {debugBinDir}::release-{appName}-{appVersion}-{appId}.exe"
+          }
+        }
+      }
+    ]
+  },
+  "release-stop": {
+    "desc": "stop release in other process.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "killall release-{appName}-{appVersion}-{appId}",
+        "onPlatform": {
+          "windows": {
+            "exe": "taskkill /IM \"release-{appName}-{appVersion}-{appId}.exe\" /F"
+          }
+        }
       }
     ]
   },
@@ -280,10 +324,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{debugBinDir}::{appName}-{appVersion}-{appId} &",
+            "exe": "{debugBinDir}::debug-{appName}-{appVersion}-{appId} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {debugBinDir}::{appName}-{appVersion}-{appId}.exe"
+                "exe": "start {debugBinDir}::debug-{appName}-{appVersion}-{appId}.exe"
               }
             },
             "next": [
@@ -304,12 +348,8 @@
                         "list": [
                           {
                             "action": "cmd",
-                            "exe": "killall {appName}-{appVersion}-{appId}",
-                            "onPlatform": {
-                              "windows": {
-                                "exe": "taskkill /IM \"{appName}-{appVersion}-{appId}.exe\" /F"
-                              }
-                            }
+                            "exe": "nake",
+                            "options": "debug-stop {appName}"
                           },
                           {
                             "action": "cmd",
@@ -318,12 +358,8 @@
                             "next": [
                               {
                                 "action": "cmd",
-                                "exe": "{debugBinDir}::{appName}-{appVersion}-{appId} &",
-                                "onPlatform": {
-                                  "windows": {
-                                    "exe": "start {debugBinDir}::{appName}-{appVersion}-{appId}.exe"
-                                  }
-                                }
+                                "exe": "nake",
+                                "options": "debug-run {appName}"
                               }
                             ]
                           }
@@ -447,10 +483,10 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId} &",
+            "exe": "{releaseBinDir}::release-{appName}-{appVersion}-{appId} &",
             "onPlatform": {
               "windows": {
-                "exe": "start {releaseBinDir}::{appName}-{appVersion}-{appId}.exe"
+                "exe": "start {releaseBinDir}::release-{appName}-{appVersion}-{appId}.exe"
               }
             },
             "next": [
@@ -471,12 +507,8 @@
                         "list": [
                           {
                             "action": "cmd",
-                            "exe": "killall {appName}-{appVersion}-{appId}",
-                            "onPlatform": {
-                              "windows": {
-                                "exe": "taskkill /IM \"{appName}-{appVersion}-{appId}.exe\" /F"
-                              }
-                            }
+                            "exe": "nake",
+                            "options": "release-stop {appName}"
                           },
                           {
                             "action": "cmd",
@@ -485,12 +517,8 @@
                             "next": [
                               {
                                 "action": "cmd",
-                                "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId} &",
-                                "onPlatform": {
-                                  "windows": {
-                                    "exe": "start {releaseBinDir}::{appName}-{appVersion}-{appId}.exe"
-                                  }
-                                }
+                                "exe": "nake",
+                                "options": "release-start {appName}"
                               }
                             ]
                           }
