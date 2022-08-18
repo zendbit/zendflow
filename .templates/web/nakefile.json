@@ -355,7 +355,7 @@
                               {
                                 "action": "cmd",
                                 "exe": "nake",
-                                "options": "debug-run {appName}"
+                                "options": "debug-start {appName}"
                               }
                             ]
                           }
