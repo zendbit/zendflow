@@ -324,12 +324,8 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{debugBinDir}::debug-{appName}-{appVersion}-{appId} &",
-            "onPlatform": {
-              "windows": {
-                "exe": "start {debugBinDir}::debug-{appName}-{appVersion}-{appId}.exe"
-              }
-            },
+            "exe": "nake",
+            "options": "debug-start {appName}",
             "next": [
               {
                 "action": "watch",
@@ -483,12 +479,8 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{releaseBinDir}::release-{appName}-{appVersion}-{appId} &",
-            "onPlatform": {
-              "windows": {
-                "exe": "start {releaseBinDir}::release-{appName}-{appVersion}-{appId}.exe"
-              }
-            },
+            "exe": "nake",
+            "options": "release-start {appName}",
             "next": [
               {
                 "action": "watch",

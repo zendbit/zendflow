@@ -325,8 +325,7 @@
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "debug-start {appName}"
-            },
+            "options": "debug-start {appName}",
             "next": [
               {
                 "action": "watch",
@@ -481,8 +480,7 @@
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "release-start {appName}"
-            },
+            "options": "release-start {appName}",
             "next": [
               {
                 "action": "watch",

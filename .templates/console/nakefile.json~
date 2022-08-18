@@ -232,11 +232,8 @@
         "next": [
           {
             "action": "cmd",
-            "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId} &",
-            "onPlatform": {
-              "windows": {
-                "exe": "start {releaseBinDir}::{appName}-{appVersion}-{appId}"
-              }
+            "exe": "nake",
+            "options": "release-start {appName}"
             },
             "next": [
               {
@@ -256,11 +253,8 @@
                         "list": [
                           {
                             "action": "cmd",
-                            "exe": "killall {appName}-{appVersion}-{appId}",
-                            "onPlatform": {
-                              "windows": {
-                                "exe": "taskkill /IM \"{appName}-{appVersion}-{appId}.exe\" /F"
-                              }
+                            "exe": "nake",
+                            "options": "release-stop {appName}"
                             }
                           },
                           {
@@ -270,11 +264,8 @@
                             "next": [
                               {
                                 "action": "cmd",
-                                "exe": "{releaseBinDir}::{appName}-{appVersion}-{appId} &",
-                                "onPlatform": {
-                                  "windows": {
-                                    "exe": "start {releaseBinDir}::{appName}-{appVersion}-{appId}.exe"
-                                  }
+                                "exe": "nake",
+                                "options": "release-start {appName}"
                                 }
                               }
                             ]
