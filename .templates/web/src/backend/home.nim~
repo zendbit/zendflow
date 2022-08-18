@@ -2,16 +2,15 @@
 import zfcore/server
 import zfplugs/layout
 
-type
-  Home* = ref object
-
-proc render*(self: Home, user: string): string =
-  let lyt = newLayoutFromFile("home.mustache")
-  lyt.c["user"] = user
-  result = lyt.render
+var page {.threadvar.}: Layout
+page = newLayoutFromFile("home.mustache")
 
 routes:
+  before:
+    page = newLayoutFromFile("home.mustache")
+
   # accept request with /example/123456
   # id will capture the value 12345
-  get "/home/<id>":
-    Http200.respHtml(Home().render(params.getOrDefault("id")))
+  get "/index/<id>":
+    page.c["user"] = params.getOrDefault("id")
+    Http200.respHtml(page.render())
