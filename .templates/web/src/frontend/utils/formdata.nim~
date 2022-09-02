@@ -1,0 +1,3 @@
+include ffi
+
+proc newFormData*(): JsObject {.importcpp: "new FormData()", nodecl.}

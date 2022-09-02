@@ -164,64 +164,6 @@
       }
     ]
   },
-  "watch-debug-run": {
-    "desc": "watch changes in debug mode then run.",
-    "tasks": [
-      {
-        "action": "cmd",
-        "exe": "nake",
-        "options": "debug {appName}",
-        "next": [
-          {
-            "action": "cmd",
-            "exe": "nake",
-            "options": "debug-start {appName}"
-            },
-            "next": [
-              {
-                "action": "watch",
-                "list": [
-                  {
-                    "dirs": [
-                      "{srcDir}"
-                    ],
-                    "pattern": "(?=.*).+\\.nim$",
-                    "events": [
-                      {
-                        "action": [
-                          "onModified",
-                          "onCreated"
-                        ],
-                        "list": [
-                          {
-                            "action": "cmd",
-                            "exe": "nake",
-                            "options": "debug-stop {appName}"
-                          },
-                          {
-                            "action": "cmd",
-                            "exe": "nake",
-                            "options": "debug {appName}",
-                            "next": [
-                              {
-                                "action": "cmd",
-                                "exe": "nake",
-                                "options": "debug-start {appName}"
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
   "watch-release-run": {
     "desc": "watch changes in release mode then run.",
     "tasks": [
@@ -233,8 +175,7 @@
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "release-start {appName}"
-            },
+            "options": "release-start {appName}",
             "next": [
               {
                 "action": "watch",
@@ -255,7 +196,6 @@
                             "action": "cmd",
                             "exe": "nake",
                             "options": "release-stop {appName}"
-                            }
                           },
                           {
                             "action": "cmd",
@@ -266,7 +206,6 @@
                                 "action": "cmd",
                                 "exe": "nake",
                                 "options": "release-start {appName}"
-                                }
                               }
                             ]
                           }

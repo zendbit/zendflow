@@ -3,7 +3,8 @@
     "appName": "",
     "appType": "lib",
     "appDesc": "create native dynamic lib.",
-    "appID": ""
+    "appID": "",
+    "appVersion": "0.0.1"
   },
   "nimble": [],
   "initVar": {
