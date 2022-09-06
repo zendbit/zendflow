@@ -117,50 +117,50 @@ routes:
   #   will capture ([0-9]+) twice
   # - if only want to capture one we must exactly match len[n]
   #   with number of () capturing bracket
-  # - capture regex will return list of match and can be access using ctx.reParams
+  # - capture regex will return list of match and can be access using ctx.ctxReParams
   # - if we want to capture segment parameter we can use <param_to_capture>
   #   in this case we use <name>
   # - <name> will capture segment value in there as name,
-  #   we can access param value and query string in HttpCtx.params["name"] or other param name
+  #   we can access param value and query string in HttpCtx.ctxParams["name"] or other param name
   get "/req/<ids:re[([0-9]+)_([0-9]+)]>/<name>":
     echo "Welcome req"
     # capture regex result from the url
-    echo reParams["ids"]
+    echo ctxReParams["ids"]
     # capture <name> value parameter from the url
-    echo params["name"]
+    echo ctxParams["name"]
     # we can also set custom header for the response
     # using ctx.responseHeaders.add("header kye", "header value")
     res.headers.add("Content-Type", "text/plain")
     Http200.respHtml("Hello World get request")
 
   #get "/req/<id>/<name>":
-  #  echo ctx.params["name"]
-  #  echo ctx.params["id"]
+  #  echo ctx.ctxParams["name"]
+  #  echo ctx.ctxParams["id"]
   #  resp(Http200, "Ok")
 
   get "/req/<id>":
     # capture the <id> from the path
-    echo params["id"]
+    echo ctxParams["id"]
     Http200.resp("Hello World patch request")
 
   patch "/req/<id>":
     # capture the <id> from the path
-    echo params["id"]
+    echo ctxParams["id"]
     Http200.resp("Hello World patch request")
 
   delete "/req/<id>":
     # capture the <id> from the path
-    echo params["id"]
+    echo ctxParams["id"]
     Http200.resp("Hello World delete request")
 
   put "/req/<id>":
     # capture the <id> from the path
-    echo params["id"]
+    echo ctxParams["id"]
     Http200.resp("Hello World put request")
 
   head "/req/<id>":
     # capture the <id> from the path
-    echo params["id"]
+    echo ctxParams["id"]
     Http200.resp("Hello World head request")
 
   # before Route here
