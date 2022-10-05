@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/PostfixLogParser/nakefile.json",
+  "jsonNakefile": "apps/Mailman/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }

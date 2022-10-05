@@ -59,10 +59,14 @@
     "binDir": "{currentAppDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
+    "debugTemplateDir": "{debugBinDir}::template",
+    "releaseTemplateDir": "{releaseBinDir}::template",
     "debugWwwDir": "{binDir}::debug::www",
     "releaseWwwDir": "{binDir}::release::www",
     "nimbledepsDir": "{currentAppDir}::packages::nimble::pkgs",
-    "configDir": "{currentAppDir}::config"
+    "configDir": "{currentAppDir}::config",
+    "debugConfigDir": "{debugBinDir}::config",
+    "releaseConfigDir": "{releaseBinDir}::config"
   },
   "compile-debug-frontend": {
     "desc": "compile debug frontend app only.",
@@ -140,15 +144,15 @@
         "list": [
           {
             "src": "{srcTemplateDir}",
-            "dest": "{debugBinDir}",
+            "dest": "{debugTemplateDir}",
             "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": false
+            "withStructure": true
           },
           {
             "src": "{configDir}",
-            "dest": "{debugBinDir}",
+            "dest": "{debugConfigDir}",
             "filter": ".+$",
-            "withStructure": false
+            "withStructure": true
           },
           {
             "src": "{wwwDir}",
@@ -229,15 +233,15 @@
         "list": [
           {
             "src": "{srcTemplateDir}",
-            "dest": "{releaseBinDir}",
+            "dest": "{releaseTemplateDir}",
             "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": false
+            "withStructure": true
           },
           {
             "src": "{configDir}",
-            "dest": "{releaseBinDir}",
+            "dest": "{releaseTemplateDir}",
             "filter": ".+$",
-            "withStructure": false
+            "withStructure": true
           },
           {
             "src": "{wwwDir}",
@@ -401,7 +405,8 @@
                             "list": [
                               {
                                 "src": "{eventFilePath}",
-                                "dest": "{debugBinDir}::{eventFileName}"
+                                "dest": "{debugTemplateDir}::{eventFileName}",
+                                "withStructure": true
                               }
                             ]
                           }
@@ -426,7 +431,8 @@
                             "list": [
                               {
                                 "src": "{eventFilePath}",
-                                "dest": "{debugBinDir}::{eventFileName}"
+                                "dest": "{debugBinDir}::{eventFileName}",
+                                "withStructure": true
                               }
                             ]
                           }
@@ -450,8 +456,8 @@
                             "action": "copyFile",
                             "list": [
                               {
-                                "src": "{wwwDir}",
-                                "dest": "{debugWwwDir}",
+                                "src": "{eventFilePath}",
+                                "dest": "{debugWwwDir}::{eventFileName}",
                                 "filter": ".+$",
                                 "withStructure": true
                               }
@@ -556,7 +562,8 @@
                             "list": [
                               {
                                 "src": "{eventFilePath}",
-                                "dest": "{releaseBinDir}::{eventFileName}"
+                                "dest": "{releaseBinDir}::{eventFileName}",
+                                "withStructure": true
                               }
                             ]
                           }
@@ -581,7 +588,8 @@
                             "list": [
                               {
                                 "src": "{eventFilePath}",
-                                "dest": "{releaseBinDir}::{eventFileName}"
+                                "dest": "{releaseBinDir}::{eventFileName}",
+                                "withStructure": true
                               }
                             ]
                           }
@@ -605,8 +613,8 @@
                             "action": "copyFile",
                             "list": [
                               {
-                                "src": "{wwwDir}",
-                                "dest": "{releaseWwwDir}",
+                                "src": "{eventFilePath}",
+                                "dest": "{releaseWwwDir}::{eventFileName}",
                                 "filter": ".+$",
                                 "withStructure": true
                               }
