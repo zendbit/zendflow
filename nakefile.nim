@@ -299,7 +299,7 @@ proc doActionList(actionList: JsonNode) =
             var withStructure = true
             if not l{"withStructure"}.isNil:
               withStructure = l{"withStructure"}.getBool
-              
+
             var recursive = true
             if not l{"recursive"}.isNil:
               recursive = l{"recursive"}.getBool

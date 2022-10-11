@@ -1,8 +1,6 @@
-include ffi
+import ffi
 
 import strformat
-import strutils
-import sequtils
 import tables
 
 type
@@ -48,12 +46,12 @@ proc `$`(self: Css): string =
   result = styleList.join("")
 
 proc applyCss*(self: Css) =
-  let styleElements = document.getElementsByTagName("style")
-  var fragment = document.createDocumentFragment()
+  let styleElements = jDocument.getElementsByTagName("style")
+  var fragment = jDocument.toJs.createDocumentFragment()
   if styleElements.length.toInt == 0:
-    let style = document.createElement("style")
+    let style = jDocument.createElement("style")
     style.innerText = ($self).cstring
-    document.getElementsByTagName("head")[0].appendChild(style)
+    jDocument.getElementsByTagName("head")[0].appendChild(style)
 
   else:
     styleElements[0].innerText = ($self).cstring

@@ -1,4 +1,4 @@
-include ffi
+import ffi
 import blob
 
 type
@@ -63,12 +63,12 @@ proc abort*(self: Ajax) =
   self.xhr.abort()
 
 proc getAllResponseHeaders*(self: Ajax): cstring =
-  result = $self.xhr.getAllResponseHeaders()
+  result = self.xhr.getAllResponseHeaders().to(cstring)
 
 proc getResponseHeader*(
   self: Ajax,
   header: cstring): cstring =
-  result = $self.xhr.getResponseHeader(header)
+  result = self.xhr.getResponseHeader(header).to(cstring)
 
 proc open*(
   self: Ajax,

@@ -78,7 +78,7 @@
           "src": "{srcFrontendDir}::app.nim",
           "out": "{wwwDir}::private::js::debug-{appName}-{appVersion}-{appId}.js"
         },
-        "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
+        "options": "js --hints:off --warnings:off --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
     ]
   },
@@ -92,7 +92,7 @@
           "src": "{srcFrontendDir}::app.nim",
           "out": "{wwwDir}::private::js::release-{appName}-{appVersion}-{appId}.js"
         },
-        "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
+        "options": "js --hints:off --warnings:off --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       }
     ]
   },
@@ -106,7 +106,7 @@
           "src": "{srcBackendDir}::app.nim",
           "out": "{releaseBinDir}::release-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
+        "options": "c --hints:off --warnings:off -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
       }
     ]
   },
@@ -120,7 +120,7 @@
           "src": "{srcBackendDir}::app.nim",
           "out": "{debugBinDir}::debug-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib --threads:on --out:{out} {src}"
+        "options": "c --hints:off --warnings:off -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib --threads:on --out:{out} {src}"
       }
     ]
   },
@@ -456,8 +456,8 @@
                             "action": "copyFile",
                             "list": [
                               {
-                                "src": "{eventFilePath}",
-                                "dest": "{debugWwwDir}::{eventFileName}",
+                                "src": "{wwwDir}",
+                                "dest": "{debugWwwDir}",
                                 "filter": ".+$",
                                 "withStructure": true
                               }
@@ -613,8 +613,8 @@
                             "action": "copyFile",
                             "list": [
                               {
-                                "src": "{eventFilePath}",
-                                "dest": "{releaseWwwDir}::{eventFileName}",
+                                "src": "{wwwDir}",
+                                "dest": "{releaseWwwDir}",
                                 "filter": ".+$",
                                 "withStructure": true
                               }

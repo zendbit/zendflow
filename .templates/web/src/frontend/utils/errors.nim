@@ -1,4 +1,4 @@
-include ffi
+import ffi
 
 import strformat
 

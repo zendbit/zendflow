@@ -1,4 +1,4 @@
-include ffi
+import ffi
 
 ##  This module contains wrappers for the HTML 5 local storage.
 proc getItem*(key: cstring): cstring {.importc: "localStorage.getItem".}

@@ -7,10 +7,22 @@ import jsconsole
 import strutils
 import sequtils
 
-var document* {.importc, nodecl.}: JsObject
-var window* {.importc, nodecl.}: JsObject
-var console* {.importc, nodecl.}: JsObject
+export asyncjs
+export jsffi
+export jscore
+export dom
+export jsconsole
+export strutils
+export sequtils
+
+var document {.importc, nodecl.}: JsObject
+var window {.importc, nodecl.}: JsObject
+var console {.importc, nodecl.}: JsObject
 var UIkit* {.importc, nodecl.}: JsObject
+
+var jDocument* = document.toJs
+var jWindow* = document.toJs
+var jConsole* = console.toJs
 
 ##  this for parsing and checking
 proc isNaN*(obj: JsObject): bool {.importc, nodecl.}
@@ -23,8 +35,11 @@ proc selector*(obj: JsObject): JsObject {.importcpp: "document.querySelector(#)"
 proc selectorAll*(s: cstring): JsObject {.importcpp: "document.querySelectorAll(#)", nodecl.}
 proc selectorAll*(obj: JsObject): JsObject {.importcpp: "document.querySelectorAll(#)", nodecl.}
 
-proc `$`(obj: JsObject): string =
+proc toStr*(obj: JsObject): string =
   result = $(obj.to(cstring))
+
+proc toStr*(obj: cstring): string =
+  result = $obj
 
 proc toInt*(s: cstring): BiggestInt =
   parseInt(s).to(BiggestInt)
