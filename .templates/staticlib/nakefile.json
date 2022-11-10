@@ -6,7 +6,10 @@
     "appID": "",
     "appVersion": "0.0.1"
   },
-  "nimble": [],
+  "nimble": {
+    "local": [],
+    "global": []
+  },
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "appSrcDir": "{appDir}::src"
