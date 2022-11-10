@@ -13,5 +13,5 @@ routes:
     page.c["appVersion"] = getAppFilename().extractFilename
 
   get "/index/<id>":
-    page.c["user"] = params.getOrDefault("id")
+    page.c["user"] = ctxParams.getOrDefault("id")
     Http200.respHtml(page.render())

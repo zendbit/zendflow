@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/Mailman/nakefile.json",
+  "jsonNakefile": "apps/zendblock/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }

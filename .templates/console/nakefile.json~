@@ -6,7 +6,10 @@
     "appId": "",
     "appVersion": "0.0.1"
   },
-  "nimble": [],
+  "nimble": {
+    "local": [],
+    "global": []
+  },
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "appSrcDir": "{appDir}::src"
@@ -32,11 +35,11 @@
     }
   ],
   "var": {
-    "srcDir": "{currentAppDir}::src",
-    "binDir": "{currentAppDir}::bin",
+    "srcDir": "{currentProjectDir}::src",
+    "binDir": "{currentProjectDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
-    "nimbledepsDir": "{currentAppDir}::packages::nimble::pkgs"
+    "nimbledepsDir": "{currentProjectDir}::packages::nimble::pkgs"
   },
   "debug": {
     "desc": "debug the app.",
@@ -161,6 +164,63 @@
             "exe": "taskkill /IM \"release-{appName}-{appVersion}-{appId}.exe\" /F"
           }
         }
+      }
+    ]
+  },
+  "watch-debug-run": {
+    "desc": "watch changes in debug mode then run.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "nake",
+            "options": "debug-start {appName}",
+            "next": [
+              {
+                "action": "watch",
+                "list": [
+                  {
+                    "dirs": [
+                      "{srcDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.nim$",
+                    "events": [
+                      {
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
+                        "list": [
+                          {
+                            "action": "cmd",
+                            "exe": "nake",
+                            "options": "debug-stop {appName}"
+                          },
+                          {
+                            "action": "cmd",
+                            "exe": "nake",
+                            "options": "debug {appName}",
+                            "next": [
+                              {
+                                "action": "cmd",
+                                "exe": "nake",
+                                "options": "debug-start {appName}"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       }
     ]
   },

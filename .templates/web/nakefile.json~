@@ -6,21 +6,27 @@
     "appId": "",
     "appVersion": "0.0.1"
   },
-  "nimble": [
-    "develop uri3",
-    "develop stdext",
-    "develop zfdbms",
-    "develop zfblast",
-    "develop zfcore",
-    "develop zfplugs",
-    "install mustache@#head",
-    "install karax@#head"
-  ],
+  "nimble": {
+    "local": [
+      "install mustache@#head",
+      "install karax@#head",
+      "install sha1",
+      "install zip",
+      "develop uri3",
+      "develop stdext",
+      "develop zfdbms",
+      "develop zfblast",
+      "develop zfcore",
+      "develop zfplugs"
+    ],
+    "global": []
+  },
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "srcDir": "{appDir}::src",
-    "wwwDir": "{appDir}::www",
-    "compiledJsDir": "{wwwDir}::private::js"
+    "assetDir": "{appDir}::asset",
+    "assetWwwDir": "{assetDir}::www",
+    "compiledJsDir": "{assetWwwDir}::private::js"
   },
   "init": [
     {
@@ -51,18 +57,23 @@
     }
   ],
   "var": {
-    "srcDir": "{currentAppDir}::src",
+    "srcDir": "{workingDir}::src",
     "srcFrontendDir": "{srcDir}::frontend",
     "srcBackendDir": "{srcDir}::backend",
-    "srcTemplateDir": "{srcDir}::template",
-    "wwwDir": "{currentAppDir}::www",
-    "binDir": "{currentAppDir}::bin",
+    "assetDir": "{workingDir}::asset",
+    "assetTemplateDir": "{assetDir}::template",
+    "assetWwwDir": "{assetDir}::www",
+    "binDir": "{workingDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
+    "debugTemplateDir": "{debugBinDir}::template",
+    "releaseTemplateDir": "{releaseBinDir}::template",
     "debugWwwDir": "{binDir}::debug::www",
     "releaseWwwDir": "{binDir}::release::www",
-    "nimbledepsDir": "{currentAppDir}::packages::nimble::pkgs",
-    "configDir": "{currentAppDir}::config"
+    "nimbledepsDir": "{workingDir}::packages::nimble::pkgs",
+    "configDir": "{workingDir}::config",
+    "debugConfigDir": "{debugBinDir}::config",
+    "releaseConfigDir": "{releaseBinDir}::config"
   },
   "compile-debug-frontend": {
     "desc": "compile debug frontend app only.",
@@ -72,7 +83,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{wwwDir}::private::js::debug-{appName}-{appVersion}-{appId}.js"
+          "out": "{assetWwwDir}::private::js::debug-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
@@ -86,7 +97,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{wwwDir}::private::js::release-{appName}-{appVersion}-{appId}.js"
+          "out": "{assetWwwDir}::private::js::release-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       }
@@ -139,21 +150,21 @@
         "action": "copyFile",
         "list": [
           {
-            "src": "{srcTemplateDir}",
-            "dest": "{debugBinDir}",
-            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": false
+            "src": "{assetTemplateDir}",
+            "dest": "{debugTemplateDir}",
+            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "withStructure": true
           },
           {
             "src": "{configDir}",
-            "dest": "{debugBinDir}",
-            "filter": ".+$",
-            "withStructure": false
+            "dest": "{debugConfigDir}",
+            "filter": ".*$",
+            "withStructure": true
           },
           {
-            "src": "{wwwDir}",
+            "src": "{assetWwwDir}",
             "dest": "{debugWwwDir}",
-            "filter": ".+$",
+            "filter": ".*$",
             "withStructure": true
           }
         ]
@@ -182,7 +193,7 @@
     ]
   },
   "debug-start": {
-    "desc": "run debug in other process.",
+    "desc": "run debug in another process.",
     "tasks": [
       {
         "action": "cmd",
@@ -196,7 +207,7 @@
     ]
   },
   "debug-stop": {
-    "desc": "stop debug in other process.",
+    "desc": "stop debug in another process.",
     "tasks": [
       {
         "action": "cmd",
@@ -228,19 +239,19 @@
         "action": "copyFile",
         "list": [
           {
-            "src": "{srcTemplateDir}",
-            "dest": "{releaseBinDir}",
-            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": false
+            "src": "{assetTemplateDir}",
+            "dest": "{releaseTemplateDir}",
+            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "withStructure": true
           },
           {
             "src": "{configDir}",
-            "dest": "{releaseBinDir}",
+            "dest": "{releaseConfigDir}",
             "filter": ".+$",
-            "withStructure": false
+            "withStructure": true
           },
           {
-            "src": "{wwwDir}",
+            "src": "{assetWwwDir}",
             "dest": "{releaseWwwDir}",
             "filter": ".+$",
             "withStructure": true
@@ -271,7 +282,7 @@
     ]
   },
   "release-start": {
-    "desc": "run release in other process.",
+    "desc": "run release in another process.",
     "tasks": [
       {
         "action": "cmd",
@@ -285,7 +296,7 @@
     ]
   },
   "release-stop": {
-    "desc": "stop release in other process.",
+    "desc": "stop release in another process.",
     "tasks": [
       {
         "action": "cmd",
@@ -334,7 +345,7 @@
                     "dirs": [
                       "{srcBackendDir}"
                     ],
-                    "pattern": "(?=.*).+\\.nim$",
+                    "pattern": "(?=.*).+\.nim$",
                     "events": [
                       {
                         "action": [
@@ -355,7 +366,7 @@
                               {
                                 "action": "cmd",
                                 "exe": "nake",
-                                "options": "debug-run {appName}"
+                                "options": "debug-start {appName}"
                               }
                             ]
                           }
@@ -367,7 +378,7 @@
                     "dirs": [
                       "{srcFrontendDir}"
                     ],
-                    "pattern": "(?=.*).+\\.nim$",
+                    "pattern": "(?=.*).+\.nim$",
                     "events": [
                       {
                         "action": [
@@ -386,9 +397,9 @@
                   },
                   {
                     "dirs": [
-                      "{srcTemplateDir}"
+                      "{assetTemplateDir}"
                     ],
-                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "pattern": "(?=.*).+\.(mustache|html|tpl)$",
                     "events": [
                       {
                         "action": [
@@ -401,7 +412,11 @@
                             "list": [
                               {
                                 "src": "{eventFilePath}",
-                                "dest": "{debugBinDir}::{eventFileName}"
+                                "dest": "{debugTemplateDir}",
+                                "filter": ".*$",
+                                "recursive": false,
+                                "withStructure": true,
+                                "structureOffset": "{assetTemplateDir}"
                               }
                             ]
                           }
@@ -426,7 +441,11 @@
                             "list": [
                               {
                                 "src": "{eventFilePath}",
-                                "dest": "{debugBinDir}::{eventFileName}"
+                                "dest": "{debugBinDir}",
+                                "filter": ".*$",
+                                "recursive": false,
+                                "withStructure": true,
+                                "structureOffset": "{configDir}"
                               }
                             ]
                           }
@@ -436,7 +455,7 @@
                   },
                   {
                     "dirs": [
-                      "{wwwDir}"
+                      "{assetWwwDir}"
                     ],
                     "pattern": ".+$",
                     "events": [
@@ -450,10 +469,12 @@
                             "action": "copyFile",
                             "list": [
                               {
-                                "src": "{wwwDir}",
+                                "src": "{eventFilePath}",
                                 "dest": "{debugWwwDir}",
-                                "filter": ".+$",
-                                "withStructure": true
+                                "filter": ".*$",
+                                "recursive": false,
+                                "withStructure": true,
+                                "structureOffset": "{assetWwwDir}"
                               }
                             ]
                           }
@@ -489,7 +510,7 @@
                     "dirs": [
                       "{srcBackendDir}"
                     ],
-                    "pattern": "(?=.*).+\\.nim$",
+                    "pattern": "(?=.*).+\.nim$",
                     "events": [
                       {
                         "action": [
@@ -522,7 +543,7 @@
                     "dirs": [
                       "{srcFrontendDir}"
                     ],
-                    "pattern": "(?=.*).+\\.nim$",
+                    "pattern": "(?=.*).+\.nim$",
                     "events": [
                       {
                         "action": [
@@ -541,9 +562,9 @@
                   },
                   {
                     "dirs": [
-                      "{srcTemplateDir}"
+                      "{assetTemplateDir}"
                     ],
-                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "pattern": "(?=.*).+\.(mustache|html|tpl)$",
                     "events": [
                       {
                         "action": [
@@ -556,7 +577,11 @@
                             "list": [
                               {
                                 "src": "{eventFilePath}",
-                                "dest": "{releaseBinDir}::{eventFileName}"
+                                "dest": "{releaseBinDir}",
+                                "filter": ".*$",
+                                "recursive": false,
+                                "withStructure": true,
+                                "structureOffset": "{assetTemplateDir}"
                               }
                             ]
                           }
@@ -581,7 +606,11 @@
                             "list": [
                               {
                                 "src": "{eventFilePath}",
-                                "dest": "{releaseBinDir}::{eventFileName}"
+                                "dest": "{releaseBinDir}",
+                                "filter": ".+$",
+                                "recursive": false,
+                                "withStructure": true,
+                                "structureOffset": "{configDir}"
                               }
                             ]
                           }
@@ -591,7 +620,7 @@
                   },
                   {
                     "dirs": [
-                      "{wwwDir}"
+                      "{assetWwwDir}"
                     ],
                     "pattern": ".+$",
                     "events": [
@@ -605,10 +634,12 @@
                             "action": "copyFile",
                             "list": [
                               {
-                                "src": "{wwwDir}",
+                                "src": "{eventFilePath}",
                                 "dest": "{releaseWwwDir}",
                                 "filter": ".+$",
-                                "withStructure": true
+                                "recursive": false,
+                                "withStructure": true,
+                                "structureOffset": "{assetWwwDir}"
                               }
                             ]
                           }

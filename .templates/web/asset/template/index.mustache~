@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Index</title>
+  </head>
+  <body id="body">
+    <div>
+      Hello <strong>{{user}}</strong>.<br />
+      This is render using mustache templating system for nim.<br />
+      <a href="https://github.com/soasme/nim-mustache">https://github.com/soasme/nim-mustache</a>
+    </div>
+    <!-- karax div, single page application -->
+    <div id="ROOT" />
+    <script type="text/javascript" src="{{siteUrl}}/private/js/[[appName]].js"></script>
+  </body>
+</html>

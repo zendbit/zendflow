@@ -1,3 +1,12 @@
+##
+##  nakefile.nim
+##  the nake build system
+##  will parse the nakefile.json into nake task
+##
+##  @author: Amru Rosyada
+##  @email: amru.rosyada@gmail.com
+##  @license: BSD
+##
 import
   nake,
   nakelib,
@@ -51,6 +60,7 @@ proc copyFileToDir(src: string,
   recursive: bool = true,
   verbose: bool = false,
   withStructure: bool = true,
+  structureOffset: string = "",
   mode: FileOperationMode = COPY_MODE) =
 
   ##
@@ -64,16 +74,49 @@ proc copyFileToDir(src: string,
   ##    mode) // copy mode, default COPY_MODE
   ##
 
+  echo filter
+  echo src
+  echo src.findAll(re filter)
+  if filter != "" and src.findAll(re filter).len == 0:
+    return
+
   ## if src is file
   if src.fileExists:
     let fileInfo = src.splitPath
-    if filter != "" and
-      fileInfo.tail.findAll(re filter).len == 0:
-      return
+    var destDir = dest
+
+    if not recursive and withStructure:
+      destDir = dest.joinPath(fileInfo.head)
+      if structureOffset != "":
+        destDir = dest.joinPath(fileInfo.head.replace(structureOffset, ""))
+      if not destDir.dirExists:
+        destDir.createDir
+
+
     if dest.dirExists:
-      src.copyFileToDir(dest)
+      if recursive:
+        src.copyFileToDir(
+          destDir,
+          filter,
+          recursive,
+          verbose,
+          withStructure,
+          structureOffset,
+          mode)
+
+      else:
+        case mode:
+          of COPY_MODE:
+            src.copyFile(destDir.joinPath(fileInfo.tail))
+          of MOVE_MODE:
+            src.moveFile(destDir.joinPath(fileInfo.tail))
+
     else:
-      src.copyFile(dest)
+      case mode:
+        of COPY_MODE:
+          src.copyFile(destDir)
+        of MOVE_MODE:
+          src.moveFile(destDir)
 
   if not src.dirExists: return
   for (kind, path) in src.walkDir:
@@ -114,8 +157,14 @@ proc copyFileToDir(src: string,
         if withStructure:
           destDir = path.replace(src, dest)
 
-        path.copyFileToDir(destDir, filter, recursive,
-          verbose, withStructure, mode)
+        path.copyFileToDir(
+          destDir,
+          filter,
+          recursive,
+          verbose,
+          withStructure,
+          structureOffset,
+          mode)
 
 proc isInPlatform(platform: string): bool =
   #
@@ -177,6 +226,12 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
       f.close()
     result = true
 
+proc escapePattern(patternStr: string): string =
+  result = patternStr
+  # check if pattern have to escaped the string
+  for rgx in re.findAll(result, re"(``.*?``)"):
+    result = result.replace(rgx, rgx.subStr(2, rgx.len - 3).escapeRe)
+
 proc subtituteVar(varnode: JsonNode): JsonNode =
   # this function will subtitute variable
   # defined int the nakefile.json
@@ -215,6 +270,7 @@ proc moveDirContents(src: string,
   fileOnly: bool = false,
   filter: string = "",
   withStructure: bool = true,
+  structureOffset: string = "",
   recursive: bool = true) =
 
   ##
@@ -224,9 +280,16 @@ proc moveDirContents(src: string,
   echo &"{mode} {src} -> {dest}"
   if filter != "":
     echo &"  -> with filter {filter}"
-  
+
   if fileOnly:
-    src.copyFileToDir(dest, filter = filter, recursive = recursive, withStructure = withStructure, mode = mode)
+    src.copyFileToDir(
+      dest,
+      filter = filter,
+      recursive = recursive,
+      withStructure = withStructure,
+      structureOffset = structureOffset,
+      mode = mode
+      )
 
   else:
     case mode
@@ -235,9 +298,11 @@ proc moveDirContents(src: string,
     of MOVE_MODE:
       src.moveDir(dest)
 
-proc removeDirContents(src: string,
+proc removeDirContents(
+  src: string,
   fileOnly: bool = false,
-  filter: string = "") =
+  filter: string = ""
+  ) =
 
   #
   # for remove contents of dir
@@ -294,12 +359,16 @@ proc doActionList(actionList: JsonNode) =
           for l in list:
             let src = l{"src"}
             let dest = l{"dest"}
-            let filter = l{"filter"}.getStr
+            let filter = l{"filter"}.getStr.escapePattern
 
             var withStructure = true
             if not l{"withStructure"}.isNil:
               withStructure = l{"withStructure"}.getBool
-              
+
+            var structureOffset = ""
+            if not l{"structureOffset"}.isNil:
+              structureOffset = l{"structureOffset"}.getStr
+
             var recursive = true
             if not l{"recursive"}.isNil:
               recursive = l{"recursive"}.getBool
@@ -327,6 +396,7 @@ proc doActionList(actionList: JsonNode) =
                       false,
                       filter,
                       withStructure,
+                      structureOffset,
                       recursive)
                 of "copyFile":
                   if filter == "":
@@ -338,6 +408,7 @@ proc doActionList(actionList: JsonNode) =
                       true,
                       filter,
                       withStructure,
+                      structureOffset,
                       recursive)
                 of "moveFile":
                   if filter == "":
@@ -349,6 +420,7 @@ proc doActionList(actionList: JsonNode) =
                       true,
                       filter,
                       withStructure,
+                      structureOffset,
                       recursive)
                 of "moveDir":
                   if filter == "":
@@ -360,6 +432,7 @@ proc doActionList(actionList: JsonNode) =
                       false,
                       filter,
                       withStructure,
+                      structureOffset,
                       recursive)
                 of "createSymlink":
                   echo &"symlink {src} -> {dest}"
@@ -457,11 +530,16 @@ proc doActionList(actionList: JsonNode) =
                     let newstr = l{"new"}
                     if not oldstr.isNil and not newstr.isNil:
                       echo &" {oldstr} -> {newstr}"
-                      fstr = fstr.replace(
-                        oldstr.getStr()
-                          .cleanDoubleColon(),
-                        newstr.getStr()
-                          .cleanDoubleColon())
+
+
+                      # find rgx on pattern then escape it
+                      let regReplaceStr = oldStr.getStr.cleanDoubleColon.escapePattern
+
+                      fstr = re.replace(
+                        fstr,
+                        re regReplaceStr,
+                        newstr.getStr().cleanDoubleColon()
+                        )
                       
                   f = file.getStr()
                     .open(FileMode.fmWrite)
@@ -487,7 +565,7 @@ proc doActionList(actionList: JsonNode) =
               let desc = l{"desc"}
               let next = l{"next"}
               let err = l{"err"}
-              let filter = l{"filter"}.getStr
+              let filter = l{"filter"}.getStr.escapePattern
               var errMsg = ""
 
               if not desc.isNil:
@@ -531,13 +609,14 @@ proc doActionList(actionList: JsonNode) =
           for l in list:
             let dirs = l{"dirs"}
             let pattern = l{"pattern"}
+
             if not dirs.isNil and dirs.kind == JArray and not pattern.isNil:
               for dir in dirs:
                 watchDog.add(
                   dir.getStr,
-                  pattern.getStr,
+                  pattern.getStr.escapePattern,
                   proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
-                    let pattern = param{"pattern"}.getStr
+                    let pattern = param{"pattern"}.getStr.escapePattern
                     let onModified = param{"onModified"}
                     let onCreated = param{"onCreated"}
                     let onDeleted = param{"onDeleted"}
@@ -653,7 +732,7 @@ proc setDefaultApp(appName: string): bool =
     f.close()
     result = true
 
-proc currentAppDir(appName: string): string =
+proc workingDir(appName: string): string =
   #
   # get current app dir with given appname
   #
@@ -676,14 +755,68 @@ proc isAppExists(appName: string): bool =
     if not jnake{"appInfo"}.isNil:
       result = not jnake{"appInfo"}{"appName"}.isNil
 
-proc installDeps(appName: string) =
+proc installGlobalDeps(appName: string) =
   #
   # install depedencies in the nimble section
   # nakefile.json
   #
-  let nimble = appName.loadJsonNakefile(){"nimble"}
+  let nimble = appName.loadJsonNakefile(){"nimble"}{"global"}
+  
+  if nimble.isNil:
+    echo "no global nimble deps."
+    return
+  
   "nimble update".shell
-  let workDir = getCurrentDir().joinPath(currentAppDir(appName))
+  let workDir = getCurrentDir()
+  let packagesDir = workDir.joinPath("packages")
+  let nimbleDir = packagesDir.joinPath("nimble")
+  let devpkgsDir = nimbleDir.joinPath("devpkgs")
+  
+  if not packagesDir.dirExists:
+    packagesDir.createDir
+  
+  if not nimbleDir.dirExists:
+    nimbleDir.createDir
+  
+  if not devpkgsDir.dirExists:
+    devpkgsDir.createDir
+
+  for pkg in nimble:
+    let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "")
+    echo "trying get latest " & pkgName
+    let pkgCmd = pkg.getStr().strip
+    if pkgCmd.startsWith("install"):
+      let cmd = @["nimble", "-y", pkgCmd].join(" ")
+      echo cmd
+      cmd.shell
+    
+    elif pkgCmd.startsWith("develop"):
+      if isInPlatform("windows"):
+        let cmd = @["cd", "/D", devpkgsDir,
+          "&", "nimble", "-y", pkgCmd].join(" ")
+        echo cmd
+        cmd.shell
+
+      else:
+        let cmd = @["cd", devpkgsDir,
+          "&&", "nimble", "-y", pkgCmd].join(" ")
+        echo cmd
+        cmd.shell
+
+
+proc installLocalDeps(appName: string) =
+  #
+  # install depedencies in the nimble section
+  # nakefile.json
+  #
+  let nimble = appName.loadJsonNakefile(){"nimble"}{"local"}
+
+  if nimble.isNil:
+    echo "no local nimble deps."
+    return
+
+  "nimble update".shell
+  let workDir = getCurrentDir().joinPath(workingDir(appName))
   let packagesDir = workDir.joinPath("packages")
   let nimbleDir = packagesDir.joinPath("nimble")
   let devpkgsDir = nimbleDir.joinPath("devpkgs")
@@ -702,19 +835,31 @@ proc installDeps(appName: string) =
       let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "")
       echo "trying get latest " & pkgName
       let pkgCmd = pkg.getStr().strip
-      if pkgCmd.startsWith("install"):
-        let cmd = @["cd", packagesDir,
-          "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", "--verbose", pkgCmd].join(" ")
-        echo cmd
-        cmd.shell
-     
-      elif pkgCmd.startsWith("develop"):
-        let cmd = @["cd", devpkgsDir,
-          "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", "--verbose", pkgCmd].join(" ")
-        echo cmd
-        cmd.shell
+      if isInPlatform("windows"):
+        if pkgCmd.startsWith("install"):
+          let cmd = @["cd", "/D", packagesDir,
+            "&", "nimble", "--localdeps", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+          echo cmd
+          cmd.shell
+       
+        elif pkgCmd.startsWith("develop"):
+          let cmd = @["cd", "/D", devpkgsDir,
+            "&", "nimble", "--localdeps", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+          echo cmd
+          cmd.shell
 
-      100.sleep
+      else:
+        if pkgCmd.startsWith("install"):
+          let cmd = @["cd", packagesDir,
+            "&&", "nimble", "--localdeps", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+          echo cmd
+          cmd.shell
+       
+        elif pkgCmd.startsWith("develop"):
+          let cmd = @["cd", devpkgsDir,
+            "&&", "nimble", "--localdeps", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+          echo cmd
+          cmd.shell
 
   else:
     echo &"directory {packagesDir} not exist."
@@ -781,20 +926,16 @@ proc newApp(
         if not varnode.isNil:
           varnode = varnode.subtituteVar()
           for k, v in varnode:
-            #fcontent = fcontent.replace("{" & k & "}", v.getStr())
             initNode = ($initNode).replace("{" & k & "}", v.getStr()).parseJson
 
         varnode = jnode{"appInfo"}
         if not varnode.isNil:
           varnode = varnode.subtituteVar()
           for k, v in varnode:
-            #fcontent = fcontent.replace("{" & k & "}", v.getStr())
             initNode = ($initNode).replace("{" & k & "}", v.getStr()).parseJson
 
         # replace templates and apps dir definition
         # this defined in the base nakefile.json
-        #fcontent = fcontent.replace("{templatesDir}", templatesDir)
-        #fcontent = fcontent.replace("{appsDir}", appsDir)
         initNode = ($initNode).replace("{templatesDir}", templatesDir).parseJson
         initNode = ($initNode).replace("{appsDir}", appsDir).parseJson
         jnode["init"] = initNode.copy
@@ -822,7 +963,7 @@ proc newApp(
   else:
     echo &"{appType} template not found."
 
-task "templates", "show template available app template.":
+task "templates", "show available app templates.":
   if not true.isUmbrellaMode():
     return
   showTemplateList()
@@ -911,15 +1052,30 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
     echo "invalid arguments."
     echo ""
 
-task "install-deps", "install nimble app depedencies. Ex: nake install-deps [appName].":
+task "install-localdeps", "install nimble app depedencies in local env. Ex: nake install-localdeps [appName].":
   let defApp = defaultApp()
 
   if cmdParams.len > 1:
     let appName = cmdParams[1]
-    appName.installDeps()
+    appName.installLocalDeps()
 
   elif defApp.appName.isAppExists() or not isUmbrellaMode():
-    defApp.appName.installDeps()
+    defApp.appName.installLocalDeps()
+
+  else:
+    echo ""
+    echo "invalid arguments."
+    echo ""
+
+task "install-globaldeps", "install nimble app depedencies in global env. Ex: nake install-globaldeps [appName].":
+  let defApp = defaultApp()
+
+  if cmdParams.len > 1:
+    let appName = cmdParams[1]
+    appName.installGlobalDeps()
+
+  elif defApp.appName.isAppExists() or not isUmbrellaMode():
+    defApp.appName.installGlobalDeps()
 
   else:
     echo ""
@@ -940,25 +1096,25 @@ if cmdParams.len > 1:
   appName = cmdParams[1]
 
 proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
-  ## if appName.currentAppDir not equal "." or ""
-  ## then set nwatchdog workdir to appName.currentAppDir
+  ## if appName.workingDir not equal "." or ""
+  ## then set nwatchdog workdir to appName.workingDir
 
   var appCollectionsDir = "apps"
-  if appName.currentAppDir notin ["", "."]:
-    watchDog.workdir = appName.currentAppDir
+  if appName.workingDir notin ["", "."]:
+    watchDog.workdir = appName.workingDir
   else:
-    if appName.currentAppDir == ".":
+    if appName.workingDir == ".":
       appCollectionsDir = "../"
-    elif appName.currentAppDir == "":
+    elif appName.workingDir == "":
       appCollectionsDir = "..\\"
  
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
     task name, desc:
       let actionToDo = ($taskList).replace("::", $DirSep)
-        .replace("{currentAppDir}", appName.currentAppDir)
+        .replace("{workingDir}", appName.workingDir)
         .replace("{appName}", appName)
         .replace("{appId}", appInfo(appName).appId)
-        .replace("{appVersion}", appInfo(appVersion).appVersion)
+        .replace("{appVersion}", appInfo(appName).appVersion)
         .replace("{appCollectionsDir}", appCollectionsDir).parseJson
       actionToDo.doActionList
   else:

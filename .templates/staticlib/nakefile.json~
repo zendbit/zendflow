@@ -3,7 +3,8 @@
     "appName": "",
     "appType": "staticlib",
     "appDesc": "create native static lib.",
-    "appID": ""
+    "appID": "",
+    "appVersion": "0.0.1"
   },
   "nimble": [],
   "initVar": {
@@ -40,11 +41,11 @@
     }
   ],
   "var": {
-    "srcDir": "{currentAppDir}::src",
-    "binDir": "{currentAppDir}::bin",
+    "srcDir": "{currentProjectDir}::src",
+    "binDir": "{currentProjectDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
-    "nimbledepsDir": "{currentAppDir}::packages::nimble::pkgs"
+    "nimbledepsDir": "{currentProjectDir}::packages::nimble::pkgs"
   },
   "debug": {
     "desc": "debug the app.",
