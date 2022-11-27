@@ -156,6 +156,12 @@
             "withStructure": true
           },
           {
+            "src": "{srcBackendDir}",
+            "dest": "{debugTemplateDir}",
+            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "withStructure": true
+          },
+          {
             "src": "{configDir}",
             "dest": "{debugConfigDir}",
             "filter": ".*$",
@@ -240,6 +246,12 @@
         "list": [
           {
             "src": "{assetTemplateDir}",
+            "dest": "{releaseTemplateDir}",
+            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "withStructure": true
+          },
+          {
+            "src": "{srcBackendDir}",
             "dest": "{releaseTemplateDir}",
             "filter": "(?=.*).+\.(mustache|html|tpl)$",
             "withStructure": true
@@ -345,7 +357,7 @@
                     "dirs": [
                       "{srcBackendDir}"
                     ],
-                    "pattern": "(?=.*).+\.nim$",
+                    "pattern": "(?=.*).+\\.nim$",
                     "events": [
                       {
                         "action": [
@@ -378,7 +390,7 @@
                     "dirs": [
                       "{srcFrontendDir}"
                     ],
-                    "pattern": "(?=.*).+\.nim$",
+                    "pattern": "(?=.*).+\\.nim$",
                     "events": [
                       {
                         "action": [
@@ -399,7 +411,7 @@
                     "dirs": [
                       "{assetTemplateDir}"
                     ],
-                    "pattern": "(?=.*).+\.(mustache|html|tpl)$",
+                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
                     "events": [
                       {
                         "action": [
@@ -510,7 +522,7 @@
                     "dirs": [
                       "{srcBackendDir}"
                     ],
-                    "pattern": "(?=.*).+\.nim$",
+                    "pattern": "(?=.*).+\\.nim$",
                     "events": [
                       {
                         "action": [
@@ -543,7 +555,7 @@
                     "dirs": [
                       "{srcFrontendDir}"
                     ],
-                    "pattern": "(?=.*).+\.nim$",
+                    "pattern": "(?=.*).+\\.nim$",
                     "events": [
                       {
                         "action": [
@@ -564,7 +576,7 @@
                     "dirs": [
                       "{assetTemplateDir}"
                     ],
-                    "pattern": "(?=.*).+\.(mustache|html|tpl)$",
+                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
                     "events": [
                       {
                         "action": [

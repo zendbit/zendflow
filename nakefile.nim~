@@ -74,14 +74,11 @@ proc copyFileToDir(src: string,
   ##    mode) // copy mode, default COPY_MODE
   ##
 
-  echo filter
-  echo src
-  echo src.findAll(re filter)
-  if filter != "" and src.findAll(re filter).len == 0:
-    return
-
   ## if src is file
   if src.fileExists:
+    if filter != "" and src.findAll(re filter).len == 0:
+      return
+    
     let fileInfo = src.splitPath
     var destDir = dest
 

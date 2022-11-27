@@ -835,26 +835,26 @@ proc installLocalDeps(appName: string) =
       if isInPlatform("windows"):
         if pkgCmd.startsWith("install"):
           let cmd = @["cd", "/D", packagesDir,
-            "&", "nimble", "--localdeps", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+            "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
           echo cmd
           cmd.shell
        
         elif pkgCmd.startsWith("develop"):
           let cmd = @["cd", "/D", devpkgsDir,
-            "&", "nimble", "--localdeps", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+            "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
           echo cmd
           cmd.shell
 
       else:
         if pkgCmd.startsWith("install"):
           let cmd = @["cd", packagesDir,
-            "&&", "nimble", "--localdeps", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+            "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
           echo cmd
           cmd.shell
        
         elif pkgCmd.startsWith("develop"):
           let cmd = @["cd", devpkgsDir,
-            "&&", "nimble", "--localdeps", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+            "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
           echo cmd
           cmd.shell
 
