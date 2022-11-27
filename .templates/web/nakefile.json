@@ -152,13 +152,13 @@
           {
             "src": "{assetTemplateDir}",
             "dest": "{debugTemplateDir}",
-            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "filter": "(?=.*).+view\\.(mustache|html|tpl)$",
             "withStructure": true
           },
           {
             "src": "{srcBackendDir}",
             "dest": "{debugTemplateDir}",
-            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "filter": "(?=.*).+view\\.(mustache|html|tpl)$",
             "withStructure": true
           },
           {
@@ -247,13 +247,13 @@
           {
             "src": "{assetTemplateDir}",
             "dest": "{releaseTemplateDir}",
-            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "filter": "(?=.*).+view\\.(mustache|html|tpl)$",
             "withStructure": true
           },
           {
             "src": "{srcBackendDir}",
             "dest": "{releaseTemplateDir}",
-            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "filter": "(?=.*).+view\\.(mustache|html|tpl)$",
             "withStructure": true
           },
           {
@@ -411,7 +411,7 @@
                     "dirs": [
                       "{assetTemplateDir}"
                     ],
-                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "pattern": "(?=.*).+view\\.(mustache|html|tpl)$",
                     "events": [
                       {
                         "action": [
@@ -440,7 +440,7 @@
                     "dirs": [
                       "{srcBackendDir}"
                     ],
-                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "pattern": "(?=.*).+view\\.(mustache|html|tpl)$",
                     "events": [
                       {
                         "action": [
@@ -605,7 +605,7 @@
                     "dirs": [
                       "{assetTemplateDir}"
                     ],
-                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "pattern": "(?=.*).+view\\.(mustache|html|tpl)$",
                     "events": [
                       {
                         "action": [
@@ -634,7 +634,7 @@
                     "dirs": [
                       "{srcBackendDir}"
                     ],
-                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "pattern": "(?=.*).+view\\.(mustache|html|tpl)$",
                     "events": [
                       {
                         "action": [

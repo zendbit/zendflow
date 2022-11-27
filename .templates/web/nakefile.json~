@@ -438,6 +438,35 @@
                   },
                   {
                     "dirs": [
+                      "{srcBackendDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "events": [
+                      {
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
+                        "list": [
+                          {
+                            "action": "copyFile",
+                            "list": [
+                              {
+                                "src": "{eventFilePath}",
+                                "dest": "{debugTemplateDir}",
+                                "filter": ".*$",
+                                "recursive": false,
+                                "withStructure": true,
+                                "structureOffset": "{srcBackendDir}"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dirs": [
                       "{configDir}"
                     ],
                     "pattern": ".+$",
@@ -594,6 +623,35 @@
                                 "recursive": false,
                                 "withStructure": true,
                                 "structureOffset": "{assetTemplateDir}"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "dirs": [
+                      "{srcBackendDir}"
+                    ],
+                    "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "events": [
+                      {
+                        "action": [
+                          "onModified",
+                          "onCreated"
+                        ],
+                        "list": [
+                          {
+                            "action": "copyFile",
+                            "list": [
+                              {
+                                "src": "{eventFilePath}",
+                                "dest": "{releaseBinDir}",
+                                "filter": ".*$",
+                                "recursive": false,
+                                "withStructure": true,
+                                "structureOffset": "{srcBackendDir}"
                               }
                             ]
                           }
