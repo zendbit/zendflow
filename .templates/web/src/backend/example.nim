@@ -125,12 +125,12 @@ routes:
   get "/req/<ids:re[([0-9]+)_([0-9]+)]>/<name>":
     echo "Welcome req"
     # capture regex result from the url
-    echo ctxReParams["ids"]
+    echo reParams["ids"]
     # capture <name> value parameter from the url
-    echo ctxParams["name"]
+    echo params["name"]
     # we can also set custom header for the response
     # using ctx.responseHeaders.add("header kye", "header value")
-    res.headers.add("Content-Type", "text/plain")
+    response.headers.add("Content-Type", "text/plain")
     Http200.respHtml("Hello World get request")
 
   #get "/req/<id>/<name>":
@@ -140,27 +140,27 @@ routes:
 
   get "/req/<id>":
     # capture the <id> from the path
-    echo ctxParams["id"]
+    echo params["id"]
     Http200.resp("Hello World patch request")
 
   patch "/req/<id>":
     # capture the <id> from the path
-    echo ctxParams["id"]
+    echo params["id"]
     Http200.resp("Hello World patch request")
 
   delete "/req/<id>":
     # capture the <id> from the path
-    echo ctxParams["id"]
+    echo params["id"]
     Http200.resp("Hello World delete request")
 
   put "/req/<id>":
     # capture the <id> from the path
-    echo ctxParams["id"]
+    echo params["id"]
     Http200.resp("Hello World put request")
 
   head "/req/<id>":
     # capture the <id> from the path
-    echo ctxParams["id"]
+    echo params["id"]
     Http200.resp("Hello World head request")
 
   # before Route here

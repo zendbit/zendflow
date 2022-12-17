@@ -15,14 +15,12 @@ export jsconsole
 export strutils
 export sequtils
 
-var document {.importc, nodecl.}: JsObject
-var window {.importc, nodecl.}: JsObject
-var console {.importc, nodecl.}: JsObject
+var document* {.importc, nodecl.}: JsObject
+var self* {.importc, nodecl.}: JsObject
+#var window* {.importc, nodecl.}: JsObject
+#var navigator* {.importc, nodecl.}: JsObject
+#var console* {.importc, nodecl.}: JsObject
 var UIkit* {.importc, nodecl.}: JsObject
-
-var jDocument* = document.toJs
-var jWindow* = document.toJs
-var jConsole* = console.toJs
 
 ##  this for parsing and checking
 proc isNaN*(obj: JsObject): bool {.importc, nodecl.}

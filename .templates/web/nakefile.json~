@@ -10,14 +10,14 @@
     "local": [
       "install mustache@#head",
       "install karax@#head",
-      "install sha1",
-      "install zip",
-      "develop uri3",
-      "develop stdext",
-      "develop zfdbms",
-      "develop zfblast",
-      "develop zfcore",
-      "develop zfplugs"
+      "install sha1@#head",
+      "install zip@#head",
+      "install uri3@#head",
+      "install stdext@#head",
+      "install zfdbms@#head",
+      "install zfblast@#head",
+      "install zfcore@#head",
+      "install zfplugs@#head"
     ],
     "global": []
   },
@@ -26,7 +26,7 @@
     "srcDir": "{appDir}::src",
     "assetDir": "{appDir}::asset",
     "assetWwwDir": "{assetDir}::www",
-    "compiledJsDir": "{assetWwwDir}::private::js"
+    "compiledJsDir": "{assetWwwDir}::js"
   },
   "init": [
     {
@@ -75,6 +75,26 @@
     "debugConfigDir": "{debugBinDir}::config",
     "releaseConfigDir": "{releaseBinDir}::config"
   },
+  "pwa": {
+    "manifest": {
+      "name": "pwa",
+      "short_name": "pwa",
+      "start_url": "http://127.0.0.1:9001/index.html",
+      "display": "standalone",
+      "background_color": "#fdfdfd",
+      "theme_color": "#db4938",
+      "orientation": "portrait-primary",
+      "icons": [
+        "images"
+      ]
+    },
+    "assets": [
+      "index.html",
+      "css",
+      "js",
+      "images::icons"
+    ]
+  },
   "compile-debug-frontend": {
     "desc": "compile debug frontend app only.",
     "tasks": [
@@ -83,7 +103,16 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{assetWwwDir}::private::js::debug-{appName}-{appVersion}-{appId}.js"
+          "out": "{assetWwwDir}::js::sw-debug-{appName}-{appVersion}-{appId}.js"
+        },
+        "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
+      },
+      {
+        "action": "cmd",
+        "exe": "nim",
+        "props": {
+          "src": "{srcFrontendDir}::app.nim",
+          "out": "{assetWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
@@ -97,7 +126,16 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{assetWwwDir}::private::js::release-{appName}-{appVersion}-{appId}.js"
+          "out": "{assetWwwDir}::js::sw-release-{appName}-{appVersion}-{appId}.js"
+        },
+        "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
+      },
+      {
+        "action": "cmd",
+        "exe": "nim",
+        "props": {
+          "src": "{srcFrontendDir}::app.nim",
+          "out": "{assetWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       }
@@ -135,6 +173,9 @@
     "desc": "debug the app.",
     "tasks": [
       {
+        "action": "preparePWA"
+      },
+      {
         "action": "cmd",
         "exe": "nake",
         "options": "compile-debug-backend {appName}",
@@ -152,13 +193,13 @@
           {
             "src": "{assetTemplateDir}",
             "dest": "{debugTemplateDir}",
-            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
             "withStructure": true
           },
           {
             "src": "{srcBackendDir}",
             "dest": "{debugTemplateDir}",
-            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
             "withStructure": true
           },
           {
@@ -247,13 +288,13 @@
           {
             "src": "{assetTemplateDir}",
             "dest": "{releaseTemplateDir}",
-            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
             "withStructure": true
           },
           {
             "src": "{srcBackendDir}",
             "dest": "{releaseTemplateDir}",
-            "filter": "(?=.*).+\.(mustache|html|tpl)$",
+            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
             "withStructure": true
           },
           {

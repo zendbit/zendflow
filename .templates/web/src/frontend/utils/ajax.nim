@@ -104,3 +104,5 @@ proc setRequestHeader*(
   value: cstring) =
   self.xhr.setRequestHeader(header, value)
 
+##  This is fetch api implementation
+proc fetch*(resource: JsObject, options: JsObject = nil): Future[JsObject] {.importc: "fetch", async.}

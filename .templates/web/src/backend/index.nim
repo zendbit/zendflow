@@ -4,6 +4,12 @@ import zfplugs/layout
 
 var page {.threadvar.}: Layout
 
+##  check if manifest.json exists in www
+var manifest: JsonNode
+let manifestFile = "wwww".joinPath("manifest.json")
+if manifestFile.fileExists:
+    manifest = parseFile(manifestFile)
+
 routes:
   # accept request with /example/123456
   # id will capture the value 12345
@@ -12,6 +18,9 @@ routes:
     page.c["siteUrl"] = siteUrl
     page.c["appVersion"] = getAppFilename().extractFilename
 
-  get "/index/<id>":
-    page.c["user"] = ctxParams.getOrDefault("id")
+    {.gcsafe.}:
+      if manifest.isNil:
+        page.c["appName"] = manifest{"name"}.getStr
+
+  get "/index.html":
     Http200.respHtml(page.render())

@@ -9,6 +9,14 @@
 
 ## import zfcore
 import zfcore/server
-import example
+#import example
+import index
+
+routes:
+  staticDir "/"
+
+  after:
+    response.headers["Access-Control-Allow-Origin"] = "http://localhost:9001"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
 
 emitServer()

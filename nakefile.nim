@@ -33,6 +33,7 @@ for clp in cmdLineParams:
 
 var appsDir = ""
 var templatesDir = ""
+var nakefileNode: JsonNode
 let watchDog = NWatchDog[JsonNode](interval: 100)
 
 const
@@ -326,6 +327,83 @@ proc removeDirContents(
 
     else:
       pathSrc.removeDir
+
+proc appInfo(name: string = ""): tuple[
+  appName: string,
+  appId: string,
+  appType: string,
+  appVersion: string] =
+
+  #
+  # get app info
+  # return tupple with appName and appType
+  #
+  var appName = name
+  var appType = ""
+  var appId = ""
+  var appVersion = ""
+
+  let jsonNake = loadJsonNakefile(appName)
+  if not isNil(jsonNake{"jsonNakefile"}):
+    let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
+    if forwardJsonNakefile != "" and forwardJsonNakefile.fileExists:
+      let jsonNake = forwardJsonNakefile.parseFile()
+      appName = jsonNake{"appInfo"}{"appName"}.getStr()
+      appType = jsonNake{"appInfo"}{"appType"}.getStr()
+      appId = jsonNake{"appInfo"}{"appId"}.getStr()
+      appVersion = jsonNake{"appInfo"}{"appVersion"}.getStr()
+  
+  else:
+    appName = jsonNake{"appInfo"}{"appName"}.getStr()
+    appType = jsonNake{"appInfo"}{"appType"}.getStr()
+    appId = jsonNake{"appInfo"}{"appId"}.getStr()
+    appVersion = jsonNake{"appInfo"}{"appVersion"}.getStr()
+
+  result = (appName, appId, appType, appVersion)
+
+proc pwaConfig(name: string = ""): JsonNode =
+
+  let jsonNake = loadJsonNakefile(name)
+  if not isNil(jsonNake{"jsonNakefile"}):
+    let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
+    if forwardJsonNakefile != "" and forwardJsonNakefile.fileExists:
+      let jsonNake = forwardJsonNakefile.parseFile()
+      result = jsonNake{"pwa"}
+
+  else:
+    result = jsonNake{"pwa"}
+
+proc defaultApp(): tuple[
+  appName: string,
+  appId: string,
+  appType: string,
+  appVersion: string] =
+
+  #
+  # get default app
+  # return tupple with appName and appType
+  #
+  
+  result = appInfo()
+
+proc setDefaultApp(appName: string): bool =
+  #
+  # set default app
+  #
+  let jsonNake = loadJsonNakefile()
+  if not jsonNake{"jsonNakefile"}.isNil:
+    jsonNake["jsonNakefile"] = %appsDir.joinPath(appName, jsonNakefile)
+    let f = jsonNakefile.open(FileMode.fmWrite)
+    f.write(jsonNake.pretty(2))
+    f.close()
+    result = true
+
+#
+# make nake run with nakefile.json task description
+# this make more portable
+#
+let defApp = defaultApp()
+var appName = defApp.appName
 
 proc doActionList(actionList: JsonNode) =
   #
@@ -666,68 +744,74 @@ proc doActionList(actionList: JsonNode) =
                   l.copy)
           echo "watch started."
           waitFor watchDog.watch
+
+      of "preparePWA":
+        let pwa = pwaConfig()
+        var assetWwwDir = nakefileNode{"var"}{"assetWwwDir"}.getStr
+        var srcFrontendDir = nakefileNode{"var"}{"srcFrontendDir"}.getStr
+
+        assetWwwDir = assetWwwDir.cleanDoubleColon.replace("::", $DirSep)
+        srcFrontendDir = srcFrontendDir.cleanDoubleColon.replace("::", $DirSep)
+
+        if not pwa.isNil:
+          var manifest = pwa{"manifest"}
+          if not manifest.isNil:
+            var icons: seq[JsonNode] = @[]
+            if not manifest{"icons"}.isNil:
+              proc iconInfo(icn: string): JsonNode =
+                let iconFile = icn.replace(assetWwwDir, "")
+                let iconFileInfo = iconFile.splitFile.name.split("-")
+                result = %* {
+                  "src": iconFile.replace($DirSep, "/"),
+                  "type": "image/png",
+                  "sizes": iconFileInfo[iconFileInfo.len - 1]}
+
+              for icon in manifest{"icons"}:
+                let f = assetWwwDir.joinPath(icon.getStr.replace("::", $DirSep))
+
+                if f.fileExists and f.toLower.endsWith(".png"):
+                  icons.add(iconInfo(f))
+
+                elif f.dirExists:
+                  for ff in f.walkDirRec:
+                    if ff.fileExists and ff.toLower.endsWith(".png"):
+                      icons.add(iconInfo(ff))
+
+            manifest{"icons"} = %icons
+
+          var assets = pwa{"assets"}
+          var assetsList: seq[string] = @[]
+          assetsList.add("/")
+
+          if not assets.isNil:
+            proc assetInfo(f: string): string =
+              result = f.replace(assetWwwDir, "").replace($DirSep, "/")
+
+            for asset in assets:
+              let f = assetWwwDir.joinPath(asset.getStr.replace("::", $DirSep))
+              if f.dirExists:
+                for ff in f.walkDirRec():
+                  assetsList.add(ff.assetInfo())
+
+              else:
+                assetsList.add(f.assetInfo())
+
+          assets = % assetsList
+
+          ##  generate asset file
+          let assetFile = open(srcFrontendDir.joinPath("assets.nim"), fmWrite)
+          assetFile.write(&"let assetsList* = {assets.pretty}")
+          assetFile.close()
+
+          ##  write manifest into asset www
+          let manifestFile = open(assetWwwDir.joinPath("manifest.json"), fmWrite)
+          manifestFile.write(manifest.pretty)
+          manifestFile.close()
+
       else:
         echo &"{actionType} action not implemented."
   else:
     echo "not valid action list, action list should be in json array."
-
-proc appInfo(name: string = ""): tuple[
-  appName: string,
-  appId: string,
-  appType: string,
-  appVersion: string] =
-
-  #
-  # get app info
-  # return tupple with appName and appType
-  #
-  var appName = name
-  var appType = ""
-  var appId = ""
-  var appVersion = ""
-
-  let jsonNake = loadJsonNakefile(appName)
-  if not isNil(jsonNake{"jsonNakefile"}):
-    let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
-    if forwardJsonNakefile != "" and forwardJsonNakefile.fileExists:
-      let jsonNake = forwardJsonNakefile.parseFile()
-      appName = jsonNake{"appInfo"}{"appName"}.getStr()
-      appType = jsonNake{"appInfo"}{"appType"}.getStr()
-      appId = jsonNake{"appInfo"}{"appId"}.getStr()
-      appVersion = jsonNake{"appInfo"}{"appVersion"}.getStr()
-  
-  else:
-    appName = jsonNake{"appInfo"}{"appName"}.getStr()
-    appType = jsonNake{"appInfo"}{"appType"}.getStr()
-    appId = jsonNake{"appInfo"}{"appId"}.getStr()
-    appVersion = jsonNake{"appInfo"}{"appVersion"}.getStr()
-
-  return (appName, appId, appType, appVersion)
-
-proc defaultApp(): tuple[
-  appName: string,
-  appId: string,
-  appType: string,
-  appVersion: string] =
-
-  #
-  # get default app
-  # return tupple with appName and appType
-  #
-  
-  result = appInfo()
-
-proc setDefaultApp(appName: string): bool =
-  #
-  # set default app
-  #
-  let jsonNake = loadJsonNakefile()
-  if not jsonNake{"jsonNakefile"}.isNil:
-    jsonNake["jsonNakefile"] = %appsDir.joinPath(appName, jsonNakefile)
-    let f = jsonNakefile.open(FileMode.fmWrite)
-    f.write(jsonNake.pretty(2))
-    f.close()
-    result = true
 
 proc workingDir(appName: string): string =
   #
@@ -1082,13 +1166,6 @@ task "install-globaldeps", "install nimble app depedencies in global env. Ex: na
 task "help", "show available tasks. Ex: nake help.":
   "nake".shell()
 
-#
-# make nake run with nakefile.json task description
-# this make more portable
-#
-let defApp = defaultApp()
-var appName = defApp.appName
-
 if cmdParams.len > 1:
   appName = cmdParams[1]
 
@@ -1130,8 +1207,12 @@ if appName.isAppExists():
       for k, v in vars:
         jnodeStr = jnodeStr.replace("{" & k & "}", v.getStr)
 
-    for k, v in jnodeStr.parseJson:
-      if k in ["appInfo", "nimble", "var"]:
+    jnodeStr = jnodeStr.replace("{workingDir}", appName.workingDir)
+
+    nakefileNode = jnodeStr.parseJson
+
+    for k, v in nakefileNode:
+      if k in ["appInfo", "nimble", "var", "pwa"]:
         continue
       var desc = v{"desc"}.getStr
       if desc == "": desc = k
