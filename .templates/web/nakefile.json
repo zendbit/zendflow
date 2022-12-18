@@ -79,7 +79,7 @@
     "manifest": {
       "name": "pwa",
       "short_name": "pwa",
-      "start_url": "http://127.0.0.1:9001/index.html",
+      "start_url": "index.html",
       "display": "standalone",
       "background_color": "#fdfdfd",
       "theme_color": "#db4938",
@@ -342,10 +342,10 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "{debugBinDir}::release-{appName}-{appVersion}-{appId} &",
+        "exe": "{releaseBinDir}::release-{appName}-{appVersion}-{appId} &",
         "onPlatform": {
           "windows": {
-            "exe": "start {debugBinDir}::release-{appName}-{appVersion}-{appId}.exe"
+            "exe": "start {releaseBinDir}::release-{appName}-{appVersion}-{appId}.exe"
           }
         }
       }
