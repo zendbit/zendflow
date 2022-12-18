@@ -746,6 +746,9 @@ proc doActionList(actionList: JsonNode) =
           waitFor watchDog.watch
 
       of "preparePWA":
+        ##
+        ##`pwa stuff
+        ##
         let pwa = pwaConfig()
         var assetWwwDir = nakefileNode{"var"}{"assetWwwDir"}.getStr
         var srcFrontendDir = nakefileNode{"var"}{"srcFrontendDir"}.getStr
@@ -798,9 +801,16 @@ proc doActionList(actionList: JsonNode) =
 
           assets = % assetsList
 
-          ##  generate asset file
+          ##  generate asset file for pwa
           let assetFile = open(srcFrontendDir.joinPath("assets.nim"), fmWrite)
-          assetFile.write(&"let assets* = {assets.pretty}")
+          assetFile.write(
+            "##\n" &
+            "## this is auto generated from pwa nakefile.json\n" &
+            "## should not do any changes here\n" &
+            "## will rewrite depend on pwa assets configuration\n" &
+            "##\n" &
+            "let assetsList* = {assets.pretty}\n"
+          )
           assetFile.close()
 
           ##  write manifest into asset www

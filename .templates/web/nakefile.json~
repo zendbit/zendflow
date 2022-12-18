@@ -102,7 +102,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{srcFrontendDir}::app.nim",
+          "src": "{srcFrontendDir}::appServiceWorker.nim",
           "out": "{assetWwwDir}::js::sw-debug-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
@@ -125,7 +125,7 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{srcFrontendDir}::app.nim",
+          "src": "{srcFrontendDir}::appServiceWorker.nim",
           "out": "{assetWwwDir}::js::sw-release-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
@@ -270,6 +270,9 @@
   "release": {
     "desc": "release the app.",
     "tasks": [
+      {
+        "action": "preparePWA"
+      },
       {
         "action": "cmd",
         "exe": "nake",

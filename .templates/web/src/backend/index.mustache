@@ -18,6 +18,7 @@
     <!-- karax div single page application -->
     <section id="ROOT"></section>
     <script>
+      <!-- pwa service worker registration -->
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", function() {
           navigator.serviceWorker
@@ -25,8 +26,9 @@
           .then(res => console.log("service worker registered"))
           .catch(err => console.log("service worker not registered", err))
         })
-}
+      }
     </script>
+    <!-- js app -->
     <script type="text/javascript" src="{{siteUrl}}/js/{{appVersion}}.js"></script>
   </body>
 </html>
