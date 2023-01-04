@@ -530,7 +530,7 @@
                                 "filter": ".*$",
                                 "recursive": false,
                                 "withStructure": true,
-                                "structureOffset": "{configDir}"
+                                "structureOffset": "{workingDir}"
                               }
                             ]
                           }
@@ -724,7 +724,7 @@
                                 "filter": ".+$",
                                 "recursive": false,
                                 "withStructure": true,
-                                "structureOffset": "{configDir}"
+                                "structureOffset": "{workingDir}"
                               }
                             ]
                           }
