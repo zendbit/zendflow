@@ -5,10 +5,9 @@ import zfplugs/layout
 var page {.threadvar.}: Layout
 
 ##  check if manifest.json exists in www
-var manifest: JsonNode
+var manifest {.threadvar.}: JsonNode
 let manifestFile = "wwww".joinPath("manifest.json")
 if manifestFile.fileExists:
-  {.gcsafe.}:
     manifest = parseFile(manifestFile)
 
 routes:

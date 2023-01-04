@@ -5,7 +5,7 @@ import zfplugs/layout
 var page {.threadvar.}: Layout
 
 ##  check if manifest.json exists in www
-var manifest: JsonNode
+var manifest {.threadvar.}: JsonNode
 let manifestFile = "wwww".joinPath("manifest.json")
 if manifestFile.fileExists:
     manifest = parseFile(manifestFile)
@@ -18,9 +18,8 @@ routes:
     page.c["siteUrl"] = siteUrl
     page.c["appVersion"] = getAppFilename().extractFilename
 
-    {.gcsafe.}:
-      if manifest.isNil:
-        page.c["appName"] = manifest{"name"}.getStr
+    if manifest.isNil:
+      page.c["appName"] = manifest{"name"}.getStr
 
   get "/index.html":
     Http200.respHtml(page.render())
