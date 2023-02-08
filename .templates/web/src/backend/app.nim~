@@ -11,12 +11,10 @@
 import zfcore/server
 #import example
 import index
+import couchdbapi
 
 routes:
-  staticDir "/":
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:9001"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    echo response.headers
+  staticDir "/"
 
   after:
     response.headers["Access-Control-Allow-Origin"] = "http://localhost:9001"

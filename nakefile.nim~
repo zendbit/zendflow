@@ -361,18 +361,6 @@ proc appInfo(name: string = ""): tuple[
 
   result = (appName, appId, appType, appVersion)
 
-proc pwaConfig(name: string = ""): JsonNode =
-
-  let jsonNake = loadJsonNakefile(name)
-  if not isNil(jsonNake{"jsonNakefile"}):
-    let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
-    if forwardJsonNakefile != "" and forwardJsonNakefile.fileExists:
-      let jsonNake = forwardJsonNakefile.parseFile()
-      result = jsonNake{"pwa"}
-
-  else:
-    result = jsonNake{"pwa"}
-
 proc defaultApp(): tuple[
   appName: string,
   appId: string,
@@ -404,6 +392,18 @@ proc setDefaultApp(appName: string): bool =
 #
 let defApp = defaultApp()
 var appName = defApp.appName
+
+proc pwaConfig(name: string = ""): JsonNode =
+
+  let jsonNake = loadJsonNakefile(name)
+  if not isNil(jsonNake{"jsonNakefile"}):
+    let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
+    if forwardJsonNakefile != "" and forwardJsonNakefile.fileExists:
+      let jsonNake = forwardJsonNakefile.parseFile()
+      result = jsonNake{"pwa"}
+
+  else:
+    result = jsonNake{"pwa"}
 
 proc doActionList(actionList: JsonNode) =
   #
@@ -749,7 +749,7 @@ proc doActionList(actionList: JsonNode) =
         ##
         ##`pwa stuff
         ##
-        let pwa = pwaConfig()
+        let pwa = appName.pwaConfig()
         var assetWwwDir = nakefileNode{"var"}{"assetWwwDir"}.getStr
         var srcFrontendDir = nakefileNode{"var"}{"srcFrontendDir"}.getStr
 
@@ -809,7 +809,7 @@ proc doActionList(actionList: JsonNode) =
             "## should not do any changes here\n" &
             "## will rewrite depend on pwa assets configuration\n" &
             "##\n" &
-            "let assetsList* = {assets.pretty}\n"
+            &"let assetsList* = {assets.pretty}\n"
           )
           assetFile.close()
 

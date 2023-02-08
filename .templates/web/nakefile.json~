@@ -103,7 +103,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::appServiceWorker.nim",
-          "out": "{assetWwwDir}::js::sw-debug-{appName}-{appVersion}-{appId}.js"
+          "out": "{debugWwwDir}::js::sw-debug-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
       },
@@ -112,7 +112,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{assetWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
+          "out": "{debugWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
@@ -126,7 +126,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::appServiceWorker.nim",
-          "out": "{assetWwwDir}::js::sw-release-{appName}-{appVersion}-{appId}.js"
+          "out": "{releaseWwwDir}::js::sw-release-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       },
@@ -135,7 +135,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{assetWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
+          "out": "{releaseWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       }
@@ -530,7 +530,7 @@
                                 "filter": ".*$",
                                 "recursive": false,
                                 "withStructure": true,
-                                "structureOffset": "{configDir}"
+                                "structureOffset": "{workingDir}"
                               }
                             ]
                           }
@@ -724,7 +724,7 @@
                                 "filter": ".+$",
                                 "recursive": false,
                                 "withStructure": true,
-                                "structureOffset": "{configDir}"
+                                "structureOffset": "{workingDir}"
                               }
                             ]
                           }
