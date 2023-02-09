@@ -10,14 +10,23 @@
 ## import zfcore
 import zfcore/server
 #import example
+import zfplugs/settings
 import index
-import couchdbapi
+
+var jSettings {.threadvar.}: JsonNode
 
 routes:
   staticDir "/"
 
+  before:
+    jSettings = jsonSettings()
+
   after:
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:9001"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
+    if not jSettings.isNil:
+      let allowedOrigin = jSettings{"allowedOrigin"}
+      if not allowedOrigin.isNil and
+        request.url.getDomain in allowedOrigin.to(seq[string]):
+          response.headers["Access-Control-Allow-Origin"] = request.url.getDomain
+          response.headers["Access-Control-Allow-Credentials"] = "true"
 
 emitServer()
