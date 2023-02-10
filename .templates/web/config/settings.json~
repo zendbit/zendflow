@@ -1,10 +1,10 @@
 {
   "core": {
-    "keepAlive": false,
-    "maxBodyLength": 268435456,
+    "keepAlive": true,
+    "maxBodyLength": 26214400,
     "readBodyBuffer": 51200,
     "responseRangeBuffer": 51200,
-    "maxResponseBodyLength": 52428800,
+    "maxResponseBodyLength": 26214400,
     "trace": false,
     "http": {
       "port": 8080,
@@ -39,7 +39,9 @@
   },
   "database": {},
   "allowedOrigin": [
-    "localhost",
-    "127.0.0.1"
+    "http://localhost",
+    "http://127.0.0.1"
+    "https://localhost",
+    "https://127.0.0.1"
   ]
 }
