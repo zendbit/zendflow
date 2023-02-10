@@ -46,12 +46,12 @@ proc `$`(self: Css): string =
   result = styleList.join("")
 
 proc applyCss*(self: Css) =
-  let styleElements = jDocument.getElementsByTagName("style")
-  var fragment = jDocument.toJs.createDocumentFragment()
+  let styleElements = document.getElementsByTagName("style")
+  var fragment = document.toJs.createDocumentFragment()
   if styleElements.length.toInt == 0:
-    let style = jDocument.createElement("style")
+    let style = document.createElement("style")
     style.innerText = ($self).cstring
-    jDocument.getElementsByTagName("head")[0].appendChild(style)
+    document.getElementsByTagName("head")[0].appendChild(style)
 
   else:
     styleElements[0].innerText = ($self).cstring

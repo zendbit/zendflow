@@ -1,4 +1,4 @@
-include ffi
+import ffi
 
 import uri3
 
@@ -23,7 +23,7 @@ proc locationToRouteData*(): RouteData =
   ##
   result = RouteData()
   
-  let uri = parseURI3($window.location.href)
+  let uri = parseURI3(jWindow.location.href.toStr())
   result.baseUrl = uri.getBaseUrl.cstring
   result.hash = uri.getHash.cstring
   result.url = uri.getPath.cstring
@@ -44,8 +44,6 @@ proc locationToRouteData*(): RouteData =
   result.hashQueries = initTable[cstring, cstring]()
   for q in uri.getAllHashQueries:
     result.hashQueries[q[0].cstring] = q[1].cstring
-
-  console.log result
 
 proc doRoutes*(r: proc (data: RouteData)) =
   ##

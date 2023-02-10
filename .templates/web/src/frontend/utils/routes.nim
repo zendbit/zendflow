@@ -23,7 +23,7 @@ proc locationToRouteData*(): RouteData =
   ##
   result = RouteData()
   
-  let uri = parseURI3(jWindow.location.href.toStr())
+  let uri = parseURI3(window.location.href.toStr())
   result.baseUrl = uri.getBaseUrl.cstring
   result.hash = uri.getHash.cstring
   result.url = uri.getPath.cstring
@@ -50,12 +50,12 @@ proc doRoutes*(r: proc (data: RouteData)) =
   ##  do routing to the callback proc
   ##  pass route data to the callback
   ##
-  jWindow.addEventListener(
+  window.addEventListener(
     "hashchange", proc (ev: Event) =
       r(locationToRouteData())
   , false)
 
-  jWindow.addEventListener(
+  window.addEventListener(
     "DOMContentLoaded", proc (ev: Event) =
       r(locationToRouteData())
   , false)

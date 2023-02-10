@@ -1,3 +1,4 @@
+import macros
 import asyncjs
 import jsffi
 import jscore
@@ -54,23 +55,51 @@ proc toFloat*(obj: JsObject): BiggestFloat =
 proc newFragment*(doThing: proc (self: JsObject) = nil): JsObject =
   result = document.createDocumentFragment()
 
+proc setClass*(j: JsObject, class: seq[cstring]) =
+  for c in class:
+    j.classList.add(c)
+
+proc removeClass*(j: JsObject, class: seq[cstring]) =
+  for c in class:
+    j.classList.remove(c)
+
+proc replaceClass*(j: JsObject, class: seq[tuple[oldClass: cstring, newClass: cstring]]) =
+  for c in class:
+    j.classList.replace(c.oldClass, c.newClass)
+
+proc toggleClass*(j: JsObject, class: cstring) =
+  j.classList.toggle(class)
+
+proc toggleClass*(j: JsObject, class: cstring, condition: bool) =
+  j.classList.toggle(class, condition)
+
+proc setStyle*(j: JsObject, style: seq[tuple[name: cstring, val: cstring]]) =
+  for s in style:
+    j.style[s.name] = s.val
+
+proc removeStyle*(j: JsObject, style: seq[cstring]) =
+  for s in style:
+    j.style.removeProperty(s)
+
+proc setAttr*(j: JsObject, attr: seq[tuple[name: cstring, val: cstring]]) =
+  for a in attr:
+    j.setAttribute(a.name, a.val)
+
+proc removeAttr*(j: JsObject, attr: seq[cstring]) =
+  for a in attr:
+    j.removeAttribute(a)
+
 proc newElement*(
-  name: string,
-  class: seq[string] = @[],
-  style: seq[string] = @[],
-  attr: seq[(string, string)] = @[],
+  name: cstring,
+  class: seq[cstring] = @[],
+  style: seq[tuple[name: cstring, val: cstring]] = @[],
+  attr: seq[tuple[name: cstring, val: cstring]] = @[],
   doThing: proc (self: JsObject) = nil): JsObject =
   
   let elm = document.createElement(name)
-  for c in class.mapIt(it.cstring):
-    elm.classList.add(c)
-
-  for s in style:
-    let prop = s.split(":")
-    elm.style[prop[0].cstring] = prop[1].strip().cstring
-
-  for a in attr:
-    elm.setAttribute(a[0].cstring, a[1].cstring)
+  elm.setClass(class)
+  elm.setStyle(style)
+  elm.setAttr(attr)
 
   if not doThing.isNil:
     doThing(elm)
@@ -84,3 +113,8 @@ proc clearChild*(elm: JsObject) =
 proc childContent*(elm: JsObject, content: JsObject) =
   elm.clearChild()
   elm.appendChild(content)
+
+macro Fragment*(t: untyped): untyped =
+  discard
+
+
