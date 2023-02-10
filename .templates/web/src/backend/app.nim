@@ -26,13 +26,13 @@ routes:
   after:
     ##  check if settings is exists
     if not jSettings.isNil:
-      ##  check if current request if from allowed origin
-      ##  check againts allowedOrigin list from settings.json
+      ##  check if access from same origin
       let allowedOrigin = jSettings{"allowedOrigin"}
+      let requestDomain = &"{request.url.getScheme}://{request.url.getDomain}"
       if not allowedOrigin.isNil and
-        request.url.getDomain in allowedOrigin.to(seq[string]):
-        ##  set the allowr origin header to allow current domain request
-          response.headers["Access-Control-Allow-Origin"] = request.url.getDomain
+        requestDomain in allowedOrigin.to(seq[string]):
+          response.headers["Access-Control-Allow-Origin"] = requestDomain
           response.headers["Access-Control-Allow-Credentials"] = "true"
+          response.headers["Vary"] = "Origin"
 
 emitServer()
