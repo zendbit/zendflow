@@ -167,6 +167,44 @@
       }
     ]
   },
+  "watch-debug": {
+    "desc": "watch changes in debug mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dirs": [
+                  "{srcDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "debug {appName}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "watch-debug-run": {
     "desc": "watch changes in debug mode then run.",
     "tasks": [
@@ -213,6 +251,44 @@
                             ]
                           }
                         ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "watch-release": {
+    "desc": "watch changes in release mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "release {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dirs": [
+                  "{srcDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "release {appName}"
                       }
                     ]
                   }

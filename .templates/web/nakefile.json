@@ -381,6 +381,181 @@
       }
     ]
   },
+  "watch-debug": {
+    "desc": "watch changes in debug mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dirs": [
+                  "{srcBackendDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-debug-backend {appName}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{srcFrontendDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-debug-frontend {appName}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{assetTemplateDir}"
+                ],
+                "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{debugTemplateDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{assetTemplateDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{srcBackendDir}"
+                ],
+                "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{debugTemplateDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{srcBackendDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{configDir}"
+                ],
+                "pattern": ".+$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{debugBinDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{workingDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{assetWwwDir}"
+                ],
+                "pattern": ".+$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{debugWwwDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{assetWwwDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "watch-debug-run": {
     "desc": "watch changes in debug mode then run.",
     "tasks": [
@@ -562,6 +737,180 @@
                                 "structureOffset": "{assetWwwDir}"
                               }
                             ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "watch-release": {
+    "desc": "watch changes in release mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "release {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dirs": [
+                  "{srcBackendDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-release-backend {appName}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{srcFrontendDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-release-frontend {appName}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{assetTemplateDir}"
+                ],
+                "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{releaseBinDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{assetTemplateDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{srcBackendDir}"
+                ],
+                "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{releaseBinDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{srcBackendDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{configDir}"
+                ],
+                "pattern": ".+$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{releaseBinDir}",
+                            "filter": ".+$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{workingDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{assetWwwDir}"
+                ],
+                "pattern": ".+$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{releaseWwwDir}",
+                            "filter": ".+$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{assetWwwDir}"
                           }
                         ]
                       }

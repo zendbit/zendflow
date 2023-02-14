@@ -103,7 +103,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::appServiceWorker.nim",
-          "out": "{debugWwwDir}::js::sw-debug-{appName}-{appVersion}-{appId}.js"
+          "out": "{assetWwwDir}::js::sw-debug-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
       },
@@ -112,7 +112,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{debugWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
+          "out": "{assetWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
       }
@@ -126,7 +126,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::appServiceWorker.nim",
-          "out": "{releaseWwwDir}::js::sw-release-{appName}-{appVersion}-{appId}.js"
+          "out": "{assetWwwDir}::js::sw-release-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       },
@@ -135,7 +135,7 @@
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{releaseWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
+          "out": "{assetWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
         },
         "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
       }
@@ -376,6 +376,181 @@
           },
           {
             "name": "{debugBinDir}"
+          }
+        ]
+      }
+    ]
+  },
+  "watch-debug": {
+    "desc": "watch changes in debug mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dirs": [
+                  "{srcBackendDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-debug-backend {appName}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{srcFrontendDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-debug-frontend {appName}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{assetTemplateDir}"
+                ],
+                "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{debugTemplateDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{assetTemplateDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{srcBackendDir}"
+                ],
+                "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{debugTemplateDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{srcBackendDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{configDir}"
+                ],
+                "pattern": ".+$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{debugBinDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{workingDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{assetWwwDir}"
+                ],
+                "pattern": ".+$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{debugWwwDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{assetWwwDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

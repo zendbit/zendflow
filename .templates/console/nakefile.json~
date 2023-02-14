@@ -35,11 +35,11 @@
     }
   ],
   "var": {
-    "srcDir": "{currentProjectDir}::src",
-    "binDir": "{currentProjectDir}::bin",
+    "srcDir": "{workingDir}::src",
+    "binDir": "{workingDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
-    "nimbledepsDir": "{currentProjectDir}::packages::nimble::pkgs"
+    "nimbledepsDir": "{workingDir}::packages::nimble::pkgs"
   },
   "debug": {
     "desc": "debug the app.",
@@ -167,6 +167,44 @@
       }
     ]
   },
+  "watch-debug": {
+    "desc": "watch changes in debug mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "debug {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dirs": [
+                  "{srcDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "debug {appName}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "watch-debug-run": {
     "desc": "watch changes in debug mode then run.",
     "tasks": [
@@ -224,6 +262,44 @@
       }
     ]
   },
+  "watch-release": {
+    "desc": "watch changes in release mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "release {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dirs": [
+                  "{srcDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "release {appName}"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
   "watch-release-run": {
     "desc": "watch changes in release mode then run.",
     "tasks": [
