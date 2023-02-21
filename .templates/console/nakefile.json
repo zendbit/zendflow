@@ -39,7 +39,8 @@
     "binDir": "{workingDir}::bin",
     "debugBinDir": "{binDir}::debug",
     "releaseBinDir": "{binDir}::release",
-    "nimbledepsDir": "{workingDir}::packages::nimble::pkgs"
+    "nimbledepsDir": "{workingDir}::packages::nimble::pkgs",
+    "nimbledepsDir2": "{workingDir}::packages::nimble::pkgs2"
   },
   "debug": {
     "desc": "debug the app.",
@@ -51,7 +52,7 @@
           "src": "{srcDir}::app.nim",
           "out": "{debugBinDir}::debug-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} --out:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} --out:{out} {src}"
       }
     ]
   },
@@ -114,7 +115,7 @@
           "src": "{srcDir}::app.nim",
           "out": "{releaseBinDir}::release-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:release --nimblePath:{nimbledepsDir} --out:{out} {src}"
+        "options": "c -d:release --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} --out:{out} {src}"
       }
     ]
   },

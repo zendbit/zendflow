@@ -750,6 +750,180 @@
       }
     ]
   },
+  "watch-release": {
+    "desc": "watch changes in release mode.",
+    "tasks": [
+      {
+        "action": "cmd",
+        "exe": "nake",
+        "options": "release {appName}",
+        "next": [
+          {
+            "action": "watch",
+            "list": [
+              {
+                "dirs": [
+                  "{srcBackendDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-release-backend {appName}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{srcFrontendDir}"
+                ],
+                "pattern": "(?=.*).+\\.nim$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "cmd",
+                        "exe": "nake",
+                        "options": "compile-release-frontend {appName}"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{assetTemplateDir}"
+                ],
+                "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{releaseBinDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{assetTemplateDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{srcBackendDir}"
+                ],
+                "pattern": "(?=.*).+\\.(mustache|html|tpl)$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{releaseBinDir}",
+                            "filter": ".*$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{srcBackendDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{configDir}"
+                ],
+                "pattern": ".+$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{releaseBinDir}",
+                            "filter": ".+$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{workingDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "dirs": [
+                  "{assetWwwDir}"
+                ],
+                "pattern": ".+$",
+                "events": [
+                  {
+                    "action": [
+                      "onModified",
+                      "onCreated"
+                    ],
+                    "list": [
+                      {
+                        "action": "copyFile",
+                        "list": [
+                          {
+                            "src": "{eventFilePath}",
+                            "dest": "{releaseWwwDir}",
+                            "filter": ".+$",
+                            "recursive": false,
+                            "withStructure": true,
+                            "structureOffset": "{assetWwwDir}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "watch-release-run": {
     "desc": "watch changes in release mode then run.",
     "tasks": [

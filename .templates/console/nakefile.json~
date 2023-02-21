@@ -299,7 +299,7 @@
         ]
       }
     ]
-  }
+  },
   "watch-release-run": {
     "desc": "watch changes in release mode then run.",
     "tasks": [
