@@ -846,6 +846,22 @@ proc isAppExists(appName: string): bool =
     if not jnake{"appInfo"}.isNil:
       result = not jnake{"appInfo"}{"appName"}.isNil
 
+proc getNimblePkgUrl(pkgName: string): string =
+  let pkgName = pkgName.strip
+  if pkgName.startsWith("http") or pkgName.startsWith("git"):
+    result = pkgName
+    return
+
+  var res = execCmdEx("nimble search yawd")
+  var pkgUrl = ""
+  if res.exitCode == 0:
+    for line in res.output.split("\n"):
+      var cleanLine = line.strip
+      if cleanLine.startsWith("url:"):
+        pkgUrl = cleanLine.replace("url:", "").strip.split(" ")[0]
+
+  result = pkgUrl
+
 proc installGlobalDeps(appName: string) =
   #
   # install depedencies in the nimble section
@@ -873,9 +889,11 @@ proc installGlobalDeps(appName: string) =
     devpkgsDir.createDir
 
   for pkg in nimble:
-    let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "")
+    let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
+    let pkgUrl = pkgName.getNimblePkgUrl
     echo "trying get latest " & pkgName
     let pkgCmd = pkg.getStr().strip
+    let pkgDir = pkgUrl.splitPath.tail.replace(".git", "")
     if pkgCmd.startsWith("install"):
       let cmd = @["nimble", "-y", pkgCmd].join(" ")
       echo cmd
@@ -883,14 +901,24 @@ proc installGlobalDeps(appName: string) =
     
     elif pkgCmd.startsWith("develop"):
       if isInPlatform("windows"):
-        let cmd = @["cd", "/D", devpkgsDir,
+        var cmd = @["cd", "/D", devpkgsDir,
           "&", "nimble", "-y", pkgCmd].join(" ")
         echo cmd
         cmd.shell
 
+        cmd = @["cd", "/D", devpkgsDir.joinPath(pkgDir),
+          "&&", "nimble install", "-y"].join(" ")
+        echo cmd
+        cmd.shell
+
       else:
-        let cmd = @["cd", devpkgsDir,
+        var cmd = @["cd", devpkgsDir,
           "&&", "nimble", "-y", pkgCmd].join(" ")
+        echo cmd
+        cmd.shell
+
+        cmd = @["cd", devpkgsDir.joinPath(pkgDir),
+          "&&", "nimble install", "-y"].join(" ")
         echo cmd
         cmd.shell
 
@@ -923,9 +951,11 @@ proc installLocalDeps(appName: string) =
 
   if packagesDir.dirExists and nimbleDir.dirExists:
     for pkg in nimble:
-      let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "")
+      let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
+      let pkgUrl = pkgName.getNimblePkgUrl
       echo "trying get latest " & pkgName
       let pkgCmd = pkg.getStr().strip
+      let pkgDir = pkgUrl.splitPath.tail.replace(".git", "")
       if isInPlatform("windows"):
         if pkgCmd.startsWith("install"):
           let cmd = @["cd", "/D", packagesDir,
@@ -939,16 +969,26 @@ proc installLocalDeps(appName: string) =
           echo cmd
           cmd.shell
 
+          cmd = @["cd", "/D", devpkgsDir.joinPath(pkgDir),
+            "&&", "nimble install", &"--nimbleDir:{nimbleDir}", "-y"].join(" ")
+          echo cmd
+          cmd.shell
+
       else:
         if pkgCmd.startsWith("install"):
           let cmd = @["cd", packagesDir,
             "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
           echo cmd
           cmd.shell
-       
+
         elif pkgCmd.startsWith("develop"):
-          let cmd = @["cd", devpkgsDir,
+          var cmd = @["cd", devpkgsDir,
             "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
+          echo cmd
+          cmd.shell
+
+          cmd = @["cd", devpkgsDir.joinPath(pkgDir),
+            "&&", "nimble install", &"--nimbleDir:{nimbleDir}", "-y"].join(" ")
           echo cmd
           cmd.shell
 
