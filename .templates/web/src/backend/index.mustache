@@ -2,13 +2,6 @@
 <html>
   <head>
     <title>Index</title>
-    <!-- Apple Stuff -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <link rel="apple-touch-icon" href="{{siteUrl}}/images/icons/icon-512x512.png" />
-    <link rel="apple-touch-startup-image" href="{{siteUrl}}/images/icons/icon-512x512.png" />
-    <meta name="apple-mobile-web-app-title" content="{{appName}}" />
-    <!-- App Manifest -->
-    <link rel="manifest" href="{{siteUrl}}/manifest.json" crossorigin="use-credentials" />
   </head>
   <body id="body">
     <section>
@@ -17,17 +10,6 @@
     </section>
     <!-- karax div single page application -->
     <section id="ROOT"></section>
-    <script>
-      <!-- pwa service worker registration -->
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function() {
-          navigator.serviceWorker
-          .register("{{siteUrl}}/js/sw-{{appVersion}}.js")
-          .then(res => console.log("service worker registered"))
-          .catch(err => console.log("service worker not registered", err))
-        })
-      }
-    </script>
     <!-- js app -->
     <script type="text/javascript" src="{{siteUrl}}/js/{{appVersion}}.js"></script>
   </body>

@@ -1,4 +1,0 @@
-import ffi
-
-##  This is fetch api implementation
-proc fetch*(resource: JsObject, options: JsObject = nil): Future[Future[JsObject]] {.importc: "fetch", async.}

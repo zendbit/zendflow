@@ -30,7 +30,7 @@ routes:
       let allowedOrigin = jSettings{"allowedOrigin"}
       let requestDomain = &"{request.url.getScheme}://{request.url.getDomain}"
       if not allowedOrigin.isNil and
-        requestDomain in allowedOrigin.to(seq[string]):
+        request.url.getDomain in allowedOrigin.to(seq[string]):
           response.headers["Access-Control-Allow-Origin"] = requestDomain
           response.headers["Access-Control-Allow-Credentials"] = "true"
           response.headers["Vary"] = "Origin"

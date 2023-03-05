@@ -76,38 +76,9 @@
     "debugConfigDir": "{debugBinDir}::config",
     "releaseConfigDir": "{releaseBinDir}::config"
   },
-  "pwa": {
-    "manifest": {
-      "name": "pwa",
-      "short_name": "pwa",
-      "start_url": "index.html",
-      "display": "standalone",
-      "background_color": "#fdfdfd",
-      "theme_color": "#db4938",
-      "orientation": "portrait-primary",
-      "icons": [
-        "images"
-      ]
-    },
-    "assets": [
-      "index.html",
-      "css",
-      "js",
-      "images::icons"
-    ]
-  },
   "compile-debug-frontend": {
     "desc": "compile debug frontend app only.",
     "tasks": [
-      {
-        "action": "cmd",
-        "exe": "nim",
-        "props": {
-          "src": "{srcFrontendDir}::appServiceWorker.nim",
-          "out": "{assetWwwDir}::js::sw-debug-{appName}-{appVersion}-{appId}.js"
-        },
-        "options": "js --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} --out:{out} {src}"
-      },
       {
         "action": "cmd",
         "exe": "nim",
@@ -122,15 +93,6 @@
   "compile-release-frontend": {
     "desc": "compile release frontend app only.",
     "tasks": [
-      {
-        "action": "cmd",
-        "exe": "nim",
-        "props": {
-          "src": "{srcFrontendDir}::appServiceWorker.nim",
-          "out": "{assetWwwDir}::js::sw-release-{appName}-{appVersion}-{appId}.js"
-        },
-        "options": "js --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} -d:release --out:{out} {src}"
-      },
       {
         "action": "cmd",
         "exe": "nim",
@@ -773,6 +735,7 @@
                       "onModified",
                       "onCreated"
                     ],
+                    "list": [
                       {
                         "action": "cmd",
                         "exe": "nake",

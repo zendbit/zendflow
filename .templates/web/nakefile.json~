@@ -71,29 +71,10 @@
     "debugWwwDir": "{binDir}::debug::www",
     "releaseWwwDir": "{binDir}::release::www",
     "nimbledepsDir": "{workingDir}::packages::nimble::pkgs",
+    "nimbledepsDir2": "{workingDir}::packages::nimble::pkgs2",
     "configDir": "{workingDir}::config",
     "debugConfigDir": "{debugBinDir}::config",
     "releaseConfigDir": "{releaseBinDir}::config"
-  },
-  "pwa": {
-    "manifest": {
-      "name": "pwa",
-      "short_name": "pwa",
-      "start_url": "index.html",
-      "display": "standalone",
-      "background_color": "#fdfdfd",
-      "theme_color": "#db4938",
-      "orientation": "portrait-primary",
-      "icons": [
-        "images"
-      ]
-    },
-    "assets": [
-      "index.html",
-      "css",
-      "js",
-      "images::icons"
-    ]
   },
   "compile-debug-frontend": {
     "desc": "compile debug frontend app only.",
@@ -102,19 +83,10 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{srcFrontendDir}::appServiceWorker.nim",
-          "out": "{assetWwwDir}::js::sw-debug-{appName}-{appVersion}-{appId}.js"
-        },
-        "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
-      },
-      {
-        "action": "cmd",
-        "exe": "nim",
-        "props": {
           "src": "{srcFrontendDir}::app.nim",
           "out": "{assetWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
         },
-        "options": "js --nimblePath:{nimbledepsDir} --out:{out} {src}"
+        "options": "js --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} --out:{out} {src}"
       }
     ]
   },
@@ -125,19 +97,10 @@
         "action": "cmd",
         "exe": "nim",
         "props": {
-          "src": "{srcFrontendDir}::appServiceWorker.nim",
-          "out": "{assetWwwDir}::js::sw-release-{appName}-{appVersion}-{appId}.js"
-        },
-        "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
-      },
-      {
-        "action": "cmd",
-        "exe": "nim",
-        "props": {
           "src": "{srcFrontendDir}::app.nim",
           "out": "{assetWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
         },
-        "options": "js --nimblePath:{nimbledepsDir} -d:release --out:{out} {src}"
+        "options": "js --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} -d:release --out:{out} {src}"
       }
     ]
   },
@@ -151,7 +114,7 @@
           "src": "{srcBackendDir}::app.nim",
           "out": "{releaseBinDir}::release-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
       }
     ]
   },
@@ -165,7 +128,7 @@
           "src": "{srcBackendDir}::app.nim",
           "out": "{debugBinDir}::debug-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} -d:ssl -d:zlib --threads:on --out:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} -d:ssl -d:zlib --threads:on --out:{out} {src}"
       }
     ]
   },

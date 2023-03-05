@@ -7,10 +7,3 @@
 import utils/ffi
 import index
 
-if not window.toJs.navigator.serviceWorker.isNil:
-  window.toJs.addEventListener("load", proc () =
-    window.toJs.navigator.serviceWorker.register("/js/sw.js")
-    .then(proc (res: JsObject): Future[JsObject] =
-      console.log("service worker registered")
-    )
-  )

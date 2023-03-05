@@ -964,7 +964,7 @@ proc installLocalDeps(appName: string) =
           cmd.shell
        
         elif pkgCmd.startsWith("develop"):
-          let cmd = @["cd", "/D", devpkgsDir,
+          var cmd = @["cd", "/D", devpkgsDir,
             "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
           echo cmd
           cmd.shell
