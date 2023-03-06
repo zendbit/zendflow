@@ -393,18 +393,6 @@ proc setDefaultApp(appName: string): bool =
 let defApp = defaultApp()
 var appName = defApp.appName
 
-proc pwaConfig(name: string = ""): JsonNode =
-
-  let jsonNake = loadJsonNakefile(name)
-  if not isNil(jsonNake{"jsonNakefile"}):
-    let forwardJsonNakefile = jsonNake{"jsonNakefile"}.getStr()
-    if forwardJsonNakefile != "" and forwardJsonNakefile.fileExists:
-      let jsonNake = forwardJsonNakefile.parseFile()
-      result = jsonNake{"pwa"}
-
-  else:
-    result = jsonNake{"pwa"}
-
 proc doActionList(actionList: JsonNode) =
   #
   # will process action list
@@ -745,79 +733,6 @@ proc doActionList(actionList: JsonNode) =
           echo "watch started."
           waitFor watchDog.watch
 
-      of "preparePWA":
-        ##
-        ##`pwa stuff
-        ##
-        let pwa = appName.pwaConfig()
-        var assetWwwDir = nakefileNode{"var"}{"assetWwwDir"}.getStr
-        var srcFrontendDir = nakefileNode{"var"}{"srcFrontendDir"}.getStr
-
-        assetWwwDir = assetWwwDir.cleanDoubleColon.replace("::", $DirSep)
-        srcFrontendDir = srcFrontendDir.cleanDoubleColon.replace("::", $DirSep)
-
-        if not pwa.isNil:
-          var manifest = pwa{"manifest"}
-          if not manifest.isNil:
-            var icons: seq[JsonNode] = @[]
-            if not manifest{"icons"}.isNil:
-              proc iconInfo(icn: string): JsonNode =
-                let iconFile = icn.replace(assetWwwDir, "")
-                let iconFileInfo = iconFile.splitFile.name.split("-")
-                result = %* {
-                  "src": iconFile.replace($DirSep, "/"),
-                  "type": "image/png",
-                  "sizes": iconFileInfo[iconFileInfo.len - 1]}
-
-              for icon in manifest{"icons"}:
-                let f = assetWwwDir.joinPath(icon.getStr.replace("::", $DirSep))
-
-                if f.fileExists and f.toLower.endsWith(".png"):
-                  icons.add(iconInfo(f))
-
-                elif f.dirExists:
-                  for ff in f.walkDirRec:
-                    if ff.fileExists and ff.toLower.endsWith(".png"):
-                      icons.add(iconInfo(ff))
-
-            manifest{"icons"} = %icons
-
-          var assets = pwa{"assets"}
-          var assetsList: seq[string] = @[]
-          assetsList.add("/")
-
-          if not assets.isNil:
-            proc assetInfo(f: string): string =
-              result = f.replace(assetWwwDir, "").replace($DirSep, "/")
-
-            for asset in assets:
-              let f = assetWwwDir.joinPath(asset.getStr.replace("::", $DirSep))
-              if f.dirExists:
-                for ff in f.walkDirRec():
-                  assetsList.add(ff.assetInfo())
-
-              else:
-                assetsList.add(f.assetInfo())
-
-          assets = % assetsList
-
-          ##  generate asset file for pwa
-          let assetFile = open(srcFrontendDir.joinPath("assets.nim"), fmWrite)
-          assetFile.write(
-            "##\n" &
-            "## this is auto generated from pwa nakefile.json\n" &
-            "## should not do any changes here\n" &
-            "## will rewrite depend on pwa assets configuration\n" &
-            "##\n" &
-            &"let assetsList* = {assets.pretty}\n"
-          )
-          assetFile.close()
-
-          ##  write manifest into asset www
-          let manifestFile = open(assetWwwDir.joinPath("manifest.json"), fmWrite)
-          manifestFile.write(manifest.pretty)
-          manifestFile.close()
-
       else:
         echo &"{actionType} action not implemented."
   else:
@@ -847,12 +762,12 @@ proc isAppExists(appName: string): bool =
       result = not jnake{"appInfo"}{"appName"}.isNil
 
 proc getNimblePkgUrl(pkgName: string): string =
-  let pkgName = pkgName.strip
+  let pkgName = pkgName.strip.split("@")[0]
   if pkgName.startsWith("http") or pkgName.startsWith("git"):
     result = pkgName
     return
 
-  var res = execCmdEx("nimble search yawd")
+  var res = execCmdEx(&"nimble search {pkgName}")
   var pkgUrl = ""
   if res.exitCode == 0:
     for line in res.output.split("\n"):
@@ -953,9 +868,10 @@ proc installLocalDeps(appName: string) =
     for pkg in nimble:
       let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
       let pkgUrl = pkgName.getNimblePkgUrl
-      echo "trying get latest " & pkgName
       let pkgCmd = pkg.getStr().strip
       let pkgDir = pkgUrl.splitPath.tail.replace(".git", "")
+
+      echo "trying get latest " & pkgName
       if isInPlatform("windows"):
         if pkgCmd.startsWith("install"):
           let cmd = @["cd", "/D", packagesDir,
@@ -1262,7 +1178,7 @@ if appName.isAppExists():
     nakefileNode = jnodeStr.parseJson
 
     for k, v in nakefileNode:
-      if k in ["appInfo", "nimble", "var", "pwa"]:
+      if k in ["appInfo", "nimble", "var"]:
         continue
       var desc = v{"desc"}.getStr
       if desc == "": desc = k

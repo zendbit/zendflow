@@ -762,12 +762,12 @@ proc isAppExists(appName: string): bool =
       result = not jnake{"appInfo"}{"appName"}.isNil
 
 proc getNimblePkgUrl(pkgName: string): string =
-  let pkgName = pkgName.strip
+  let pkgName = pkgName.strip.split("@")[0]
   if pkgName.startsWith("http") or pkgName.startsWith("git"):
     result = pkgName
     return
 
-  var res = execCmdEx("nimble search yawd")
+  var res = execCmdEx(&"nimble search {pkgName}")
   var pkgUrl = ""
   if res.exitCode == 0:
     for line in res.output.split("\n"):
@@ -868,16 +868,17 @@ proc installLocalDeps(appName: string) =
     for pkg in nimble:
       let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
       let pkgUrl = pkgName.getNimblePkgUrl
-      echo "trying get latest " & pkgName
       let pkgCmd = pkg.getStr().strip
       let pkgDir = pkgUrl.splitPath.tail.replace(".git", "")
+
+      echo "trying get latest " & pkgName
       if isInPlatform("windows"):
         if pkgCmd.startsWith("install"):
           let cmd = @["cd", "/D", packagesDir,
             "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
           echo cmd
           cmd.shell
-       
+
         elif pkgCmd.startsWith("develop"):
           var cmd = @["cd", "/D", devpkgsDir,
             "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
