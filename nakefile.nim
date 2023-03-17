@@ -90,7 +90,6 @@ proc copyFileToDir(src: string,
       if not destDir.dirExists:
         destDir.createDir
 
-
     if dest.dirExists:
       if recursive:
         src.copyFileToDir(
@@ -118,7 +117,6 @@ proc copyFileToDir(src: string,
 
   if not src.dirExists: return
   for (kind, path) in src.walkDir:
-
     var destDir = dest
 
     case kind
@@ -126,7 +124,9 @@ proc copyFileToDir(src: string,
       let fileInfo = path.splitPath
 
       if withStructure:
-        destDir = fileInfo.head.replace(src, dest)
+        let destTmp = fileInfo.head.replace(src, dest)
+        if destTmp != fileInfo.head:
+          destDir = destTmp
 
       let destFile = destDir.joinPath(fileInfo.tail)
       if filter != "" and
@@ -153,7 +153,9 @@ proc copyFileToDir(src: string,
     of pcDir, pcLinkToDir:
       if recursive:
         if withStructure:
-          destDir = path.replace(src, dest)
+          let destTmp = path.replace(src, dest)
+          if destTmp != path:
+            destDir = destTmp
 
         path.copyFileToDir(
           destDir,
@@ -270,11 +272,11 @@ proc moveDirContents(src: string,
   withStructure: bool = true,
   structureOffset: string = "",
   recursive: bool = true) =
-
   ##
   ##  for move dir contents of dir
   ##  with filtering options
   ##
+
   echo &"{mode} {src} -> {dest}"
   if filter != "":
     echo &"  -> with filter {filter}"

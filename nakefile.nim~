@@ -133,6 +133,8 @@ proc copyFileToDir(src: string,
         fileInfo.tail.findAll(re filter).len == 0:
         continue
 
+      echo destFile
+      echo destFile.fileExists
       if (path.fileExists and destFile.fileExists) and
         (path.sameFile(destFile) or path.sameFileContent(destFile)):
         continue
@@ -878,7 +880,7 @@ proc installLocalDeps(appName: string) =
             "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
           echo cmd
           cmd.shell
-       
+
         elif pkgCmd.startsWith("develop"):
           var cmd = @["cd", "/D", devpkgsDir,
             "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
