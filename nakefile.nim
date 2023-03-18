@@ -124,9 +124,7 @@ proc copyFileToDir(src: string,
       let fileInfo = path.splitPath
 
       if withStructure:
-        let destTmp = fileInfo.head.replace(src, dest)
-        if destTmp != fileInfo.head:
-          destDir = destTmp
+        destDir = fileInfo.head.replace(src, dest)
 
       let destFile = destDir.joinPath(fileInfo.tail)
       if filter != "" and
@@ -153,9 +151,7 @@ proc copyFileToDir(src: string,
     of pcDir, pcLinkToDir:
       if recursive:
         if withStructure:
-          let destTmp = path.replace(src, dest)
-          if destTmp != path:
-            destDir = destTmp
+          destDir = path.replace(src, dest)
 
         path.copyFileToDir(
           destDir,
@@ -744,8 +740,7 @@ proc workingDir(appName: string): string =
   #
   # get current app dir with given appname
   #
-  result = "."
-  if isInPlatform($Windows): result = ""
+  result = getAppDir()
   if appsDir != "":
     result = appsDir.joinPath(appName)
 
@@ -1141,15 +1136,12 @@ proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
   ## if appName.workingDir not equal "." or ""
   ## then set nwatchdog workdir to appName.workingDir
 
-  var appCollectionsDir = "apps"
+  var appCollectionsDir = getAppDir().joinPath("apps")
   if appName.workingDir notin ["", "."]:
     watchDog.workdir = appName.workingDir
   else:
-    if appName.workingDir == ".":
-      appCollectionsDir = "../"
-    elif appName.workingDir == "":
-      appCollectionsDir = "..\\"
- 
+    appCollectionsDir = getAppDir()
+
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
     task name, desc:
       let actionToDo = ($taskList).replace("::", $DirSep)
