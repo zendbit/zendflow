@@ -786,7 +786,7 @@ proc installGlobalDeps(appName: string) =
     return
   
   "nimble update".shell
-  let workDir = getCurrentDir()
+  let workDir = getAppDir()
   let packagesDir = workDir.joinPath("packages")
   let nimbleDir = packagesDir.joinPath("nimble")
   let devpkgsDir = nimbleDir.joinPath("devpkgs")
@@ -847,7 +847,7 @@ proc installLocalDeps(appName: string) =
     return
 
   "nimble update".shell
-  let workDir = getCurrentDir().joinPath(workingDir(appName))
+  let workDir = workingDir(appName)
   let packagesDir = workDir.joinPath("packages")
   let nimbleDir = packagesDir.joinPath("nimble")
   let devpkgsDir = nimbleDir.joinPath("devpkgs")
