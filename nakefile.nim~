@@ -43,12 +43,15 @@ const
 # depend on the top level of the nakefile.json
 if jsonNakefile.fileExists:
   let jnode = jsonNakefile.parseFile()
-  appsDir = jnode{"appsDir"}
-    .getStr()
-    .replace("::", $DirSep)
-  templatesDir = jnode{"templatesDir"}
-    .getStr()
-    .replace("::", $DirSep)
+  if not jnode{"appsDir"}.isNil:
+    appsDir = jnode{"appsDir"}
+      .getStr()
+      .replace("::", $DirSep)
+
+  if not jnode{"templatesDir"}.isNil:
+    templatesDir = jnode{"templatesDir"}
+      .getStr()
+      .replace("::", $DirSep)
 
 type
   FileOperationMode = enum
@@ -90,7 +93,6 @@ proc copyFileToDir(src: string,
       if not destDir.dirExists:
         destDir.createDir
 
-
     if dest.dirExists:
       if recursive:
         src.copyFileToDir(
@@ -118,7 +120,6 @@ proc copyFileToDir(src: string,
 
   if not src.dirExists: return
   for (kind, path) in src.walkDir:
-
     var destDir = dest
 
     case kind
@@ -133,8 +134,6 @@ proc copyFileToDir(src: string,
         fileInfo.tail.findAll(re filter).len == 0:
         continue
 
-      echo destFile
-      echo destFile.fileExists
       if (path.fileExists and destFile.fileExists) and
         (path.sameFile(destFile) or path.sameFileContent(destFile)):
         continue
@@ -272,11 +271,11 @@ proc moveDirContents(src: string,
   withStructure: bool = true,
   structureOffset: string = "",
   recursive: bool = true) =
-
   ##
   ##  for move dir contents of dir
   ##  with filtering options
   ##
+
   echo &"{mode} {src} -> {dest}"
   if filter != "":
     echo &"  -> with filter {filter}"
@@ -744,10 +743,9 @@ proc workingDir(appName: string): string =
   #
   # get current app dir with given appname
   #
-  result = "."
-  if isInPlatform($Windows): result = ""
+  result = getAppDir()
   if appsDir != "":
-    result = appsDir.joinPath(appName)
+    result = result.joinPath(appsDir, appName)
 
 proc isAppExists(appName: string): bool =
   #
@@ -789,9 +787,8 @@ proc installGlobalDeps(appName: string) =
   if nimble.isNil:
     echo "no global nimble deps."
     return
-  
-  "nimble update".shell
-  let workDir = getCurrentDir()
+
+  let workDir = getAppDir()
   let packagesDir = workDir.joinPath("packages")
   let nimbleDir = packagesDir.joinPath("nimble")
   let devpkgsDir = nimbleDir.joinPath("devpkgs")
@@ -805,12 +802,14 @@ proc installGlobalDeps(appName: string) =
   if not devpkgsDir.dirExists:
     devpkgsDir.createDir
 
+  (&"nimble update --nimbleDir:{nimbleDir}").shell
   for pkg in nimble:
     let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
     let pkgUrl = pkgName.getNimblePkgUrl
     echo "trying get latest " & pkgName
     let pkgCmd = pkg.getStr().strip
     let pkgDir = pkgUrl.splitPath.tail.replace(".git", "")
+
     if pkgCmd.startsWith("install"):
       let cmd = @["nimble", "-y", pkgCmd].join(" ")
       echo cmd
@@ -851,21 +850,21 @@ proc installLocalDeps(appName: string) =
     echo "no local nimble deps."
     return
 
-  "nimble update".shell
-  let workDir = getCurrentDir().joinPath(workingDir(appName))
+  let workDir = workingDir(appName)
   let packagesDir = workDir.joinPath("packages")
   let nimbleDir = packagesDir.joinPath("nimble")
   let devpkgsDir = nimbleDir.joinPath("devpkgs")
-  
+
   if not packagesDir.dirExists:
     packagesDir.createDir
-  
+
   if not nimbleDir.dirExists:
     nimbleDir.createDir
-  
+
   if not devpkgsDir.dirExists:
     devpkgsDir.createDir
 
+  (&"nimble update --nimbleDir:{nimbleDir}").shell
   if packagesDir.dirExists and nimbleDir.dirExists:
     for pkg in nimble:
       let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
@@ -909,7 +908,7 @@ proc installLocalDeps(appName: string) =
             "&&", "nimble install", &"--nimbleDir:{nimbleDir}", "-y"].join(" ")
           echo cmd
           cmd.shell
-
+]#
   else:
     echo &"directory {packagesDir} not exist."
     echo &"directory {nimbleDir} not exist."
@@ -1141,15 +1140,12 @@ proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
   ## if appName.workingDir not equal "." or ""
   ## then set nwatchdog workdir to appName.workingDir
 
-  var appCollectionsDir = "apps"
+  var appCollectionsDir = getAppDir().joinPath("apps")
   if appName.workingDir notin ["", "."]:
     watchDog.workdir = appName.workingDir
   else:
-    if appName.workingDir == ".":
-      appCollectionsDir = "../"
-    elif appName.workingDir == "":
-      appCollectionsDir = "..\\"
- 
+    appCollectionsDir = getAppDir()
+
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
     task name, desc:
       let actionToDo = ($taskList).replace("::", $DirSep)

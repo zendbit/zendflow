@@ -43,12 +43,15 @@ const
 # depend on the top level of the nakefile.json
 if jsonNakefile.fileExists:
   let jnode = jsonNakefile.parseFile()
-  appsDir = jnode{"appsDir"}
-    .getStr()
-    .replace("::", $DirSep)
-  templatesDir = jnode{"templatesDir"}
-    .getStr()
-    .replace("::", $DirSep)
+  if not jnode{"appsDir"}.isNil:
+    appsDir = jnode{"appsDir"}
+      .getStr()
+      .replace("::", $DirSep)
+
+  if not jnode{"templatesDir"}.isNil:
+    templatesDir = jnode{"templatesDir"}
+      .getStr()
+      .replace("::", $DirSep)
 
 type
   FileOperationMode = enum
@@ -742,7 +745,7 @@ proc workingDir(appName: string): string =
   #
   result = getAppDir()
   if appsDir != "":
-    result = appsDir.joinPath(appName)
+    result = result.joinPath(appsDir, appName)
 
 proc isAppExists(appName: string): bool =
   #
@@ -784,8 +787,7 @@ proc installGlobalDeps(appName: string) =
   if nimble.isNil:
     echo "no global nimble deps."
     return
-  
-  "nimble update".shell
+
   let workDir = getAppDir()
   let packagesDir = workDir.joinPath("packages")
   let nimbleDir = packagesDir.joinPath("nimble")
@@ -800,12 +802,14 @@ proc installGlobalDeps(appName: string) =
   if not devpkgsDir.dirExists:
     devpkgsDir.createDir
 
+  (&"nimble update --nimbleDir:{nimbleDir}").shell
   for pkg in nimble:
     let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
     let pkgUrl = pkgName.getNimblePkgUrl
     echo "trying get latest " & pkgName
     let pkgCmd = pkg.getStr().strip
     let pkgDir = pkgUrl.splitPath.tail.replace(".git", "")
+
     if pkgCmd.startsWith("install"):
       let cmd = @["nimble", "-y", pkgCmd].join(" ")
       echo cmd
@@ -846,21 +850,21 @@ proc installLocalDeps(appName: string) =
     echo "no local nimble deps."
     return
 
-  "nimble update".shell
   let workDir = workingDir(appName)
   let packagesDir = workDir.joinPath("packages")
   let nimbleDir = packagesDir.joinPath("nimble")
   let devpkgsDir = nimbleDir.joinPath("devpkgs")
-  
+
   if not packagesDir.dirExists:
     packagesDir.createDir
-  
+
   if not nimbleDir.dirExists:
     nimbleDir.createDir
-  
+
   if not devpkgsDir.dirExists:
     devpkgsDir.createDir
 
+  (&"nimble update --nimbleDir:{nimbleDir}").shell
   if packagesDir.dirExists and nimbleDir.dirExists:
     for pkg in nimble:
       let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
