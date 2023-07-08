@@ -1,8 +1,8 @@
 {.used.}
 import zfcore/server
-import zfplugs/layout
+import zfplugs/zview
 
-var page {.threadvar.}: Layout
+var page {.threadvar.}: ZView
 
 ##  check if manifest.json exists in www
 var manifest {.threadvar.}: JsonNode
@@ -14,7 +14,7 @@ routes:
   # accept request with /example/123456
   # id will capture the value 12345
   before:
-    page = newLayoutFromFile("index.mustache")
+    page = newViewFromFile("index.mustache")
     page.c["siteUrl"] = siteUrl
     page.c["appVersion"] = getAppFilename().extractFilename
 
