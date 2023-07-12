@@ -11,7 +11,7 @@
 import zfcore/server
 #import example
 import zfplugs/settings
-import index
+import index/action as indexAction
 
 ##  shared settings as threadvar
 var jSettings {.threadvar.}: JsonNode

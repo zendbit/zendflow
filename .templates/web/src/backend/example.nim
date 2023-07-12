@@ -10,9 +10,6 @@
 ## import zfcore
 import zfcore/server
 
-import home
-import index
-
 routes:
   # redirect to index/<user>
   # user will use World\

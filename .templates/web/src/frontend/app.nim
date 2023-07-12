@@ -4,5 +4,5 @@
 ##  refer to: https://nim-lang.org/docs/lib.html#pure-libraries-modules-for-the-js-backend
 ####
 
-import index
+import index/action as indexAction
 
