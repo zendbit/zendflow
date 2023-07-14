@@ -8,7 +8,7 @@ routes:
   # accept request with /example/123456
   # id will capture the value 12345
   before:
-    view = newViewFromFile("index.mustache")
+    view = newViewFromFile("index::index.mustache")
     view.c["siteUrl"] = siteUrl
     view.c["appVersion"] = getAppFilename().extractFilename
 
