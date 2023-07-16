@@ -511,6 +511,8 @@ proc doActionList(actionList: JsonNode) =
                 echo errMsg
                 if not err.isNil and err.kind == JsonNodeKind.JArray:
                   err.doActionList
+                else:
+                  quit(1)
 
               else:
                 if not next.isNil and next.kind == JsonNodeKind.JArray:
@@ -559,6 +561,8 @@ proc doActionList(actionList: JsonNode) =
         if errCode != 0:
           if not err.isNil and err.kind == JsonNodeKind.JArray:
             err.doActionList
+          else:
+            quit(errCode)
 
         else:
           if not next.isNil and next.kind == JsonNodeKind.JArray:
@@ -611,12 +615,17 @@ proc doActionList(actionList: JsonNode) =
                   f.close()
 
               except Exception as ex:
-                echo ex.msg
                 errMsg = ex.msg
+
+              if errMsg != "":
+                echo errMsg
                 if not err.isNil and err.kind == JsonNodeKind.JArray:
                   err.doActionList
+
+                else:
+                  quit(1)
               
-              if errMsg == "":
+              else:
                 if not next.isNil and next.kind == JsonNodeKind.JArray:
                   next.doActionList
 
@@ -662,6 +671,8 @@ proc doActionList(actionList: JsonNode) =
                 echo errMsg
                 if not err.isNil and err.kind == JsonNodeKind.JArray:
                   err.doActionList
+                else:
+                  quit(1)
               
               else:
                 if not next.isNil and next.kind == JsonNodeKind.JArray:
