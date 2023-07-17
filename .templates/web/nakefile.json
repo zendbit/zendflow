@@ -70,8 +70,8 @@
     "releaseTemplateDir": "{releaseBinDir}::template",
     "debugWwwDir": "{binDir}::debug::www",
     "releaseWwwDir": "{binDir}::release::www",
-    "nimbledepsDir": "{workingDir}::packages::nimble::pkgs",
-    "nimbledepsDir2": "{workingDir}::packages::nimble::pkgs2",
+    "nimbledepsDir": "{workingDir}::.packages::nimble::pkgs",
+    "nimbledepsDir2": "{workingDir}::.packages::nimble::pkgs2",
     "configDir": "{workingDir}::config",
     "debugConfigDir": "{debugBinDir}::config",
     "releaseConfigDir": "{releaseBinDir}::config"

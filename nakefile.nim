@@ -789,7 +789,7 @@ proc installGlobalDeps(appName: string) =
     return
 
   let workDir = getAppDir()
-  let packagesDir = workDir.joinPath("packages")
+  let packagesDir = workDir.joinPath(".packages")
   let nimbleDir = packagesDir.joinPath("nimble")
   let devpkgsDir = nimbleDir.joinPath("devpkgs")
   
