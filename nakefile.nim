@@ -682,7 +682,7 @@ proc doActionList(actionList: JsonNode) =
                     let onModified = param{"onModified"}
                     let onCreated = param{"onCreated"}
                     let onDeleted = param{"onDeleted"}
-                    let eventsList =  param{"events"}
+                    let eventsList = param{"events"}
                     let (dir, name, ext) = file.splitFile
 
                     ##  export multiple events combination
