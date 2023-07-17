@@ -399,7 +399,6 @@ proc doActionList(actionList: JsonNode) =
   # will process action list
   # process tasks section in the nakefile.json
   #
-  echo actionList.pretty
   if not actionList.isNil and actionList.kind == JsonNodeKind.JArray:
     for action in actionList:
       # check on platform action
