@@ -399,6 +399,7 @@ proc doActionList(actionList: JsonNode) =
   # will process action list
   # process tasks section in the nakefile.json
   #
+  echo actionList.pretty
   if not actionList.isNil and actionList.kind == JsonNodeKind.JArray:
     for action in actionList:
       # check on platform action
@@ -511,12 +512,9 @@ proc doActionList(actionList: JsonNode) =
                 echo errMsg
                 if not err.isNil and err.kind == JsonNodeKind.JArray:
                   err.doActionList
-                else:
-                  quit(1)
 
-              else:
-                if not next.isNil and next.kind == JsonNodeKind.JArray:
-                  next.doActionList
+              elif not next.isNil and next.kind == JsonNodeKind.JArray:
+                next.doActionList
 
       of "cmd":
         let desc = action{"desc"}
@@ -561,12 +559,9 @@ proc doActionList(actionList: JsonNode) =
         if errCode != 0:
           if not err.isNil and err.kind == JsonNodeKind.JArray:
             err.doActionList
-          else:
-            quit(errCode)
 
-        else:
-          if not next.isNil and next.kind == JsonNodeKind.JArray:
-            next.doActionList
+        elif not next.isNil and next.kind == JsonNodeKind.JArray:
+          next.doActionList
 
       of "replaceStr":
         let desc = action{"desc"}
@@ -622,12 +617,8 @@ proc doActionList(actionList: JsonNode) =
                 if not err.isNil and err.kind == JsonNodeKind.JArray:
                   err.doActionList
 
-                else:
-                  quit(1)
-              
-              else:
-                if not next.isNil and next.kind == JsonNodeKind.JArray:
-                  next.doActionList
+              elif not next.isNil and next.kind == JsonNodeKind.JArray:
+                next.doActionList
 
       of "removeFile", "removeDir", "createDir":
         let list = action{"list"}
@@ -671,12 +662,9 @@ proc doActionList(actionList: JsonNode) =
                 echo errMsg
                 if not err.isNil and err.kind == JsonNodeKind.JArray:
                   err.doActionList
-                else:
-                  quit(1)
-              
-              else:
-                if not next.isNil and next.kind == JsonNodeKind.JArray:
-                  next.doActionList
+
+              elif not next.isNil and next.kind == JsonNodeKind.JArray:
+                next.doActionList
 
       of "watch":
         let list = action{"list"}

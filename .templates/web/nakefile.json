@@ -146,36 +146,38 @@
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "compile-debug-frontend {appName}"
-          }
-        ]
-      },
-      {
-        "action": "copyFile",
-        "list": [
-          {
-            "src": "{assetTemplateDir}",
-            "dest": "{debugTemplateDir}",
-            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": true
-          },
-          {
-            "src": "{srcBackendDir}",
-            "dest": "{debugTemplateDir}",
-            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": true
-          },
-          {
-            "src": "{configDir}",
-            "dest": "{debugConfigDir}",
-            "filter": ".*$",
-            "withStructure": true
-          },
-          {
-            "src": "{assetWwwDir}",
-            "dest": "{debugWwwDir}",
-            "filter": ".*$",
-            "withStructure": true
+            "options": "compile-debug-frontend {appName}",
+            "next": [
+              {
+                "action": "copyFile",
+                "list": [
+                  {
+                    "src": "{assetTemplateDir}",
+                    "dest": "{debugTemplateDir}",
+                    "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "withStructure": true
+                  },
+                  {
+                    "src": "{srcBackendDir}",
+                    "dest": "{debugTemplateDir}",
+                    "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "withStructure": true
+                  },
+                  {
+                    "src": "{configDir}",
+                    "dest": "{debugConfigDir}",
+                    "filter": ".*$",
+                    "withStructure": true
+                  },
+                  {
+                    "src": "{assetWwwDir}",
+                    "dest": "{debugWwwDir}",
+                    "filter": ".*$",
+                    "withStructure": true
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
@@ -244,36 +246,38 @@
           {
             "action": "cmd",
             "exe": "nake",
-            "options": "compile-release-frontend {appName}"
-          }
-        ]
-      },
-      {
-        "action": "copyFile",
-        "list": [
-          {
-            "src": "{assetTemplateDir}",
-            "dest": "{releaseTemplateDir}",
-            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": true
-          },
-          {
-            "src": "{srcBackendDir}",
-            "dest": "{releaseTemplateDir}",
-            "filter": "(?=.*).+\\.(mustache|html|tpl)$",
-            "withStructure": true
-          },
-          {
-            "src": "{configDir}",
-            "dest": "{releaseConfigDir}",
-            "filter": ".+$",
-            "withStructure": true
-          },
-          {
-            "src": "{assetWwwDir}",
-            "dest": "{releaseWwwDir}",
-            "filter": ".+$",
-            "withStructure": true
+            "options": "compile-release-frontend {appName}",
+            "next": [
+              {
+                "action": "copyFile",
+                "list": [
+                  {
+                    "src": "{assetTemplateDir}",
+                    "dest": "{releaseTemplateDir}",
+                    "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "withStructure": true
+                  },
+                  {
+                    "src": "{srcBackendDir}",
+                    "dest": "{releaseTemplateDir}",
+                    "filter": "(?=.*).+\\.(mustache|html|tpl)$",
+                    "withStructure": true
+                  },
+                  {
+                    "src": "{configDir}",
+                    "dest": "{releaseConfigDir}",
+                    "filter": ".+$",
+                    "withStructure": true
+                  },
+                  {
+                    "src": "{assetWwwDir}",
+                    "dest": "{releaseWwwDir}",
+                    "filter": ".+$",
+                    "withStructure": true
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
