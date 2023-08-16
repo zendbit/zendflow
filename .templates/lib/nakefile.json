@@ -61,7 +61,7 @@
           "src": "{srcDir}::{appName}.nim",
           "out": "{debugBinDir}"
         },
-        "options": "c -d:nimDebugDlOpen --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} --app:lib --outdir:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} --app:lib --outdir:{out} {src}"
       }
     ]
   },
@@ -75,7 +75,7 @@
           "src": "{workingDir}::src::{appName}.nim",
           "out": "{releaseBinDir}"
         },
-        "options": "c -d:release --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} --app:lib --outdir:{out} {src}"
+        "options": "c -d:release --deepcopy:on --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} --app:lib --outdir:{out} {src}"
       }
     ]
   },

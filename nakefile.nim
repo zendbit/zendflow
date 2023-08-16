@@ -34,7 +34,8 @@ for clp in cmdLineParams:
 var appsDir = ""
 var templatesDir = ""
 var nakefileNode: JsonNode
-let watchDog = NWatchDog[JsonNode](interval: 100)
+var watchDog {.threadvar.}: NWatchDog[JsonNode]
+watchDog = NWatchDog[JsonNode](interval: 100)
 
 const
   jsonNakefile = "nakefile.json"
@@ -165,7 +166,7 @@ proc copyFileToDir(src: string,
           structureOffset,
           mode)
 
-proc isInPlatform(platform: string): bool =
+proc isInPlatform(platform: string): bool {.gcsafe.} =
   #
   # define on platform specific
   # currently will check
@@ -176,16 +177,16 @@ proc isInPlatform(platform: string): bool =
   #   "bsd": {}
   # }
   #
-
-  case platform.toLower
-  of ($Windows).toLower:
-    result = detectOs(Windows)
-  of ($Posix).toLower:
-    result = detectOs(Posix)
-  of ($MacOSX).toLower:
-    result = detectOs(MacOSX)
-  of ($BSD).toLower:
-    result = detectOs(BSD)
+  {.gcsafe.}:
+    case platform.toLower
+    of ($Windows).toLower:
+      result = detectOs(Windows)
+    of ($Posix).toLower:
+      result = detectOs(Posix)
+    of ($MacOSX).toLower:
+      result = detectOs(MacOSX)
+    of ($BSD).toLower:
+      result = detectOs(BSD)
 
 proc loadJsonNakefile(appName: string = ""): JsonNode =
   #
@@ -394,7 +395,7 @@ proc setDefaultApp(appName: string): bool =
 let defApp = defaultApp()
 var appName = defApp.appName
 
-proc doActionList(actionList: JsonNode) =
+proc doActionList(actionList: JsonNode) {.gcsafe.} =
   #
   # will process action list
   # process tasks section in the nakefile.json
