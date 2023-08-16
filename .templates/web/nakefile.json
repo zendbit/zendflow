@@ -92,7 +92,7 @@
           "src": "{srcFrontendDir}::app.nim",
           "out": "{assetWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
         },
-        "options": "js --nimblePath:{nimbledepsDir} --deepcopy:on --nimblePath:{nimbledepsDir2} --out:{out} {src}"
+        "options": "js --nimblePath:{nimbledepsDir} --deepcopy:on --nimblePath:{nimbledepsDir2} --opt:size --out:{out} {src}"
       }
     ]
   },
@@ -106,7 +106,7 @@
           "src": "{srcFrontendDir}::app.nim",
           "out": "{assetWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
         },
-        "options": "js --nimblePath:{nimbledepsDir} --deepcopy:on --nimblePath:{nimbledepsDir2} -d:release --out:{out} {src}"
+        "options": "js --nimblePath:{nimbledepsDir} --deepcopy:on --nimblePath:{nimbledepsDir2} -d:release --opt:size --out:{out} {src}"
       }
     ]
   },
@@ -120,7 +120,7 @@
           "src": "{srcBackendDir}::app.nim",
           "out": "{releaseBinDir}::release-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} -d:ssl -d:zlib -d:release --threads:on --out:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} -d:ssl -d:zlib -d:release --threads:on --opt:speed --out:{out} {src}"
       }
     ]
   },
@@ -134,7 +134,7 @@
           "src": "{srcBackendDir}::app.nim",
           "out": "{debugBinDir}::debug-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} -d:ssl -d:zlib --threads:on --out:{out} {src}"
+        "options": "c -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} --nimblePath:{nimbledepsDir2} -d:ssl -d:zlib --threads:on --opt:speed --out:{out} {src}"
       }
     ]
   },
