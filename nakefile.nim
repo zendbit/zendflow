@@ -34,8 +34,7 @@ for clp in cmdLineParams:
 var appsDir = ""
 var templatesDir = ""
 var nakefileNode: JsonNode
-var watchDog {.threadvar.}: NWatchDog[JsonNode]
-watchDog = NWatchDog[JsonNode](interval: 100)
+let watchDog: NWatchDog[JsonNode] = NWatchDog[JsonNode](interval: 100)
 
 const
   jsonNakefile = "nakefile.json"
@@ -675,63 +674,65 @@ proc doActionList(actionList: JsonNode) {.gcsafe.} =
 
             if not dirs.isNil and dirs.kind == JArray and not pattern.isNil:
               for dir in dirs:
-                watchDog.add(
-                  dir.getStr,
-                  pattern.getStr.escapePattern,
-                  proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
-                    let pattern = param{"pattern"}.getStr.escapePattern
-                    let onModified = param{"onModified"}
-                    let onCreated = param{"onCreated"}
-                    let onDeleted = param{"onDeleted"}
-                    let eventsList = param{"events"}
-                    let (dir, name, ext) = file.splitFile
+                {.gcsafe.}:
+                  watchDog.add(
+                    dir.getStr,
+                    pattern.getStr.escapePattern,
+                    proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
+                      let pattern = param{"pattern"}.getStr.escapePattern
+                      let onModified = param{"onModified"}
+                      let onCreated = param{"onCreated"}
+                      let onDeleted = param{"onDeleted"}
+                      let eventsList = param{"events"}
+                      let (dir, name, ext) = file.splitFile
 
-                    ##  export multiple events combination
-                    var events: seq[JsonNode]
-                    if not eventsList.isNil:
-                      events = param{"events"}.to(seq[JsonNode])
-                      for evt in events:
-                        let action = evt{"action"}.to(seq[string])
-                        if &"on{event}" in action:
-                          ($(evt{"list"}))
-                            .replace("{eventFilePath}", file)
-                            .replace("{eventFileDir}", dir)
-                            .replace("{eventFileName}", name & ext)
-                            .parseJson
-                            .doActionList
+                      ##  export multiple events combination
+                      var events: seq[JsonNode]
+                      if not eventsList.isNil:
+                        events = param{"events"}.to(seq[JsonNode])
+                        for evt in events:
+                          let action = evt{"action"}.to(seq[string])
+                          if &"on{event}" in action:
+                            ($(evt{"list"}))
+                              .replace("{eventFilePath}", file)
+                              .replace("{eventFileDir}", dir)
+                              .replace("{eventFileName}", name & ext)
+                              .parseJson
+                              .doActionList
 
-                    ## for single event
-                    case event
-                    of Modified:
-                      if not onModified.isNil:
-                        if file.findAll(re pattern).len != 0:
-                          ($onModified)
-                            .replace("{modifiedFilePath}", file)
-                            .replace("{modifiedFileDir}", dir)
-                            .replace("{modifiedFileName}", name & ext)
-                            .parseJson
-                            .doActionList
-                    of Created:
-                      if not onCreated.isNil:
-                        if file.findAll(re pattern).len != 0:
-                          ($onCreated)
-                            .replace("{createdFilePath}", file)
-                            .replace("{createdFileDir}", dir)
-                            .replace("{createdFileName}", name & ext)
-                            .parseJson
-                            .doActionList
-                    of Deleted:
-                      if not onDeleted.isNil:
-                        if file.findAll(re pattern).len != 0:
-                          ($onDeleted)
-                            .replace("{deletedFilePath}", file)
-                            .replace("{deletedFileDir}", dir)
-                            .replace("{deletedFileName}", name & ext)
-                            .parseJson
-                            .doActionList,
-                  l.copy)
+                      ## for single event
+                      case event
+                      of Modified:
+                        if not onModified.isNil:
+                          if file.findAll(re pattern).len != 0:
+                            ($onModified)
+                              .replace("{modifiedFilePath}", file)
+                              .replace("{modifiedFileDir}", dir)
+                              .replace("{modifiedFileName}", name & ext)
+                              .parseJson
+                              .doActionList
+                      of Created:
+                        if not onCreated.isNil:
+                          if file.findAll(re pattern).len != 0:
+                            ($onCreated)
+                              .replace("{createdFilePath}", file)
+                              .replace("{createdFileDir}", dir)
+                              .replace("{createdFileName}", name & ext)
+                              .parseJson
+                              .doActionList
+                      of Deleted:
+                        if not onDeleted.isNil:
+                          if file.findAll(re pattern).len != 0:
+                            ($onDeleted)
+                              .replace("{deletedFilePath}", file)
+                              .replace("{deletedFileDir}", dir)
+                              .replace("{deletedFileName}", name & ext)
+                              .parseJson
+                              .doActionList,
+                    l.copy)
           echo "watch started."
-          waitFor watchDog.watch
+          {.gcsafe.}:
+            waitFor watchDog.watch
 
       else:
         echo &"{actionType} action not implemented."
@@ -1148,7 +1149,8 @@ proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
 
   var appCollectionsDir = getAppDir().joinPath("apps")
   if appName.workingDir notin ["", "."]:
-    watchDog.workdir = appName.workingDir
+    {.gcsafe.}:
+      watchDog.workdir = appName.workingDir
   else:
     appCollectionsDir = getAppDir()
 
