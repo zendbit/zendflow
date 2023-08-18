@@ -53,6 +53,9 @@ if jsonNakefile.fileExists:
       .getStr()
       .replace("::", $DirSep)
 
+if not templatesDir.isAbsolute() and templatesDir != "":
+  templatesDir = templatesDir.absolutePath()
+
 type
   FileOperationMode = enum
     COPY_MODE
