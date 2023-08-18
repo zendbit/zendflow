@@ -22,19 +22,23 @@ import
 
 import NWatchdog
 
-let cmdLineParams = commandLineParams()
-var cmdParams: seq[string]
-var cmdOptions: seq[string]
+var cmdLineParams {.threadvar.}: seq[string]
+cmdLineParams = commandLineParams()
+
+var cmdParams {.threadvar.}: seq[string]
+var cmdOptions {.threadvar.}: seq[string]
+
 for clp in cmdLineParams:
   if clp.startsWith("-"):
     cmdOptions.add(clp)
   else:
     cmdParams.add(clp)
 
-var appsDir = ""
-var templatesDir = ""
-var nakefileNode: JsonNode
-let watchDog: NWatchDog[JsonNode] = NWatchDog[JsonNode](interval: 100)
+var appsDir {.threadvar.}: string
+var templatesDir {.threadvar.}: string
+var nakefileNode {.threadvar.}: JsonNode
+var watchDog {.threadvar.}: NWatchDog[JsonNode]
+watchDog = NWatchDog[JsonNode](interval: 100)
 
 const
   jsonNakefile = "nakefile.json"
@@ -42,19 +46,16 @@ const
 # init appsDir and templatesDir
 # depend on the top level of the nakefile.json
 if jsonNakefile.fileExists:
-  let jnode = jsonNakefile.parseFile()
-  if not jnode{"appsDir"}.isNil:
-    appsDir = jnode{"appsDir"}
+  let jNode = jsonNakefile.parseFile()
+  if not jNode{"appsDir"}.isNil:
+    appsDir = jNode{"appsDir"}
       .getStr()
       .replace("::", $DirSep)
 
-  if not jnode{"templatesDir"}.isNil:
-    templatesDir = jnode{"templatesDir"}
+  if not jNode{"templatesDir"}.isNil:
+    templatesDir = jNode{"templatesDir"}
       .getStr()
       .replace("::", $DirSep)
-
-if not templatesDir.isAbsolute() and templatesDir != "":
-  templatesDir = templatesDir.absolutePath()
 
 type
   FileOperationMode = enum
@@ -190,20 +191,19 @@ proc isInPlatform(platform: string): bool {.gcsafe.} =
     of ($BSD).toLower:
       result = detectOs(BSD)
 
-proc loadJsonNakefile(appName: string = ""): JsonNode =
+proc loadJsonNakefile(appName: string = ""): JsonNode {.gcsafe.} =
   #
   # load nakefile.json
   #
-  result = %*{}
   try:
     if appsDir.joinPath(appName, jsonNakefile).fileExists:
       result = appsDir.joinPath(appName, jsonNakefile).parseFile()
     elif jsonNakefile.fileExists:
       result = jsonNakefile.parseFile()
-  except Exception:
+  except Exception as ex:
     discard
 
-proc isUmbrellaMode(showMsg: bool = false): bool =
+proc isUmbrellaMode(showMsg: bool = false): bool {.gcsafe.} =
   #
   # check is in umbrella mode
   # the umbrella mode is in the top of zendflow dir
@@ -228,20 +228,20 @@ proc isUmbrellaMode(showMsg: bool = false): bool =
       f.close()
     result = true
 
-proc escapePattern(patternStr: string): string =
+proc escapePattern(patternStr: string): string {.gcsafe.} =
   result = patternStr
   # check if pattern have to escaped the string
   for rgx in re.findAll(result, re"(``.*?``)"):
     result = result.replace(rgx, rgx.subStr(2, rgx.len - 3).escapeRe)
 
-proc subtituteVar(varnode: JsonNode): JsonNode =
+proc subtituteVar(varNode: JsonNode): JsonNode {.gcsafe.} =
   # this function will subtitute variable
   # defined int the nakefile.json
   # ex:
   # {"foo": "hello", "bar": "{foo} world"}
   # into {"foo": "hello", "bar": "hello world"}
   result = %*{}
-  for k, v in varnode:
+  for k, v in varNode:
     var svar = v.getStr()
     for s in svar.findAll(re"{[\w\W]+}"):
       let svarname = s.replace("{", "").replace("}", "")
@@ -252,7 +252,7 @@ proc subtituteVar(varnode: JsonNode): JsonNode =
 
     result[k] = %svar
 
-proc cleanDoubleColon(str: string): string =
+proc cleanDoubleColon(str: string): string {.gcsafe.} =
   # this will remove leading or ending double colon
   # ::hello::world::
   # will transform to hello::world
@@ -273,7 +273,7 @@ proc moveDirContents(src: string,
   filter: string = "",
   withStructure: bool = true,
   structureOffset: string = "",
-  recursive: bool = true) =
+  recursive: bool = true) {.gcsafe.} =
   ##
   ##  for move dir contents of dir
   ##  with filtering options
@@ -304,7 +304,7 @@ proc removeDirContents(
   src: string,
   fileOnly: bool = false,
   filter: string = ""
-  ) =
+  ) {.gcsafe.} =
 
   #
   # for remove contents of dir
@@ -336,7 +336,7 @@ proc appInfo(name: string = ""): tuple[
   appName: string,
   appId: string,
   appType: string,
-  appVersion: string] =
+  appVersion: string] {.gcsafe.} =
 
   #
   # get app info
@@ -369,7 +369,7 @@ proc defaultApp(): tuple[
   appName: string,
   appId: string,
   appType: string,
-  appVersion: string] =
+  appVersion: string] {.gcsafe.} =
 
   #
   # get default app
@@ -378,7 +378,7 @@ proc defaultApp(): tuple[
   
   result = appInfo()
 
-proc setDefaultApp(appName: string): bool =
+proc setDefaultApp(appName: string): bool {.gcsafe.} =
   #
   # set default app
   #
@@ -394,8 +394,15 @@ proc setDefaultApp(appName: string): bool =
 # make nake run with nakefile.json task description
 # this make more portable
 #
-let defApp = defaultApp()
-var appName = defApp.appName
+var defApp: tuple[
+  appName: string,
+  appId: string,
+  appType: string,
+  appVersion: string]
+defApp = defaultApp()
+
+var appName {.threadvar.}: string
+appName = defApp.appName
 
 proc doActionList(actionList: JsonNode) {.gcsafe.} =
   #
@@ -677,72 +684,70 @@ proc doActionList(actionList: JsonNode) {.gcsafe.} =
 
             if not dirs.isNil and dirs.kind == JArray and not pattern.isNil:
               for dir in dirs:
-                {.gcsafe.}:
-                  watchDog.add(
-                    dir.getStr,
-                    pattern.getStr.escapePattern,
-                    proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
-                      let pattern = param{"pattern"}.getStr.escapePattern
-                      let onModified = param{"onModified"}
-                      let onCreated = param{"onCreated"}
-                      let onDeleted = param{"onDeleted"}
-                      let eventsList = param{"events"}
-                      let (dir, name, ext) = file.splitFile
+                watchDog.add(
+                  dir.getStr,
+                  pattern.getStr.escapePattern,
+                  proc (file: string, event: NWatchEvent, param: JsonNode) {.gcsafe async.} =
+                    let pattern = param{"pattern"}.getStr.escapePattern
+                    let onModified = param{"onModified"}
+                    let onCreated = param{"onCreated"}
+                    let onDeleted = param{"onDeleted"}
+                    let eventsList = param{"events"}
+                    let (dir, name, ext) = file.splitFile
 
-                      ##  export multiple events combination
-                      var events: seq[JsonNode]
-                      if not eventsList.isNil:
-                        events = param{"events"}.to(seq[JsonNode])
-                        for evt in events:
-                          let action = evt{"action"}.to(seq[string])
-                          if &"on{event}" in action:
-                            ($(evt{"list"}))
-                              .replace("{eventFilePath}", file)
-                              .replace("{eventFileDir}", dir)
-                              .replace("{eventFileName}", name & ext)
-                              .parseJson
-                              .doActionList
+                    ##  export multiple events combination
+                    var events: seq[JsonNode]
+                    if not eventsList.isNil:
+                      events = param{"events"}.to(seq[JsonNode])
+                      for evt in events:
+                        let action = evt{"action"}.to(seq[string])
+                        if &"on{event}" in action:
+                          ($(evt{"list"}))
+                            .replace("{eventFilePath}", file)
+                            .replace("{eventFileDir}", dir)
+                            .replace("{eventFileName}", name & ext)
+                            .parseJson
+                            .doActionList
 
-                      ## for single event
-                      case event
-                      of Modified:
-                        if not onModified.isNil:
-                          if file.findAll(re pattern).len != 0:
-                            ($onModified)
-                              .replace("{modifiedFilePath}", file)
-                              .replace("{modifiedFileDir}", dir)
-                              .replace("{modifiedFileName}", name & ext)
-                              .parseJson
-                              .doActionList
-                      of Created:
-                        if not onCreated.isNil:
-                          if file.findAll(re pattern).len != 0:
-                            ($onCreated)
-                              .replace("{createdFilePath}", file)
-                              .replace("{createdFileDir}", dir)
-                              .replace("{createdFileName}", name & ext)
-                              .parseJson
-                              .doActionList
-                      of Deleted:
-                        if not onDeleted.isNil:
-                          if file.findAll(re pattern).len != 0:
-                            ($onDeleted)
-                              .replace("{deletedFilePath}", file)
-                              .replace("{deletedFileDir}", dir)
-                              .replace("{deletedFileName}", name & ext)
-                              .parseJson
-                              .doActionList,
-                    l.copy)
+                    ## for single event
+                    case event
+                    of Modified:
+                      if not onModified.isNil:
+                        if file.findAll(re pattern).len != 0:
+                          ($onModified)
+                            .replace("{modifiedFilePath}", file)
+                            .replace("{modifiedFileDir}", dir)
+                            .replace("{modifiedFileName}", name & ext)
+                            .parseJson
+                            .doActionList
+                    of Created:
+                      if not onCreated.isNil:
+                        if file.findAll(re pattern).len != 0:
+                          ($onCreated)
+                            .replace("{createdFilePath}", file)
+                            .replace("{createdFileDir}", dir)
+                            .replace("{createdFileName}", name & ext)
+                            .parseJson
+                            .doActionList
+                    of Deleted:
+                      if not onDeleted.isNil:
+                        if file.findAll(re pattern).len != 0:
+                          ($onDeleted)
+                            .replace("{deletedFilePath}", file)
+                            .replace("{deletedFileDir}", dir)
+                            .replace("{deletedFileName}", name & ext)
+                            .parseJson
+                            .doActionList,
+                  l.copy)
           echo "watch started."
-          {.gcsafe.}:
-            waitFor watchDog.watch
+          waitFor watchDog.watch
 
       else:
         echo &"{actionType} action not implemented."
   else:
     echo "not valid action list, action list should be in json array."
 
-proc workingDir(appName: string): string =
+proc workingDir(appName: string): string {.gcsafe.} =
   #
   # get current app dir with given appname
   #
@@ -750,7 +755,7 @@ proc workingDir(appName: string): string =
   if appsDir != "":
     result = result.joinPath(appsDir, appName)
 
-proc isAppExists(appName: string): bool =
+proc isAppExists(appName: string): bool {.gcsafe.} =
   #
   # check if application name folder exists
   #
@@ -782,7 +787,7 @@ proc getNimblePkgUrl(pkgName: string): string =
   result = pkgUrl
 ]#
 
-proc installGlobalDeps(appName: string) =
+proc installGlobalDeps(appName: string) {.gcsafe.} =
   #
   # install depedencies in the nimble section
   # nakefile.json
@@ -847,7 +852,7 @@ proc installGlobalDeps(appName: string) =
         cmd.shell
 ]#
 
-proc installLocalDeps(appName: string) =
+proc installLocalDeps(appName: string) {.gcsafe.} =
   #
   # install depedencies in the nimble section
   # nakefile.json
@@ -923,7 +928,7 @@ proc installLocalDeps(appName: string) =
     echo &"directory {packagesDir} not exist."
     echo &"directory {nimbleDir} not exist."
 
-proc existsTemplates(templateName: string): bool =
+proc existsTemplates(templates: string, templateName: string): bool {.gcsafe.} =
   #
   # check if template exists
   # available template is in the .template dir
@@ -933,7 +938,7 @@ proc existsTemplates(templateName: string): bool =
       path.endsWith(DirSep & templateName):
       return true
 
-proc showTemplateList() =
+proc showTemplateList() {.gcsafe.} =
   #
   # show available template list
   #
@@ -954,53 +959,44 @@ proc showTemplateList() =
 # and will process init section
 proc newApp(
   appName: string,
-  appType: string) =
-
+  appType: string) {.gcsafe.} =
   let appDir = appsDir.joinPath(appName)
 
   if appName.isAppExists():
     echo &"App {appName} already exist."
     return
 
-  if appType.existsTemplates():
+  if templatesDir.existsTemplates(appType):
     # load json from templates
     let fpath = templatesDir.joinPath(appType, jsonNakefile)
     if fileExists(fpath):
-      let f = fpath.open(FileMode.fmRead)
-      #var fcontent = f.readAll().replace("{appName}", appName)
-      var fcontent = f.readAll()
-      f.close()
-
-      var jnode = fcontent.parseJson()
-      if not isNil(jnode):
-        jnode["appInfo"]["appName"] = %appName
-        jnode["appInfo"]["appId"] = % $(&"{getTime().toUnix}{appName}")
+      var jNode: JsonNode = fpath.parseFile()
+      if not jNode.isNil():
+        jNode["appInfo"]["appName"] = %appName
+        jNode["appInfo"]["appId"] = % $(&"{getTime().toUnix}{appName}")
           .secureHash
-        jnode["appInfo"]["appType"] = %appType
-        fcontent = $jnode
+        jNode["appInfo"]["appType"] = %appType
 
-        var varnode = jnode{"initVar"}
-        var initNode = jnode{"init"}
-        if not varnode.isNil:
-          varnode = varnode.subtituteVar()
-          for k, v in varnode:
+        var varNode = jNode{"initVar"}
+        var initNode = jNode{"init"}
+        if not varNode.isNil:
+          varNode = varNode.subtituteVar()
+          for k, v in varNode:
             initNode = ($initNode).replace("{" & k & "}", v.getStr()).parseJson
 
-        varnode = jnode{"appInfo"}
-        if not varnode.isNil:
-          varnode = varnode.subtituteVar()
-          for k, v in varnode:
+        varNode = jNode{"appInfo"}
+        if not varNode.isNil:
+          varNode = varNode.subtituteVar()
+          for k, v in varNode:
             initNode = ($initNode).replace("{" & k & "}", v.getStr()).parseJson
 
         # replace templates and apps dir definition
         # this defined in the base nakefile.json
         initNode = ($initNode).replace("{templatesDir}", templatesDir).parseJson
         initNode = ($initNode).replace("{appsDir}", appsDir).parseJson
-        jnode["init"] = initNode.copy
-
-        #jnode = fcontent.parseJson()
-        initnode = jnode{"init"}
-        if not initnode.isNil and initnode.kind == JsonNodeKind.JArray:
+        jNode["init"] = initNode.copy
+        initNode = jNode{"init"}
+        if not initNode.isNil and initNode.kind == JsonNodeKind.JArray:
           ($initNode).replace("::", $DirSep)
             .replace("{appName}", appName).parseJson().doActionList
           if appDir.dirExists:
@@ -1008,10 +1004,10 @@ proc newApp(
             # remove:
             # init section
             # initVar section
-            jnode.delete("init")
-            jnode.delete("initVar")
+            jNode.delete("init")
+            jNode.delete("initVar")
             let f = appDir.joinPath(jsonNakefile).open(FileMode.fmWrite)
-            f.write(jnode.pretty(2))
+            f.write(jNode.pretty(2))
             f.close()
             echo &"app {appDir} created."
         else:
@@ -1146,45 +1142,45 @@ task "help", "show available tasks. Ex: nake help.":
 if cmdParams.len > 1:
   appName = cmdParams[1]
 
-proc addNakeTask(name: string, desc: string, taskList: JsonNode) =
+proc addNakeTask(name: string, desc: string, taskList: JsonNode) {.gcsafe.} =
   ## if appName.workingDir not equal "." or ""
   ## then set nwatchdog workdir to appName.workingDir
 
   var appCollectionsDir = getAppDir().joinPath("apps")
   if appName.workingDir notin ["", "."]:
-    {.gcsafe.}:
-      watchDog.workdir = appName.workingDir
+    watchDog.workdir = appName.workingDir
   else:
     appCollectionsDir = getAppDir()
 
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
-    task name, desc:
-      let actionToDo = ($taskList).replace("::", $DirSep)
-        .replace("{workingDir}", appName.workingDir)
-        .replace("{appName}", appName)
-        .replace("{appId}", appInfo(appName).appId)
-        .replace("{appVersion}", appInfo(appName).appVersion)
-        .replace("{appCollectionsDir}", appCollectionsDir).parseJson
-      actionToDo.doActionList
+    {.gcsafe.}:
+      task name, desc:
+        let actionToDo = ($taskList).replace("::", $DirSep)
+          .replace("{workingDir}", appName.workingDir)
+          .replace("{appName}", appName)
+          .replace("{appId}", appInfo(appName).appId)
+          .replace("{appVersion}", appInfo(appName).appVersion)
+          .replace("{appCollectionsDir}", appCollectionsDir).parseJson
+        actionToDo.doActionList
   else:
     echo &"invalid task list {name} , should be in JArray."
 
 if appName.isAppExists():
-  var jnode = appName.loadJsonNakefile()
-  if not jnode.hasKey("init") and
-    not jnode.hasKey("initVar"):
+  var jNode = appName.loadJsonNakefile()
+  if not jNode.hasKey("init") and
+    not jNode.hasKey("initVar"):
     
     ##  get var section and replace as subtitution
-    var vars = jnode{"var"}
-    var jnodeStr = $jnode
+    var vars = jNode{"var"}
+    var jNodeStr = $jNode
     if not vars.isNil:
       vars = vars.subtituteVar
       for k, v in vars:
-        jnodeStr = jnodeStr.replace("{" & k & "}", v.getStr)
+        jNodeStr = jNodeStr.replace("{" & k & "}", v.getStr)
 
-    jnodeStr = jnodeStr.replace("{workingDir}", appName.workingDir)
+    jNodeStr = jNodeStr.replace("{workingDir}", appName.workingDir)
 
-    nakefileNode = jnodeStr.parseJson
+    nakefileNode = jNodeStr.parseJson
 
     for k, v in nakefileNode:
       if k in ["appInfo", "nimble", "var"]:
