@@ -1,5 +1,5 @@
 {
-  "jsonNakefile": "apps/zendblock/nakefile.json",
+  "jsonNakefile": "apps/JsMinify/nakefile.json",
   "templatesDir": ".templates",
   "appsDir": "apps"
 }

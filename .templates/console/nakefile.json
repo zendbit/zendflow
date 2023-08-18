@@ -145,10 +145,10 @@
     "tasks": [
       {
         "action": "cmd",
-        "exe": "{debugBinDir}::release-{appName}-{appVersion}-{appId} &",
+        "exe": "{releaseBinDir}::release-{appName}-{appVersion}-{appId} &",
         "onPlatform": {
           "windows": {
-            "exe": "start {debugBinDir}::release-{appName}-{appVersion}-{appId}.exe"
+            "exe": "start {releaseBinDir}::release-{appName}-{appVersion}-{appId}.exe"
           }
         }
       }
