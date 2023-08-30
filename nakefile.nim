@@ -7,6 +7,9 @@
 ##  @email: amru.rosyada@gmail.com
 ##  @license: BSD
 ##
+
+import NWatchdog
+
 import
   nake,
   nakelib,
@@ -15,12 +18,10 @@ import
   strformat,
   json,
   osproc,
-  re,
   distros,
   times,
-  std/sha1
-
-import NWatchdog
+  checksums/sha1,
+  regex
 
 var cmdLineParams {.threadvar.}: seq[string]
 cmdLineParams = commandLineParams()
@@ -84,7 +85,7 @@ proc copyFileToDir(src: string,
 
   ## if src is file
   if src.fileExists:
-    if filter != "" and src.findAll(re filter).len == 0:
+    if filter != "" and not src.match(re2 filter):
       return
     
     let fileInfo = src.splitPath
@@ -135,7 +136,7 @@ proc copyFileToDir(src: string,
 
       let destFile = destDir.joinPath(fileInfo.tail)
       if filter != "" and
-        fileInfo.tail.findAll(re filter).len == 0:
+        not fileInfo.tail.match(re2 filter):
         continue
 
       if (path.fileExists and destFile.fileExists) and
@@ -200,7 +201,7 @@ proc loadJsonNakefile(appName: string = ""): JsonNode {.gcsafe.} =
       result = appsDir.joinPath(appName, jsonNakefile).parseFile()
     elif jsonNakefile.fileExists:
       result = jsonNakefile.parseFile()
-  except Exception as ex:
+  except Exception:
     discard
 
 proc isUmbrellaMode(showMsg: bool = false): bool {.gcsafe.} =
@@ -231,8 +232,9 @@ proc isUmbrellaMode(showMsg: bool = false): bool {.gcsafe.} =
 proc escapePattern(patternStr: string): string {.gcsafe.} =
   result = patternStr
   # check if pattern have to escaped the string
-  for rgx in re.findAll(result, re"(``.*?``)"):
-    result = result.replace(rgx, rgx.subStr(2, rgx.len - 3).escapeRe)
+  for rgx in result.findAll(re2"(``.*?``)"):
+    let strMatch = result[rgx.group(0)]
+    result = result.replace(strMatch, strMatch.subStr(2, strMatch.len - 3).escapeRe)
 
 proc subtituteVar(varNode: JsonNode): JsonNode {.gcsafe.} =
   # this function will subtitute variable
@@ -243,7 +245,9 @@ proc subtituteVar(varNode: JsonNode): JsonNode {.gcsafe.} =
   result = %*{}
   for k, v in varNode:
     var svar = v.getStr()
-    for s in svar.findAll(re"{[\w\W]+}"):
+    for regexMatch in svar.findAll(re2"({[\w\W]+})"):
+      if regexMatch.captures.len == 0: continue
+      let s = svar[regexMatch.group(0)]
       let svarname = s.replace("{", "").replace("}", "")
       let svarvalue = result{svarname}.getStr()
       if svarvalue == "":
@@ -323,7 +327,7 @@ proc removeDirContents(
     # if filter not empty string
     # and pathSrc not match with filter continue
     if filter != "":
-      if pathSrc.findAll(re filter).len == 0:
+      if not pathSrc.match(re2 filter):
         continue
     
     if kind == pcFile or kind == pcLinkToFile:
@@ -607,9 +611,8 @@ proc doActionList(actionList: JsonNode) {.gcsafe.} =
                       # find rgx on pattern then escape it
                       let regReplaceStr = oldStr.getStr.cleanDoubleColon.escapePattern
 
-                      fstr = re.replace(
-                        fstr,
-                        re regReplaceStr,
+                      fstr = fstr.replace(
+                        re2 regReplaceStr,
                         newstr.getStr().cleanDoubleColon()
                         )
                       
@@ -713,7 +716,7 @@ proc doActionList(actionList: JsonNode) {.gcsafe.} =
                     case event
                     of Modified:
                       if not onModified.isNil:
-                        if file.findAll(re pattern).len != 0:
+                        if file.match(re2 pattern):
                           ($onModified)
                             .replace("{modifiedFilePath}", file)
                             .replace("{modifiedFileDir}", dir)
@@ -722,7 +725,7 @@ proc doActionList(actionList: JsonNode) {.gcsafe.} =
                             .doActionList
                     of Created:
                       if not onCreated.isNil:
-                        if file.findAll(re pattern).len != 0:
+                        if file.match(re2 pattern):
                           ($onCreated)
                             .replace("{createdFilePath}", file)
                             .replace("{createdFileDir}", dir)
@@ -731,7 +734,7 @@ proc doActionList(actionList: JsonNode) {.gcsafe.} =
                             .doActionList
                     of Deleted:
                       if not onDeleted.isNil:
-                        if file.findAll(re pattern).len != 0:
+                        if file.match(re2 pattern):
                           ($onDeleted)
                             .replace("{deletedFilePath}", file)
                             .replace("{deletedFileDir}", dir)
@@ -769,104 +772,32 @@ proc isAppExists(appName: string): bool {.gcsafe.} =
     if not jnake{"appInfo"}.isNil:
       result = not jnake{"appInfo"}{"appName"}.isNil
 
-#[
-proc getNimblePkgUrl(pkgName: string): string =
-  let pkgName = pkgName.strip.split("@")[0]
-  if pkgName.startsWith("http") or pkgName.startsWith("git"):
-    result = pkgName
-    return
-
-  var res = execCmdEx(&"nimble search {pkgName}")
+proc getNimblePkgInfo(pkgName: string): tuple[pkgUrl, repoType: string] =
+  let pkgNameTmp = pkgName.split("==")[0]
+    .split(">")[0]
+    .split("<")[0]
+    .split("=")[0]
+    .split("@")[0]
+    .strip()
+  var res = execCmdEx(&"""nimble search {pkgNameTmp}""")
   var pkgUrl = ""
+  var repoType = ""
   if res.exitCode == 0:
     for line in res.output.split("\n"):
       var cleanLine = line.strip
       if cleanLine.startsWith("url:"):
-        pkgUrl = cleanLine.replace("url:", "").strip.split(" ")[0]
+        let pkgUrlParts = cleanLine.replace("url:", "").strip.split("(")
+        pkgUrl = pkgUrlParts[0].strip()
+        repoType = pkgUrlParts[1].replace(")", "").strip()
 
-  result = pkgUrl
-]#
+  result = (pkgUrl, repoType)
 
-proc installGlobalDeps(appName: string) {.gcsafe.} =
-  #
-  # install depedencies in the nimble section
-  # nakefile.json
-  #
-  let nimble = appName.loadJsonNakefile(){"nimble"}{"global"}
-  
-  if nimble.isNil:
-    echo "no global nimble deps."
-    return
-
-  let workDir = getAppDir()
-  let packagesDir = workDir.joinPath(".packages")
-  let nimbleDir = packagesDir.joinPath("nimble")
-  let devpkgsDir = nimbleDir.joinPath("devpkgs")
-  
-  if not packagesDir.dirExists:
-    packagesDir.createDir
-  
-  if not nimbleDir.dirExists:
-    nimbleDir.createDir
-  
-  if not devpkgsDir.dirExists:
-    devpkgsDir.createDir
-
-  (&"nimble update --nimbleDir:{nimbleDir}").shell
-  for pkg in nimble:
-    let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
-    #let pkgUrl = pkgName.getNimblePkgUrl
-    echo "trying get latest " & pkgName
-    let pkgCmd = pkg.getStr().strip
-    #let pkgDir = pkgUrl.splitPath.tail.replace(".git", "")
-
-    if pkgCmd.startsWith("install"):
-      let cmd = @["nimble", "-y", pkgCmd].join(" ")
-      echo cmd
-      cmd.shell
-    
-    elif pkgCmd.startsWith("develop"):
-      if isInPlatform("windows"):
-        var cmd = @["cd", "/D", devpkgsDir,
-          "&", "nimble", "-y", pkgCmd].join(" ")
-        echo cmd
-        cmd.shell
-
-#[
-        cmd = @["cd", "/D", devpkgsDir.joinPath(pkgDir),
-          "&&", "nimble install", "-y"].join(" ")
-        echo cmd
-        cmd.shell
-]#
-
-      else:
-        var cmd = @["cd", devpkgsDir,
-          "&&", "nimble", "-y", pkgCmd].join(" ")
-        echo cmd
-        cmd.shell
-
-#[
-        cmd = @["cd", devpkgsDir.joinPath(pkgDir),
-          "&&", "nimble install", "-y"].join(" ")
-        echo cmd
-        cmd.shell
-]#
-
-proc installLocalDeps(appName: string) {.gcsafe.} =
-  #
-  # install depedencies in the nimble section
-  # nakefile.json
-  #
-  let nimble = appName.loadJsonNakefile(){"nimble"}{"local"}
-
-  if nimble.isNil:
-    echo "no local nimble deps."
-    return
-
+proc initInstallDeps(appName: string): tuple[workDir, packagesDir, nimbleDir, nimblePackagesDir, nimbleDevPackagesDir: string] =
   let workDir = workingDir(appName)
   let packagesDir = workDir.joinPath(".packages")
   let nimbleDir = packagesDir.joinPath("nimble")
-  let devpkgsDir = nimbleDir.joinPath("devpkgs")
+  let nimblePackagesDir = nimbleDir.joinPath("pkgs2")
+  let nimbleDevPackagesDir = nimbleDir.joinPath("devPkgs")
 
   if not packagesDir.dirExists:
     packagesDir.createDir
@@ -874,59 +805,122 @@ proc installLocalDeps(appName: string) {.gcsafe.} =
   if not nimbleDir.dirExists:
     nimbleDir.createDir
 
-  if not devpkgsDir.dirExists:
-    devpkgsDir.createDir
+  if not nimblePackagesDir.dirExists:
+    nimblePackagesDir.createDir
 
-  (&"nimble update --nimbleDir:{nimbleDir}").shell
-  if packagesDir.dirExists and nimbleDir.dirExists:
+  if not nimbleDevPackagesDir.dirExists:
+    nimbleDevPackagesDir.createDir
+
+  result = (workDir, packagesDir, nimbleDir, nimblePackagesDir, nimbleDevPackagesDir)
+
+proc depsStrToParts(depsStr: string): tuple[pkgType, pkgUrl, pkgTag, repoType: string] =
+  var pkgType, pkgUrl, pkgTag, repoType: string
+  var regexMatch: RegexMatch2
+  if depsStr.match(re2 "([^ ]+)[ ]+([^ ]+)[ ]+([^ ]+)[ ]+([^ ]+).*$", regexMatch):
+    pkgType = depsStr[regexMatch.group(0)]
+    pkgUrl = depsStr[regexMatch.group(1)]
+    pkgTag = depsStr[regexMatch.group(2)]
+    repoType = depsStr[regexMatch.group(3)]
+
+    return (pkgType, pkgUrl, pkgTag, repoType)
+
+  echo "\n!!!!!!! failed wrong dependency format !!!!!!!\n"
+  echo &">> on line: {depsStr}"
+  echo "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+  quit(-1)
+
+proc installDeps(appName: string) {.gcsafe.} =
+  #
+  # install depedencies in the nimble section
+  # nakefile.json
+  #
+  let nimble = appName.loadJsonNakefile(){"nimble"}
+
+  if nimble.isNil:
+    echo "no nimble deps."
+    return
+
+  let depsEnv = initInstallDeps(appName)
+
+  (&"nimble update --nimbleDir:{depsEnv.nimbleDir}").shell
+  if depsEnv.packagesDir.dirExists and depsEnv.nimbleDir.dirExists:
     for pkg in nimble:
-      let pkgName = pkg.getStr().replace("install ", "").replace("develop ", "").strip
-      #let pkgUrl = pkgName.getNimblePkgUrl
-      let pkgCmd = pkg.getStr().strip
-      #let pkgDir = pkgUrl.splitPath.tail.replace(".git", "")
+      let pkgCmdParts = pkg.getStr().depsStrToParts()
+      var pkgUrl = ""
+      var repoType = ""
 
-      echo "trying get latest " & pkgName
+      echo ">> trying get " & pkgCmdParts.pkgUrl
+
+      var pkgTag = pkgCmdParts.pkgTag
+      let pkgInfo = getNimblePkgInfo(pkgCmdParts.pkgUrl)
+
+      if pkgCmdParts.repoType == "nimblerepo":
+        ##
+        ##  nimble version using @ for get version
+        ##  pkgname@version -> specific tag/branch release
+        ##  pkgname@#head -> upstream
+        ##
+        pkgTag = &"@{pkgCmdParts.pkgTag}"
+        if pkgCmdParts.pkgTag == "head":
+          pkgTag = &"@#{pkgCmdParts.pkgTag}"
+      elif pkgCmdParts.pkgTag != "head":
+        ##
+        ##  directly from repository git/hg
+        ##  using tag/branch version
+        ##  append v prefix for specific version
+        ##
+        pkgTag = "v" & pkgCmdParts.pkgTag
+
+      pkgUrl = pkgCmdParts.pkgUrl
+      repoType = pkgCmdParts.repoType
+
+      if pkgInfo.pkgUrl != "":
+        pkgUrl = pkgInfo.pkgUrl
+        repoType = pkgInfo.repoType
+
+      var packagesDir = depsEnv.packagesDir
+      var cmd: string
+      var osCmd = @["cd", packagesDir, "&&"]
+
       if isInPlatform("windows"):
-        if pkgCmd.startsWith("install"):
-          let cmd = @["cd", "/D", packagesDir,
-            "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
-          echo cmd
-          cmd.shell
+        ##
+        ##  check if in windows platform
+        ##
+        osCmd = @["cd", "/D", packagesDir, "&"]
 
-        elif pkgCmd.startsWith("develop"):
-          var cmd = @["cd", "/D", devpkgsDir,
-            "&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
-          echo cmd
-          cmd.shell
-#[
-          cmd = @["cd", "/D", devpkgsDir.joinPath(pkgDir),
-            "&&", "nimble install", &"--nimbleDir:{nimbleDir}", "-y"].join(" ")
-          echo cmd
-          cmd.shell
-]#
+      if pkgCmdParts.pkgType == "develop":
+        packagesDir = depsEnv.nimbleDevPackagesDir
+
+      if pkgCmdParts.repoType == "nimblerepo":
+        cmd = (osCmd & @["nimble", &"--nimbleDir: {depsEnv.nimbleDir}", "-y", pkgCmdParts.pkgType, pkgCmdParts.pkgUrl]).join(" ")
+        echo cmd
+        cmd.shell
 
       else:
-        if pkgCmd.startsWith("install"):
-          let cmd = @["cd", packagesDir,
-            "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
-          echo cmd
-          cmd.shell
+        var cloneCmd = "git clone"
 
-        elif pkgCmd.startsWith("develop"):
-          var cmd = @["cd", devpkgsDir,
-            "&&", "nimble", &"--nimbleDir:{nimbleDir}", "-y", pkgCmd].join(" ")
-          echo cmd
-          cmd.shell
-#[
-          cmd = @["cd", devpkgsDir.joinPath(pkgDir),
-            "&&", "nimble install", &"--nimbleDir:{nimbleDir}", "-y"].join(" ")
-          echo cmd
-          cmd.shell
-]#
+        if pkgCmdParts.repoType == "hg":
+          cloneCmd = "hg clone"
 
+        if pkgCmdParts.pkgTag != "head":
+          cloneCmd = &"{cloneCmd} -b {pkgCmdParts.pkgTag}"
+          if pkgCmdParts.repoType == "hg":
+            cloneCmd = &"{cloneCmd} -u {pkgCmdParts.pkgTag}"
+
+        cmd = (osCmd & @[cloneCmd, pkgCmdParts.pkgUrl]).join(" ")
+        echo cmd
+        cmd.shell
+
+      if pkgCmdParts.pkgType == "develop":
+        let pkgName = pkgUrl.splitFile().name
+        cmd = (osCmd & @["nimble", &"--nimbleDir: {depsEnv.nimbleDir}", "-y", "install"]).join(" ")
+        echo cmd
+        cmd.shell
+
+      echo "--"
   else:
-    echo &"directory {packagesDir} not exist."
-    echo &"directory {nimbleDir} not exist."
+    echo &"directory {depsEnv.packagesDir} not exist."
+    echo &"directory {depsEnv.nimbleDir} not exist."
 
 proc existsTemplates(templates: string, templateName: string): bool {.gcsafe.} =
   #
@@ -1029,8 +1023,7 @@ task "new", "create new app. Ex: nake new console.":
   if cmdParams.len > 2:
     let appName = cmdParams[2]
     let appType = cmdParams[1]
-    var appNameMatch: array[1, string]
-    if appName.match(re"([a-zA-Z\d_]+)*$", appNameMatch):
+    if appName.match(re2"([a-zA-Z\d_]+)*$"):
       appName.newApp(appType)
     else:
       echo ""
@@ -1106,30 +1099,15 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
     echo "invalid arguments."
     echo ""
 
-task "install-localdeps", "install nimble app depedencies in local env. Ex: nake install-localdeps [appName].":
+task "installdeps", "install nimble app depedencies in local env. Ex: nake installdeps [appName].":
   let defApp = defaultApp()
 
   if cmdParams.len > 1:
     let appName = cmdParams[1]
-    appName.installLocalDeps()
+    appName.installDeps()
 
   elif defApp.appName.isAppExists() or not isUmbrellaMode():
-    defApp.appName.installLocalDeps()
-
-  else:
-    echo ""
-    echo "invalid arguments."
-    echo ""
-
-task "install-globaldeps", "install nimble app depedencies in global env. Ex: nake install-globaldeps [appName].":
-  let defApp = defaultApp()
-
-  if cmdParams.len > 1:
-    let appName = cmdParams[1]
-    appName.installGlobalDeps()
-
-  elif defApp.appName.isAppExists() or not isUmbrellaMode():
-    defApp.appName.installGlobalDeps()
+    defApp.appName.installDeps()
 
   else:
     echo ""

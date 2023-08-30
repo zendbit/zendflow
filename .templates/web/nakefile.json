@@ -6,27 +6,26 @@
     "appId": "",
     "appVersion": "0.0.1"
   },
-  "nimble": {
-    "local": [
-      "install mustache@#head",
-      "install karax@#head",
-      "install sha1@#head",
-      "install zip@#head",
-      "develop uri3@#head",
-      "develop stdext@#head",
-      "develop zfdbms@#head",
-      "develop zfblast@#head",
-      "develop zfcore@#head",
-      "develop https://github.com/zendbit/nim_zfplugs_auth",
-      "develop https://github.com/zendbit/nim_zfplugs_session",
-      "develop https://github.com/zendbit/nim_zfplugs_csrf",
-      "develop https://github.com/zendbit/nim_zfplugs_settings",
-      "develop https://github.com/zendbit/nim_zfplugs_dbms",
-      "develop https://github.com/zendbit/nim_zfplugs_paging",
-      "develop https://github.com/zendbit/nim_zfplugs_zview"
-    ],
-    "global": []
-  },
+  "nimble": [
+    "install mustache head nimblerepo",
+    "install karax head nimblerepo",
+    "install sha1 head nimblerepo",
+    "install zip head nimblerepo",
+    "install regex head nimblerepo",
+    "install checksums head nimblerepo",
+    "develop uri3 head nimblerepo",
+    "develop stdext head nimblerepo",
+    "develop zfdbms head nimblerepo",
+    "develop zfblast head nimblerepo",
+    "develop zfcore head nimblerepo",
+    "develop https://github.com/zendbit/nim_zfplugs_auth head git",
+    "develop https://github.com/zendbit/nim_zfplugs_session head git",
+    "develop https://github.com/zendbit/nim_zfplugs_csrf head git",
+    "develop https://github.com/zendbit/nim_zfplugs_settings head git",
+    "develop https://github.com/zendbit/nim_zfplugs_dbms head git",
+    "develop https://github.com/zendbit/nim_zfplugs_paging head git",
+    "develop https://github.com/zendbit/nim_zfplugs_zview head git"
+  ],
   "initVar": {
     "appDir": "{appsDir}::{appName}",
     "srcDir": "{appDir}::src",
