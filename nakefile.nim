@@ -21,7 +21,8 @@ import
   distros,
   times,
   checksums/sha1,
-  regex
+  regex,
+  sequtils
 
 var cmdLineParams {.threadvar.}: seq[string]
 cmdLineParams = commandLineParams()
@@ -879,8 +880,12 @@ proc installDeps(appName: string) {.gcsafe.} =
         repoType = pkgInfo.repoType
 
       var packagesDir = depsEnv.packagesDir
+      if pkgCmdParts.pkgType == "develop":
+        packagesDir = depsEnv.nimbleDevPackagesDir
+
       var cmd: string
       var osCmd = @["cd", packagesDir, "&&"]
+      let pkgName = pkgUrl.splitFile().name
 
       if isInPlatform("windows"):
         ##
@@ -888,32 +893,52 @@ proc installDeps(appName: string) {.gcsafe.} =
         ##
         osCmd = @["cd", "/D", packagesDir, "&"]
 
-      if pkgCmdParts.pkgType == "develop":
-        packagesDir = depsEnv.nimbleDevPackagesDir
+      if not packagesDir.joinPath(pkgName).dirExists():
+        if pkgCmdParts.repoType == "nimblerepo":
+          cmd = (osCmd & @["nimble", &"--nimbleDir: {depsEnv.nimbleDir}", "-y", pkgCmdParts.pkgType, pkgCmdParts.pkgUrl]).join(" ")
+          echo cmd
+          cmd.shell
 
-      if pkgCmdParts.repoType == "nimblerepo":
-        cmd = (osCmd & @["nimble", &"--nimbleDir: {depsEnv.nimbleDir}", "-y", pkgCmdParts.pkgType, pkgCmdParts.pkgUrl]).join(" ")
-        echo cmd
-        cmd.shell
+        else:
+          var cloneCmd = "git clone"
+
+          if pkgCmdParts.repoType == "hg":
+            cloneCmd = "hg clone"
+
+          if pkgCmdParts.pkgTag != "head":
+            cloneCmd = &"{cloneCmd} -b {pkgTag}"
+            if pkgCmdParts.repoType == "hg":
+              cloneCmd = &"{cloneCmd} -u {pkgTag}"
+
+          cmd = (osCmd & @[cloneCmd, pkgCmdParts.pkgUrl]).join(" ")
+          echo cmd
+          cmd.shell
 
       else:
-        var cloneCmd = "git clone"
+        var checkoutCmd = "git checkout"
 
         if pkgCmdParts.repoType == "hg":
-          cloneCmd = "hg clone"
+          checkoutCmd = "hg checkout"
 
         if pkgCmdParts.pkgTag != "head":
-          cloneCmd = &"{cloneCmd} -b {pkgCmdParts.pkgTag}"
+          checkoutCmd = &"{checkoutCmd} {pkgTag}"
           if pkgCmdParts.repoType == "hg":
-            cloneCmd = &"{cloneCmd} -u {pkgCmdParts.pkgTag}"
+            checkoutCmd = &"{checkoutCmd} {pkgTag}"
 
-        cmd = (osCmd & @[cloneCmd, pkgCmdParts.pkgUrl]).join(" ")
+        else:
+          checkoutCmd = checkoutCmd.replace("checkout", "pull")
+
+        var tmpOsCmd = osCmd[0..osCmd.high]
+        tmpOsCmd[tmpOsCmd.high - 1] = tmpOsCmd[tmpOsCmd.high - 1].joinPath(pkgName)
+        tmpOsCmd.add(checkoutCmd)
+        cmd = (tmpOsCmd).join(" ")
         echo cmd
         cmd.shell
 
       if pkgCmdParts.pkgType == "develop":
-        let pkgName = pkgUrl.splitFile().name
-        cmd = (osCmd & @["nimble", &"--nimbleDir: {depsEnv.nimbleDir}", "-y", "install"]).join(" ")
+        var tmpOsCmd = osCmd[0..osCmd.high]
+        tmpOsCmd[tmpOsCmd.high - 1] = tmpOsCmd[tmpOsCmd.high - 1].joinPath(pkgName)
+        cmd = (tmpOsCmd & @["nimble", &"--nimbleDir: {depsEnv.nimbleDir}", "-y", "install"]).join(" ")
         echo cmd
         cmd.shell
 
@@ -1099,7 +1124,7 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
     echo "invalid arguments."
     echo ""
 
-task "installdeps", "install nimble app depedencies in local env. Ex: nake installdeps [appName].":
+task "install-deps", "install nimble app depedencies in local env. Ex: nake install-deps [appName].":
   let defApp = defaultApp()
 
   if cmdParams.len > 1:
