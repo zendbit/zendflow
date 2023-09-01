@@ -12,26 +12,22 @@
       "reuseAddress": true,
       "reusePort": false,
       "secure": {
-        "cert": "ssl/devel-selfsigned.pem",
-        "key": "ssl/devel-selfsigned-key.pem",
+        "certFile": "ssl/devel-selfsigned.pem",
+        "keyFile": "ssl/devel-selfsigned-key.pem",
         "verify": true,
         "port": 8443
       }
     },
-    "debug":
-    {
+    "debug": {
       "keepAlive": true,
-      "http":
-      {
+      "http": {
         "port": 9001,
         "address": "localhost"
       }
     },
-    "release":
-    {
+    "release": {
       "keepAlive": true,
-      "http":
-      {
+      "http": {
         "port": 9002,
         "address": "localhost"
       }
