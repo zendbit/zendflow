@@ -65,6 +65,8 @@
     "srcDir": "{workingDir}::src",
     "srcFrontendDir": "{srcDir}::frontend",
     "srcBackendDir": "{srcDir}::backend",
+    "srcFrontendResourcesDir": "{srcDir}::frontend::resources",
+    "srcBackendResourcesDir": "{srcDir}::backend::resources",
     "assetDir": "{workingDir}::asset",
     "assetTemplateDir": "{assetDir}::template",
     "assetWwwDir": "{assetDir}::www",
@@ -80,17 +82,75 @@
     "debugConfigDir": "{debugBinDir}::config",
     "releaseConfigDir": "{releaseBinDir}::config"
   },
+  "pwa": {
+    "version": "{appVersion}",
+    "cacheName": "{appId}-{appVersion}",
+    "assetWwwDir": "{assetWwwDir}",
+    "resourcesOut": "{srcFrontendResourcesDir}::pwaResources.nim",
+    "staticResources": [
+      "/",
+      "/app",
+      "/css/*",
+      "/images/*",
+      "/js/*",
+      "/vendor/*",
+      "/favicon.ico"
+    ],
+    "manifest": {
+      "name": "{appName}",
+      "short_name": "",
+      "start_url": "/",
+      "display": "standalone",
+      "background_color": "#fff",
+      "description": "{appDesc}",
+      "icons": [
+        {
+          "src": "images/icons/icon512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "maskable"
+        }
+      ],
+      "related_applications": [],
+      "shortcuts": [
+        {
+          "name": "home",
+          "url": "/",
+          "icons": [],
+          "description": "",
+          "short_name": ""
+        }
+      ],
+      "share_target": {}
+    }
+  },
   "compile-debug-frontend": {
     "desc": "compile debug frontend app only.",
     "tasks": [
       {
         "action": "cmd",
+        "exe": "nake",
+        "options": "prepare-pwa {appName}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "nim",
+            "props": {
+              "src": "{srcFrontendDir}::appWorker.nim",
+              "out": "{debugWwwDir}::js::debug-{appName}-{appVersion}-{appId}.worker.js"
+            },
+            "options": "js --warning:UnusedImport:off --nimblePath:{nimbledepsDir} --deepcopy:on --opt:size --out:{out} {src}"
+          }
+        ]
+      },
+      {
+        "action": "cmd",
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{assetWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
+          "out": "{debugWwwDir}::js::debug-{appName}-{appVersion}-{appId}.js"
         },
-        "options": "js --nimblePath:{nimbledepsDir} --deepcopy:on --opt:size --out:{out} {src}"
+        "options": "js --warning:UnusedImport:off --nimblePath:{nimbledepsDir} --deepcopy:on --opt:size --out:{out} {src}"
       }
     ]
   },
@@ -99,12 +159,28 @@
     "tasks": [
       {
         "action": "cmd",
+        "exe": "nake",
+        "options": "prepare-pwa {appName}",
+        "next": [
+          {
+            "action": "cmd",
+            "exe": "nim",
+            "props": {
+              "src": "{srcFrontendDir}::appWorker.nim",
+              "out": "{releaseWwwDir}::js::release-{appName}-{appVersion}-{appId}.worker.js"
+            },
+            "options": "js --warning:UnusedImport:off --nimblePath:{nimbledepsDir} --deepcopy:on -d:release --opt:size --out:{out} {src}"
+          }
+        ]
+      },
+      {
+        "action": "cmd",
         "exe": "nim",
         "props": {
           "src": "{srcFrontendDir}::app.nim",
-          "out": "{assetWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
+          "out": "{releaseWwwDir}::js::release-{appName}-{appVersion}-{appId}.js"
         },
-        "options": "js --nimblePath:{nimbledepsDir} --deepcopy:on -d:release --opt:size --out:{out} {src}"
+        "options": "js --warning:UnusedImport:off --nimblePath:{nimbledepsDir} --deepcopy:on -d:release --opt:size --out:{out} {src}"
       }
     ]
   },
@@ -118,7 +194,7 @@
           "src": "{srcBackendDir}::app.nim",
           "out": "{releaseBinDir}::release-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} -d:ssl -d:zlib -d:release --threads:on --opt:speed --out:{out} {src}"
+        "options": "c --warning:UnusedImport:off -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} -d:ssl -d:zlib -d:release --threads:on --opt:speed --out:{out} {src}"
       }
     ]
   },
@@ -132,7 +208,7 @@
           "src": "{srcBackendDir}::app.nim",
           "out": "{debugBinDir}::debug-{appName}-{appVersion}-{appId}"
         },
-        "options": "c -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} -d:ssl -d:zlib --threads:on --opt:speed --out:{out} {src}"
+        "options": "c --warning:UnusedImport:off -d:nimDebugDlOpen --deepcopy:on --nimblePath:{nimbledepsDir} -d:ssl -d:zlib --threads:on --opt:speed --out:{out} {src}"
       }
     ]
   },

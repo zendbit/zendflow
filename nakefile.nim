@@ -193,18 +193,6 @@ proc isInPlatform(platform: string): bool {.gcsafe.} =
     of ($BSD).toLower:
       result = detectOs(BSD)
 
-proc loadJsonNakefile(appName: string = ""): JsonNode {.gcsafe.} =
-  #
-  # load nakefile.json
-  #
-  try:
-    if appsDir.joinPath(appName, jsonNakefile).fileExists:
-      result = appsDir.joinPath(appName, jsonNakefile).parseFile()
-    elif jsonNakefile.fileExists:
-      result = jsonNakefile.parseFile()
-  except Exception:
-    discard
-
 proc isUmbrellaMode(showMsg: bool = false): bool {.gcsafe.} =
   #
   # check is in umbrella mode
@@ -270,6 +258,45 @@ proc cleanDoubleColon(str: string): string {.gcsafe.} =
 
     if result.endsWith("::"):
       result = result.subStr(0, high(result) - 2)
+
+proc workingDir(appName: string): string {.gcsafe.} =
+  #
+  # get current app dir with given appname
+  #
+  result = getAppDir()
+  if appsDir != "":
+    result = result.joinPath(appsDir, appName)
+
+proc loadJsonNakefile(appName: string = ""): JsonNode {.gcsafe.} =
+  #
+  # load nakefile.json
+  #
+  try:
+    if appsDir.joinPath(appName, jsonNakefile).fileExists:
+      result = appsDir.joinPath(appName, jsonNakefile).parseFile()
+    elif jsonNakefile.fileExists:
+      result = jsonNakefile.parseFile()
+
+    var appInfo = result{"appInfo"}
+    var vars = result{"var"}
+    var tmpJsonNakefile = $result
+    if not appInfo.isNil:
+      appInfo = appInfo.subtituteVar()
+      for k, v in appInfo:
+        tmpJsonNakefile = tmpJsonNakefile.replace("{" & k & "}", v.getStr())
+
+    if not vars.isNil:
+      vars = vars.subtituteVar()
+      for k, v in vars:
+        tmpJsonNakefile = tmpJsonNakefile.replace("{" & k & "}", v.getStr())
+
+    tmpJsonNakefile = tmpJsonNakefile
+      .replace("::", $DirSep)
+      .replace("{workingDir}", appName.workingDir())
+    result = tmpJsonNakefile.parseJson()
+
+  except Exception:
+    discard
 
 proc moveDirContents(src: string,
   dest: string,
@@ -408,6 +435,9 @@ defApp = defaultApp()
 
 var appName {.threadvar.}: string
 appName = defApp.appName
+
+if cmdParams.len > 1:
+  appName = cmdParams[1]
 
 proc doActionList(actionList: JsonNode) {.gcsafe.} =
   #
@@ -582,56 +612,61 @@ proc doActionList(actionList: JsonNode) {.gcsafe.} =
         if not desc.isNil:
           echo desc.getStr()
 
-        let files = action{"files"}
         let list = action{"list"}
-        let next = action{"next"}
-        let err = action{"err"}
         var errMsg = ""
-        
-        echo &"replace str in files -> {files}"
 
-        if not files.isNil and not list.isNil:
-          for file in files:
-            if file.getStr().fileExists:
-              try:
-                var f = file.getStr()
-                  .open(FileMode.fmRead)
-                var fstr = f.readAll()
-                f.close()
+        if not list.isNil and list.kind == JsonNodeKind.JArray:
+          for l in list:
+            let files = l{"files"}
+            let next = action{"next"}
+            let replace = l{"replace"}
+            let err = action{"err"}
 
-                if not list.isNil and
-                  list.kind == JsonNodeKind.JArray:
+            if not files.isNil:
+              for file in files:
 
-                  for l in list:
-                    let oldstr = l{"old"}
-                    let newstr = l{"new"}
-                    if not oldstr.isNil and not newstr.isNil:
-                      echo &" {oldstr} -> {newstr}"
+                echo &"replace str in files -> {files}"
+
+                if file.getStr().fileExists:
+                  try:
+                    var f = file.getStr()
+                      .open(FileMode.fmRead)
+                    var fstr = f.readAll()
+                    f.close()
+
+                    if not replace.isNil:
+
+                      for k, v in replace:
+                        echo &" {k} -> {v}"
 
 
-                      # find rgx on pattern then escape it
-                      let regReplaceStr = oldStr.getStr.cleanDoubleColon.escapePattern
+                        # find rgx on pattern then escape it
+                        let regReplaceStr = k.cleanDoubleColon.escapePattern
 
-                      fstr = fstr.replace(
-                        re2 regReplaceStr,
-                        newstr.getStr().cleanDoubleColon()
-                        )
-                      
-                  f = file.getStr()
-                    .open(FileMode.fmWrite)
-                  f.write(fstr)
-                  f.close()
+                        fstr = fstr.replace(
+                          re2 regReplaceStr,
+                          v.getStr().cleanDoubleColon()
+                          )
 
-              except Exception as ex:
-                errMsg = ex.msg
+                      f = file.getStr()
+                        .open(FileMode.fmWrite)
+                      f.write(fstr)
+                      f.close()
 
-              if errMsg != "":
-                echo errMsg
-                if not err.isNil and err.kind == JsonNodeKind.JArray:
-                  err.doActionList
+                  except Exception as ex:
+                    errMsg = ex.msg
 
-              elif not next.isNil and next.kind == JsonNodeKind.JArray:
-                next.doActionList
+                  if errMsg != "":
+                    echo errMsg
+                    if not err.isNil and err.kind == JsonNodeKind.JArray:
+                      err.doActionList
+
+                  elif not next.isNil and next.kind == JsonNodeKind.JArray:
+                    next.doActionList
+
+        let next = action{"next"}
+        if errMsg == "" and not next.isNil and next.kind == JsonNodeKind.JArray:
+          next.doActionList
 
       of "removeFile", "removeDir", "createDir":
         let list = action{"list"}
@@ -750,14 +785,6 @@ proc doActionList(actionList: JsonNode) {.gcsafe.} =
         echo &"{actionType} action not implemented."
   else:
     echo "not valid action list, action list should be in json array."
-
-proc workingDir(appName: string): string {.gcsafe.} =
-  #
-  # get current app dir with given appname
-  #
-  result = getAppDir()
-  if appsDir != "":
-    result = result.joinPath(appsDir, appName)
 
 proc isAppExists(appName: string): bool {.gcsafe.} =
   #
@@ -1125,46 +1152,65 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
     echo ""
 
 task "install-deps", "install nimble app depedencies in local env. Ex: nake install-deps [appName].":
-  let defApp = defaultApp()
+  appName.installDeps()
 
-  if cmdParams.len > 1:
-    let appName = cmdParams[1]
-    appName.installDeps()
+task "prepare-pwa", "prepare progressive web app resources manifest.json and worker":
+  let pwa = appName.loadJsonNakefile(){"pwa"}
+  let version = pwa{"version"}
+  let cacheName = pwa{"cacheName"}
+  let staticResources = pwa{"staticResources"}
+  let resourcesOut = pwa{"resourcesOut"}
+  let assetWwwDir = pwa{"assetWwwDir"}
 
-  elif defApp.appName.isAppExists() or not isUmbrellaMode():
-    defApp.appName.installDeps()
+  if not version.isNil and
+    not cacheName.isNil and
+    not staticResources.isNil and
+    not resourcesOut.isNil and
+    not assetWwwDir.isNil:
 
-  else:
-    echo ""
-    echo "invalid arguments."
-    echo ""
+    let resOutStr = resourcesOut.getStr()
+    let resDirStr = resOutStr.splitFile().dir
+    let wwwDirStr = assetWwwDir.getStr()
+
+    if not resDirStr.dirExists():
+      resDirStr.createDir()
+
+    var pwaResourcesOut: seq[string]
+    pwaResourcesOut.add("##  this autogenerate from building system")
+    pwaResourcesOut.add("##  don't edit will override on new build")
+    pwaResourcesOut.add(&"const version* = {version}")
+    pwaResourcesOut.add(&"const cacheName* = {cacheName}")
+    pwaResourcesOut.add("const staticResources*: seq[string] = @[")
+    for res in staticResources:
+      let resStr = res.getStr()
+      if resStr.endsWith(suffix = "/*"):
+        for path in wwwDirStr.joinPath(resStr.replace("/*", "")).walkDirRec():
+          pwaResourcesOut.add(&"""    "{path.replace(wwwDirStr, "")}",""")
+
+        continue
+
+      pwaResourcesOut.add(&"""    "{resStr}",""")
+
+    pwaResourcesOut.add("  ]")
+
+    let f = open(resOutStr, fmWrite)
+    f.write(pwaResourcesOut.join("\n"))
+    f.close()
 
 task "help", "show available tasks. Ex: nake help.":
   "nake".shell()
-
-if cmdParams.len > 1:
-  appName = cmdParams[1]
 
 proc addNakeTask(name: string, desc: string, taskList: JsonNode) {.gcsafe.} =
   ## if appName.workingDir not equal "." or ""
   ## then set nwatchdog workdir to appName.workingDir
 
-  var appCollectionsDir = getAppDir().joinPath("apps")
   if appName.workingDir notin ["", "."]:
     watchDog.workdir = appName.workingDir
-  else:
-    appCollectionsDir = getAppDir()
 
   if not taskList.isNil and taskList.kind == JsonNodeKind.JArray:
     {.gcsafe.}:
       task name, desc:
-        let actionToDo = ($taskList).replace("::", $DirSep)
-          .replace("{workingDir}", appName.workingDir)
-          .replace("{appName}", appName)
-          .replace("{appId}", appInfo(appName).appId)
-          .replace("{appVersion}", appInfo(appName).appVersion)
-          .replace("{appCollectionsDir}", appCollectionsDir).parseJson
-        actionToDo.doActionList
+        taskList.doActionList
   else:
     echo &"invalid task list {name} , should be in JArray."
 
@@ -1186,7 +1232,7 @@ if appName.isAppExists():
     nakefileNode = jNodeStr.parseJson
 
     for k, v in nakefileNode:
-      if k in ["appInfo", "nimble", "var"]:
+      if k in ["appInfo", "nimble", "var", "pwa"]:
         continue
       var desc = v{"desc"}.getStr
       if desc == "": desc = k
