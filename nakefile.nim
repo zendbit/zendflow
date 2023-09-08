@@ -1154,51 +1154,52 @@ task "delete-app", "delete app. Ex: nake delete-app appName.":
 task "install-deps", "install nimble app depedencies in local env. Ex: nake install-deps [appName].":
   appName.installDeps()
 
-task "prepare-pwa", "prepare progressive web app resources manifest.json and worker":
-  let pwa = appName.loadJsonNakefile(){"pwa"}
-  let version = pwa{"version"}
-  let cacheName = pwa{"cacheName"}
-  let staticResources = pwa{"staticResources"}
-  let resourcesOut = pwa{"resourcesOut"}
-  let assetWwwDir = pwa{"assetWwwDir"}
-
-  if not version.isNil and
-    not cacheName.isNil and
-    not staticResources.isNil and
-    not resourcesOut.isNil and
-    not assetWwwDir.isNil:
-
-    let resOutStr = resourcesOut.getStr()
-    let resDirStr = resOutStr.splitFile().dir
-    let wwwDirStr = assetWwwDir.getStr()
-
-    if not resDirStr.dirExists():
-      resDirStr.createDir()
-
-    var pwaResourcesOut: seq[string]
-    pwaResourcesOut.add("##  this autogenerate from building system")
-    pwaResourcesOut.add("##  don't edit will override on new build")
-    pwaResourcesOut.add(&"const version* = {version}")
-    pwaResourcesOut.add(&"const cacheName* = {cacheName}")
-    pwaResourcesOut.add("const staticResources*: seq[string] = @[")
-    for res in staticResources:
-      let resStr = res.getStr()
-      if resStr.endsWith(suffix = "/*"):
-        for path in wwwDirStr.joinPath(resStr.replace("/*", "")).walkDirRec():
-          pwaResourcesOut.add(&"""    "{path.replace(wwwDirStr, "")}",""")
-
-        continue
-
-      pwaResourcesOut.add(&"""    "{resStr}",""")
-
-    pwaResourcesOut.add("  ]")
-
-    let f = open(resOutStr, fmWrite)
-    f.write(pwaResourcesOut.join("\n"))
-    f.close()
-
 task "help", "show available tasks. Ex: nake help.":
   "nake".shell()
+
+proc preparePWA() =
+  task "prepare-pwa", "prepare progressive web app resources manifest.json and worker":
+    let pwa = appName.loadJsonNakefile(){"pwa"}
+    let version = pwa{"version"}
+    let cacheName = pwa{"cacheName"}
+    let staticResources = pwa{"staticResources"}
+    let resourcesOut = pwa{"resourcesOut"}
+    let assetWwwDir = pwa{"assetWwwDir"}
+
+    if not version.isNil and
+      not cacheName.isNil and
+      not staticResources.isNil and
+      not resourcesOut.isNil and
+      not assetWwwDir.isNil:
+
+      let resOutStr = resourcesOut.getStr()
+      let resDirStr = resOutStr.splitFile().dir
+      let wwwDirStr = assetWwwDir.getStr()
+
+      if not resDirStr.dirExists():
+        resDirStr.createDir()
+
+      var pwaResourcesOut: seq[string]
+      pwaResourcesOut.add("##  this autogenerate from building system")
+      pwaResourcesOut.add("##  don't edit will override on new build")
+      pwaResourcesOut.add(&"const version* = {version}")
+      pwaResourcesOut.add(&"const cacheName* = {cacheName}")
+      pwaResourcesOut.add("const staticResources*: seq[string] = @[")
+      for res in staticResources:
+        let resStr = res.getStr()
+        if resStr.endsWith(suffix = "/*"):
+          for path in wwwDirStr.joinPath(resStr.replace("/*", "")).walkDirRec():
+            pwaResourcesOut.add(&"""    "{path.replace(wwwDirStr, "")}",""")
+
+          continue
+
+        pwaResourcesOut.add(&"""    "{resStr}",""")
+
+      pwaResourcesOut.add("  ]")
+
+      let f = open(resOutStr, fmWrite)
+      f.write(pwaResourcesOut.join("\n"))
+      f.close()
 
 proc addNakeTask(name: string, desc: string, taskList: JsonNode) {.gcsafe.} =
   ## if appName.workingDir not equal "." or ""
@@ -1231,10 +1232,16 @@ if appName.isAppExists():
 
     nakefileNode = jNodeStr.parseJson
 
+    ##  padd task prepare-pwa if pwa settings exists
+    if not nakefileNode{"pwa"}.isNil:
+      preparePWA()
+
     for k, v in nakefileNode:
       if k in ["appInfo", "nimble", "var", "pwa"]:
         continue
+      
       var desc = v{"desc"}.getStr
+      ##  if description empty set description to task name
       if desc == "": desc = k
       let actionList = v{"tasks"}
       k.addNakeTask(desc, actionList)
