@@ -1,3 +1,5 @@
+# This page is deprecated, and merged to [Katalis framework](https://github.com/zendbit/katalis)
+
 # ZendFlow
 Zendflow now transformed to universal tools for nim lang, the main idea is for managing nim lang application
 
